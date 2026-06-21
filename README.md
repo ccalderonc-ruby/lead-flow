@@ -112,8 +112,8 @@ The project will include automated tests for:
 ### Setup
 
 ```bash
-git clone https://github.com/your-username/leadflow-crm.git
-cd leadflow-crm
+git clone https://github.com/ccalderonc-ruby/lead-flow.git
+cd lead-flow
 
 bundle install
 npm install
@@ -161,3 +161,15 @@ npm run check   # TypeScript type check
 ## Data model
 
 See [docs/DATA_MODEL.md](docs/DATA_MODEL.md) for the full entity relationship diagram, associations, validations, role permissions, and scaffold commands.
+
+## Project status
+
+In development.
+
+## Author
+
+Developed by Cheyenne Calderon.
+
+## Notes
+
+This project was developed as part of a Ruby on Rails and React course.
