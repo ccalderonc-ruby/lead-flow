@@ -1,12 +1,10 @@
 # LeadFlow CRM
 
-LeadFlow CRM is a web application developed as an academic project using Ruby on Rails and React. The system allows users to manage leads, follow-up tasks, meetings, notes, and sales opportunities within a single platform.
+LeadFlow CRM is a web application developed as an academic project using **Ruby on Rails** and **React (via Inertia.js)**. The system allows users to manage leads, follow-up tasks, meetings, notes, and sales opportunities within a single platform.
 
 The main goal of the project is to help advisors and sales teams organize their sales process and client follow-ups more efficiently.
 
----
-
-# 📌 Project Description
+## Project description
 
 Many financial advisors, insurance agents, and consultants manage their leads using spreadsheets, personal notes, or messaging applications, which can lead to:
 
@@ -17,56 +15,48 @@ Many financial advisors, insurance agents, and consultants manage their leads us
 
 LeadFlow CRM centralizes this information through a web-based system with user authentication, role-based authorization, and lead management features.
 
----
-
-# 🎯 Project Goals
+## Project goals
 
 - Implement user authentication
 - Implement role-based authorization
-- Use a relational database
+- Use a relational database (PostgreSQL)
 - Implement functional CRUD operations
 - Apply validations
 - Create automated tests
 - Build a full-stack architecture using Rails and React
 
----
-
-# 👥 User Roles
+## User roles
 
 | Role | Permissions |
-|---|---|
-| Admin | Manages users and all system data |
-| Advisor | Manages assigned leads, tasks, meetings, and opportunities |
-| Assistant | Can view information and add notes or tasks |
+|------|-------------|
+| **Admin** | Manages users and all system data |
+| **Advisor** | Manages assigned leads, tasks, meetings, and opportunities |
+| **Assistant** | Can view information and add notes or tasks |
 
----
+## Main models
 
-# 🗄️ Main Models
+| Model | Description |
+|-------|-------------|
+| `User` | Authenticated system user |
+| `Role` | Defines permissions (Admin, Advisor, Assistant) |
+| `Lead` | Prospective or active client |
+| `Opportunity` | Sales opportunity linked to a lead |
+| `FollowUpTask` | Scheduled follow-up action |
+| `Meeting` | Meeting with a lead |
+| `Note` | Note or comment on a lead |
 
-The project includes the following models:
+## Database relationships
 
-- User
-- Role
-- Lead
-- Opportunity
-- FollowUpTask
-- Meeting
-- Note
+- A `Role` has many `Users`
+- A `User` has many `Leads` (assigned)
+- A `Lead` has many `Opportunities`
+- A `Lead` has many `FollowUpTasks`
+- A `Lead` has many `Meetings`
+- A `Lead` has many `Notes`
 
----
+See [docs/DATA_MODEL.md](docs/DATA_MODEL.md) for full fields and associations.
 
-# 📊 Database Relationships
-
-- A Role can have many Users
-- A User can have many Leads
-- A Lead can have many Opportunities
-- A Lead can have many FollowUpTasks
-- A Lead can have many Meetings
-- A Lead can have many Notes
-
----
-
-# ⚙️ Main Features
+## Main features
 
 - User login
 - Role management
@@ -79,11 +69,9 @@ The project includes the following models:
 - Search and filters
 - Sales dashboard
 
----
+## Validations
 
-# ✅ Validations
-
-Examples of implemented validations:
+Examples of validations to implement:
 
 - Unique email per user
 - Required lead name
@@ -91,9 +79,7 @@ Examples of implemented validations:
 - Positive opportunity values
 - Required note content
 
----
-
-# 🧪 Automated Tests
+## Automated tests
 
 The project will include automated tests for:
 
@@ -104,54 +90,64 @@ The project will include automated tests for:
 - CRUD operations
 - Business logic
 
----
+## Technologies used
 
-# 🛠️ Technologies Used
+| Layer | Stack |
+|-------|-------|
+| Backend | Ruby on Rails 8.1, Puma |
+| Frontend | React 19, TypeScript, Inertia.js, Tailwind CSS |
+| Assets | Vite |
+| Database | PostgreSQL |
+| Background jobs | Solid Queue |
+| Deploy | Docker, Kamal |
 
-## Backend
-- Ruby on Rails
+## Installation
 
-## Frontend
-- React
+### Prerequisites
 
-## Database
-- Relational database
+- Ruby (see `.ruby-version`)
+- Node.js and npm
+- PostgreSQL
 
----
-
-# 🚀 Installation
-
-## Clone repository
-
-```bash
-git clone https://github.com/your-username/leadflow-crm.git
-```
-
----
-
-## Backend Setup
+### Setup
 
 ```bash
-cd backend
+git clone https://github.com/ccalderonc-ruby/lead-flow.git
+cd lead-flow
+
 bundle install
-rails db:create
-rails db:migrate
-rails server
+npm install
+
+bin/rails db:create
+bin/rails db:migrate
+bin/rails db:seed
 ```
 
----
+### Development
 
-## Frontend Setup
+Run Rails and Vite together:
 
 ```bash
-cd frontend
-npm install
-npm start
+bin/dev
 ```
 
----
+Or in separate terminals:
 
-# 📚 Main Use Cases
+```bash
+bin/rails server
+bin/vite dev
+```
+
+The app will be available at `http://localhost:3000`.
+
+### Tests
+
+```bash
+bin/rails test
+npm run check   # TypeScript type check
+```
+
+## Main use cases
 
 1. User login
 2. Role management
@@ -162,20 +158,18 @@ npm start
 7. Note registration
 8. Lead filtering
 
----
+## Data model
 
-# 📄 Project Status
+See [docs/DATA_MODEL.md](docs/DATA_MODEL.md) for the full entity relationship diagram, associations, validations, role permissions, and scaffold commands.
 
-🚧 In development
+## Project status
 
----
+In development.
 
-# 👩‍💻 Author
+## Author
 
 Developed by Cheyenne Calderon.
 
----
-
-# 📌 Notes
+## Notes
 
 This project was developed as part of a Ruby on Rails and React course.
