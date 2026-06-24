@@ -1,0 +1,9 @@
+prospect:
+  name: Prospect
+  position: 1
+  color: "#6366f1"
+
+qualified:
+  name: Qualified
+  position: 2
+  color: "#22c55e"

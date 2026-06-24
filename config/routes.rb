@@ -4,6 +4,10 @@ Rails.application.routes.draw do
     get "(*path)", to: redirect { |params, req| "#{req.protocol}localhost:#{req.port}/#{params[:path]}" }
   end
 
+  resource :session, only: %i[new create destroy]
+  get "login", to: "sessions#new", as: :login
+  delete "logout", to: "sessions#destroy", as: :logout
+
   root "inertia_example#index"
   get "inertia-example", to: "inertia_example#index"
 

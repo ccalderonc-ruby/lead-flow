@@ -1,9 +1,11 @@
-import { Head } from '@inertiajs/react'
+import { Head, router, usePage } from '@inertiajs/react'
 import { version as react_version } from 'react'
 
 import railsSvg from '/assets/rails.svg'
 import inertiaSvg from '/assets/inertia.svg'
 import reactSvg from '/assets/react.svg'
+
+import type { SharedProps } from '@/types'
 
 import cs from './index.module.css'
 
@@ -11,9 +13,32 @@ export default function InertiaExample(
   { rails_version, ruby_version, rack_version, inertia_rails_version }:
   { rails_version: string, ruby_version: string, rack_version: string, inertia_rails_version: string }
 ) {
+  const { auth, flash } = usePage<SharedProps>().props
+
   return (
     <div className={cs.root}>
       <Head title="Ruby on Rails + Inertia + React" />
+
+      {flash.notice && (
+        <p className="mx-auto mb-4 max-w-3xl rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
+          {flash.notice}
+        </p>
+      )}
+
+      {auth.user && (
+        <div className="mx-auto mb-6 flex max-w-3xl items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm">
+          <span>
+            Signed in as <strong>{auth.user.name}</strong> ({auth.user.role})
+          </span>
+          <button
+            type="button"
+            onClick={() => router.delete('/logout')}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
 
       <nav className={cs.subNav}>
         <a href="https://rubyonrails.org" target="_blank">

@@ -1,0 +1,10 @@
+review:
+  title: Proposal Review
+  scheduled_on: 2026-07-10
+  start_time: 2026-07-10 14:00:00
+  duration_minutes: 45
+  virtual_meeting: true
+  virtual_link: https://meet.example.com/abc
+  status: scheduled
+  lead: sarah
+  user: advisor

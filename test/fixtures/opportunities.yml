@@ -1,0 +1,11 @@
+migration:
+  title: CRM Migration
+  value: 32000.0
+  probability: 60
+  close_date: 2026-11-15
+  priority: high
+  source: Referral
+  description: Phase one migration
+  stage: proposal
+  lead: sarah
+  user: advisor

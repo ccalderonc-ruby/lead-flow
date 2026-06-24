@@ -2,6 +2,11 @@
 
 export PORT="${PORT:-3000}"
 
+echo ""
+echo "  LeadFlow app:  http://localhost:${PORT}/login"
+echo "  (Port 3036 is Vite assets only — do not open it in the browser)"
+echo ""
+
 if command -v overmind 1> /dev/null 2>&1
 then
   overmind start -f Procfile.dev "$@"

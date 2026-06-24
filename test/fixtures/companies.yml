@@ -1,0 +1,9 @@
+acme:
+  name: Acme Corp
+  normalized_name: acme
+  country: us
+
+technova:
+  name: TechNova Solutions
+  normalized_name: technova solutions
+  country: us

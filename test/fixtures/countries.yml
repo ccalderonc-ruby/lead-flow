@@ -1,0 +1,9 @@
+us:
+  name: United States
+  iso_code: US
+  region: North America
+
+cr:
+  name: Costa Rica
+  iso_code: CR
+  region: Central America
