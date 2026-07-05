@@ -15,3 +15,12 @@ advisor:
   team: enterprise
   country: cr
   status: active
+
+assistant:
+  name: Casey Assistant
+  email: assistant@example.com
+  password_digest: <%= BCrypt::Password.create("password") %>
+  role: assistant
+  team: enterprise
+  country: us
+  status: active

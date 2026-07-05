@@ -20,3 +20,11 @@ marcus:
   user: advisor
   company: acme
   country: cr
+
+admin_owned:
+  name: Enterprise Global Lead
+  email: enterprise@example.com
+  stage: prospect
+  user: admin
+  company: acme
+  country: us

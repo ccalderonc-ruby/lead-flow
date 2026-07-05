@@ -67,4 +67,6 @@ end
 
 gem "inertia_rails", "~> 3.21"
 
+gem "pundit", "~> 2.4"
+
 gem "vite_rails", "~> 3.11"

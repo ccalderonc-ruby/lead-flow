@@ -1,6 +1,6 @@
 # Story 1.3: Role-based authorization
 
-Status: ready-for-dev
+Status: review
 
 <!-- Ultimate context engine analysis completed — comprehensive developer guide for Story 1.3 -->
 
@@ -45,45 +45,45 @@ So that advisors, assistants, and admins only access what they should.
 
 ## Tasks / Subtasks
 
-- [ ] **Add Pundit** (AC: all)
-  - [ ] Add `gem "pundit"` to Gemfile, `bundle install`
-  - [ ] Run `bin/rails generate pundit:install`
-  - [ ] Include `Pundit::Authorization` in `ApplicationController`
-  - [ ] Add `pundit_user` method returning `current_user`
-  - [ ] `rescue_from Pundit::NotAuthorizedError` → redirect with alert (Inertia-friendly)
+- [x] **Add Pundit** (AC: all)
+  - [x] Add `gem "pundit"` to Gemfile, `bundle install`
+  - [x] Run `bin/rails generate pundit:install`
+  - [x] Include `Pundit::Authorization` in `ApplicationController`
+  - [x] Add `pundit_user` method returning `current_user`
+  - [x] `rescue_from Pundit::NotAuthorizedError` → redirect with alert (Inertia-friendly)
 
-- [ ] **User role helpers** (AC: all)
-  - [ ] Add to `User`: `admin?`, `advisor?`, `assistant?` (compare `role.name`)
-  - [ ] Optional: `Role` constants or enum-like methods for `"admin"`, `"advisor"`, `"assistant"`
+- [x] **User role helpers** (AC: all)
+  - [x] Add to `User`: `admin?`, `advisor?`, `assistant?` (compare `role.name`)
+  - [x] Optional: `Role` constants or enum-like methods for `"admin"`, `"advisor"`, `"assistant"`
 
-- [ ] **ApplicationPolicy base** (AC: all)
-  - [ ] `ApplicationPolicy` with `user`, `record`, default deny
-  - [ ] Admin bypass: `def admin?; user&.admin?; end` and `def index?; admin?; end` pattern where appropriate
+- [x] **ApplicationPolicy base** (AC: all)
+  - [x] `ApplicationPolicy` with `user`, `record`, default deny
+  - [x] Admin bypass: `def admin?; user&.admin?; end` and `def index?; admin?; end` pattern where appropriate
 
-- [ ] **Resource policies** (AC: 2–5)
-  - [ ] `LeadPolicy` — admin all; advisor assigned only; assistant read-only (index/show), no create/update/destroy
-  - [ ] `NotePolicy` — admin/advisor on assigned leads; assistant create + read on any lead
-  - [ ] `TaskPolicy` — admin all; advisor on assigned leads; assistant create + read
-  - [ ] `MeetingPolicy` — admin all; advisor on assigned leads; assistant read only
-  - [ ] `OpportunityPolicy` — admin all; advisor on assigned leads; assistant read only
-  - [ ] `UserPolicy` — admin only for manage actions; others denied
+- [x] **Resource policies** (AC: 2–5)
+  - [x] `LeadPolicy` — admin all; advisor assigned only; assistant read-only (index/show), no create/update/destroy
+  - [x] `NotePolicy` — admin/advisor on assigned leads; assistant create + read on any lead
+  - [x] `TaskPolicy` — admin all; advisor on assigned leads; assistant create + read
+  - [x] `MeetingPolicy` — admin all; advisor on assigned leads; assistant read only
+  - [x] `OpportunityPolicy` — admin all; advisor on assigned leads; assistant read only
+  - [x] `UserPolicy` — admin only for manage actions; others denied
 
-- [ ] **Controller integration hook** (AC: 1, 2)
-  - [ ] Add `authorize` / `policy_scope` pattern to `InertiaController` or a concern `Authorization` (do not confuse with existing `Authentication` concern)
-  - [ ] Create minimal `Admin::BaseController < InertiaController` with `before_action { authorize :admin, :access? }` or per-controller `authorize` — stub `/admin/users` route pointing to placeholder action for advisor denial test
+- [x] **Controller integration hook** (AC: 1, 2)
+  - [x] Add `authorize` / `policy_scope` pattern to `InertiaController` or a concern `Authorization` (do not confuse with existing `Authentication` concern)
+  - [x] Create minimal `Admin::BaseController < InertiaController` with `before_action { authorize :admin, :access? }` or per-controller `authorize` — stub `/admin/users` route pointing to placeholder action for advisor denial test
 
-- [ ] **Test fixtures** (AC: 6)
-  - [ ] Add `assistant` to `test/fixtures/roles.yml` and `test/fixtures/users.yml` if missing
-  - [ ] Ensure `leads.yml` has lead assigned to `advisor` and one unassigned/other advisor for scoping tests
+- [x] **Test fixtures** (AC: 6)
+  - [x] Add `assistant` to `test/fixtures/roles.yml` and `test/fixtures/users.yml` if missing
+  - [x] Ensure `leads.yml` has lead assigned to `advisor` and one unassigned/other advisor for scoping tests
 
-- [ ] **Tests** (AC: 6)
-  - [ ] `test/policies/lead_policy_test.rb` — advisor denied on other's lead; assistant cannot destroy
-  - [ ] `test/policies/note_policy_test.rb` — assistant can create
-  - [ ] `test/controllers/admin_access_test.rb` — advisor denied on admin route
-  - [ ] All existing 46 tests still pass
+- [x] **Tests** (AC: 6)
+  - [x] `test/policies/lead_policy_test.rb` — advisor denied on other's lead; assistant cannot destroy
+  - [x] `test/policies/note_policy_test.rb` — assistant can create
+  - [x] `test/controllers/admin_access_test.rb` — advisor denied on admin route
+  - [x] All existing 46 tests still pass
 
-- [ ] **Docs** (optional, minimal)
-  - [ ] Note in `docs/IMPLEMENTATION.md` Step 4 — authorization approach
+- [x] **Docs** (optional, minimal)
+  - [x] Note in `docs/IMPLEMENTATION.md` Step 4 — authorization approach
 
 ---
 
@@ -204,10 +204,38 @@ Policy tests use `User` fixtures + `Lead` fixtures — no browser needed for mos
 
 ### Agent Model Used
 
-_(filled by dev agent on completion)_
+Composer (dev-story)
 
 ### Debug Log References
 
+- Full suite: 59 tests, 148 assertions, 0 failures
+
 ### Completion Notes List
 
+- Pundit 2.4 added with policies for Lead, Note, Task, Meeting, Opportunity, User
+- Admin stub at `GET /admin/users` returns 200 for admin, redirect for advisor/assistant
+- Assistant can create notes on any lead; cannot destroy leads
+- Advisor scoped to assigned leads for update/destroy
+
 ### File List
+
+- Gemfile, Gemfile.lock
+- app/policies/application_policy.rb
+- app/policies/lead_policy.rb
+- app/policies/note_policy.rb
+- app/policies/task_policy.rb
+- app/policies/meeting_policy.rb
+- app/policies/opportunity_policy.rb
+- app/policies/user_policy.rb
+- app/controllers/application_controller.rb
+- app/controllers/admin/users_controller.rb
+- app/models/user.rb
+- config/routes.rb
+- test/fixtures/roles.yml
+- test/fixtures/users.yml
+- test/fixtures/leads.yml
+- test/policies/lead_policy_test.rb
+- test/policies/note_policy_test.rb
+- test/policies/user_policy_test.rb
+- test/controllers/admin_access_test.rb
+- docs/IMPLEMENTATION.md

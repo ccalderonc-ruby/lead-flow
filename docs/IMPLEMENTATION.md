@@ -420,15 +420,38 @@ bin/dev                                     # startup URL reminder
 
 ---
 
+## Step 4 — Role-Based Authorization (Pundit)
+
+### What we did
+
+Added **Pundit** policies so Admin, Advisor, and Assistant permissions are enforced server-side (fail closed).
+
+| Component | Purpose |
+|-----------|---------|
+| `app/policies/*_policy.rb` | Lead, Note, Task, Meeting, Opportunity, User policies |
+| `User#admin?`, `#advisor?`, `#assistant?` | Role helpers |
+| `Admin::UsersController` | Stub `/admin/users` route for authorization tests |
+| Policy + controller tests | 13 new tests (59 total in suite) |
+
+**Matrix:** See PRD addendum or `docs/DATA_MODEL.md#role-permissions`.
+
+**Verify:**
+
+```bash
+bin/rails test test/policies/ test/controllers/admin_access_test.rb
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 4 | Role-based authorization (admin vs advisor vs assistant) |
-| 5 | First Inertia CRUD pages (Leads index/show/create) |
-| 6 | Merge data model PR, rebase, open implementation PR |
+| 5 | App shell + Dashboard (Stories 1.4–1.5) |
+| 6 | First Inertia CRUD pages (Leads index/show/create) |
+| 7 | Merge data model PR, rebase, open implementation PR |
 
 ---
 

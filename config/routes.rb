@@ -11,5 +11,9 @@ Rails.application.routes.draw do
   root "inertia_example#index"
   get "inertia-example", to: "inertia_example#index"
 
+  namespace :admin do
+    resources :users, only: :index
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

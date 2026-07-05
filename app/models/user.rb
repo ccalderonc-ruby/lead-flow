@@ -15,4 +15,16 @@ class User < ApplicationRecord
 
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true
+
+  def admin?
+    role.name == "admin"
+  end
+
+  def advisor?
+    role.name == "advisor"
+  end
+
+  def assistant?
+    role.name == "assistant"
+  end
 end
