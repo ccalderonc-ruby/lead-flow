@@ -26,8 +26,6 @@
     <%= vite_client_tag %>
     <%= vite_typescript_tag "inertia.tsx" %>
     <%= inertia_ssr_head %>
-    <%= vite_javascript_tag "inertia.jsx" %>
-    <%= inertia_ssr_head %>
     <%= vite_javascript_tag 'application' %>
     <!--
       If using a TypeScript entrypoint file:
@@ -41,7 +39,7 @@
 
   </head>
 
-  <body>
+  <body data-turbo="false">
     <%= yield %>
   </body>
 </html>

@@ -119,9 +119,10 @@ Seeds create:
 - 3 roles (admin, advisor, assistant)
 - 5 lead stages + 6 opportunity stages
 - 1 team (“Enterprise Sales”)
-- **Development only:** admin user
-  - Email: `admin@leadflow.local`
-  - Password: `password`
+- **Development only:** dev users (password `password` for all)
+  - Admin: `admin@leadflow.local`
+  - Advisor: `advisor@leadflow.local`
+  - Assistant: `assistant@leadflow.local`
 
 ### 1.5 How to verify Step 1
 
@@ -352,7 +353,7 @@ assert_response :success
 ### 3.6 How to manually test Step 3
 
 ```bash
-bin/rails db:seed    # creates admin@leadflow.local
+bin/rails db:seed    # creates admin, advisor, assistant @leadflow.local
 bin/dev              # start Rails + Vite
 ```
 
@@ -443,15 +444,33 @@ bin/rails test test/policies/ test/controllers/admin_access_test.rb
 
 ---
 
+### Step 5 — App layout and role-aware navigation (Story 1.4)
+
+**Goal:** Consistent CRM shell on every authenticated Inertia page.
+
+| Component | Purpose |
+|-----------|---------|
+| `AppLayout` | Sidebar (Dashboard, Leads, Tasks, Meetings, Opportunities), admin links for admin role, user footer with sign out |
+| Placeholder pages | `/`, `/leads`, `/tasks`, `/meetings`, `/opportunities`, `/admin/users`, `/admin/roles` |
+| Login | Unchanged — no app shell |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/app_navigation_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 5 | App shell + Dashboard (Stories 1.4–1.5) |
-| 6 | First Inertia CRUD pages (Leads index/show/create) |
-| 7 | Merge data model PR, rebase, open implementation PR |
+| 6 | Dashboard metrics (Story 1.5) |
+| 7 | First Inertia CRUD pages (Leads index/show/create) |
 
 ---
 

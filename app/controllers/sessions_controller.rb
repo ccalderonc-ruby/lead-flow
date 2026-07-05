@@ -5,7 +5,7 @@ class SessionsController < InertiaController
 
   def new
     if authenticated?
-      redirect_to root_path
+      redirect_to root_path, status: :see_other
       return
     end
 
@@ -17,7 +17,13 @@ class SessionsController < InertiaController
 
     if user&.authenticate(params[:password])
       start_new_session_for(user)
-      redirect_to root_path, notice: "Signed in successfully."
+      flash[:notice] = "Signed in successfully."
+
+      if request.headers["X-Inertia"].present?
+        inertia_location root_url
+      else
+        redirect_to root_path, status: :see_other
+      end
     else
       redirect_to login_path, inertia: { errors: { email: [ "Invalid email or password" ] } }
     end
@@ -25,7 +31,13 @@ class SessionsController < InertiaController
 
   def destroy
     terminate_session
-    redirect_to login_path, notice: "Signed out successfully."
+    flash[:notice] = "Signed out successfully."
+
+    if request.headers["X-Inertia"].present?
+      inertia_location login_url
+    else
+      redirect_to login_path, status: :see_other
+    end
   end
 
   private

@@ -52,7 +52,13 @@ _This file contains critical rules, current project state, and patterns that AI 
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
 
-**Dev login:** `admin@leadflow.local` / `password` (after `bin/rails db:seed`)
+**Dev login** (after `bin/rails db:seed`) — all use password `password`:
+
+| Role | Email |
+|------|-------|
+| Admin | admin@leadflow.local |
+| Advisor | advisor@leadflow.local |
+| Assistant | assistant@leadflow.local |
 
 ### Not done
 

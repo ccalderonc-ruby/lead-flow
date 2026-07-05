@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module Admin
-  class UsersController < InertiaController
+  class RolesController < InertiaController
     def index
       authorize User
 
-      render inertia: "admin/users/index"
+      render inertia: "admin/roles/index"
     end
   end
 end

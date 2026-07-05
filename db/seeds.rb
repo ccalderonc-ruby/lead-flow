@@ -41,15 +41,22 @@ end
 
 if Rails.env.development?
   us = Country.find_by!(iso_code: "US")
-  admin_role = Role.find_by!(name: "admin")
+  cr = Country.find_by!(iso_code: "CR")
   team = Team.find_by!(name: "Enterprise Sales")
 
-  User.find_or_create_by!(email: "admin@leadflow.local") do |user|
-    user.name = "Admin User"
-    user.password = "password"
-    user.role = admin_role
-    user.team = team
-    user.country = us
-    user.status = "active"
+  [
+    { email: "admin@leadflow.local", name: "Admin User", role: "admin", country: us },
+    { email: "advisor@leadflow.local", name: "Alex Advisor", role: "advisor", country: cr },
+    { email: "assistant@leadflow.local", name: "Casey Assistant", role: "assistant", country: us },
+  ].each do |attrs|
+    role = Role.find_by!(name: attrs[:role])
+    User.find_or_create_by!(email: attrs[:email]) do |user|
+      user.name = attrs[:name]
+      user.password = "password"
+      user.role = role
+      user.team = team
+      user.country = attrs[:country]
+      user.status = "active"
+    end
   end
 end

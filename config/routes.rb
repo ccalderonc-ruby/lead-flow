@@ -8,11 +8,17 @@ Rails.application.routes.draw do
   get "login", to: "sessions#new", as: :login
   delete "logout", to: "sessions#destroy", as: :logout
 
-  root "inertia_example#index"
+  root "dashboard#index"
   get "inertia-example", to: "inertia_example#index"
+
+  resources :leads, only: :index
+  resources :tasks, only: :index
+  resources :meetings, only: :index
+  resources :opportunities, only: :index
 
   namespace :admin do
     resources :users, only: :index
+    resources :roles, only: :index
   end
 
   get "up" => "rails/health#show", as: :rails_health_check
