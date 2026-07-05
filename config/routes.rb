@@ -4,8 +4,21 @@ Rails.application.routes.draw do
     get "(*path)", to: redirect { |params, req| "#{req.protocol}localhost:#{req.port}/#{params[:path]}" }
   end
 
-  root "inertia_example#index"
-  get "inertia-example", to: "inertia_example#index"
+  resource :session, only: %i[new create destroy]
+  get "login", to: "sessions#new", as: :login
+  delete "logout", to: "sessions#destroy", as: :logout
+
+  root "dashboard#index"
+
+  resources :leads, only: :index
+  resources :tasks, only: :index
+  resources :meetings, only: :index
+  resources :opportunities, only: :index
+
+  namespace :admin do
+    resources :users, only: :index
+    resources :roles, only: :index
+  end
 
   get "up" => "rails/health#show", as: :rails_health_check
 end

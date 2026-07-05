@@ -1,0 +1,38 @@
+sarah:
+  name: Sarah Jenkins
+  email: sarah@example.com
+  phone: 555-0100
+  professional_title: VP Marketing
+  lead_source: LinkedIn
+  estimated_value: 45000.0
+  expected_close_date: 2026-12-31
+  discovery_notes: Interested in CRM migration
+  stage: qualified
+  user: advisor
+  team: enterprise
+  company: technova
+  country: us
+
+marcus:
+  name: Marcus Wright
+  email: marcus@example.com
+  stage: prospect
+  user: advisor
+  company: acme
+  country: cr
+
+admin_owned:
+  name: Enterprise Global Lead
+  email: enterprise@example.com
+  stage: prospect
+  user: admin
+  company: acme
+  country: us
+
+closed_lead:
+  name: Closed Deal Lead
+  email: closed@example.com
+  stage: closed
+  user: advisor
+  company: acme
+  country: us

@@ -1,0 +1,19 @@
+prospect:
+  name: Prospect
+  position: 1
+  default_probability: 20
+
+proposal:
+  name: Proposal
+  position: 2
+  default_probability: 60
+
+won:
+  name: Won
+  position: 3
+  default_probability: 100
+
+lost:
+  name: Lost
+  position: 4
+  default_probability: 0

@@ -1,0 +1,44 @@
+# frozen_string_literal: true
+
+class OpportunityPolicy < ApplicationPolicy
+  def index?
+    user.present?
+  end
+
+  def show?
+    return true if admin?
+    return true if assistant?
+
+    advisor? && lead_assigned_to_user?
+  end
+
+  def create?
+    return true if admin?
+
+    advisor? && lead_assigned_to_user?
+  end
+
+  def update?
+    create?
+  end
+
+  def destroy?
+    create?
+  end
+
+  class Scope < Scope
+    def resolve
+      return scope.none unless user
+
+      if user.admin?
+        scope.all
+      elsif user.advisor?
+        scope.joins(:lead).where(leads: { user_id: user.id })
+      elsif user.assistant?
+        scope.all
+      else
+        scope.none
+      end
+    end
+  end
+end
