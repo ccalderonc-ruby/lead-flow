@@ -269,7 +269,7 @@ resource :session, only: %i[new create destroy]
 get "login", to: "sessions#new", as: :login
 delete "logout", to: "sessions#destroy", as: :logout
 
-root "inertia_example#index"   # now requires authentication
+root "dashboard#index"   # requires authentication; metrics in Story 1.5
 ```
 
 ### 3.3 Frontend files
@@ -282,13 +282,9 @@ Login page built with:
 - Tailwind CSS — centered card layout
 - Displays validation errors from server
 
-#### `app/javascript/pages/inertia_example/index.tsx`
+#### Dashboard (Story 1.5)
 
-Updated home page to:
-
-- Read `auth.user` from shared Inertia props
-- Show signed-in user name and role
-- **Sign out** button → `DELETE /logout`
+Root `/` renders `dashboard/index.tsx` with role-scoped metric widgets (open leads, overdue tasks, upcoming meetings, pipeline value). The Inertia example page was removed in Story 1.5.
 
 #### `app/javascript/types/index.ts`
 
@@ -391,7 +387,7 @@ config/routes.rb                            # modified
 
 # Frontend
 app/javascript/pages/sessions/new.tsx
-app/javascript/pages/inertia_example/index.tsx  # modified
+app/javascript/pages/dashboard/index.tsx      # Story 1.5
 app/javascript/types/index.ts                   # modified
 
 # Tests
@@ -463,14 +459,35 @@ npm run check
 
 ---
 
+### Step 6 — Dashboard with summary metrics (Story 1.5)
+
+**Goal:** Role-scoped dashboard widgets at `/`.
+
+| Widget | Source |
+|--------|--------|
+| Open leads | Policy-scoped leads excluding Closed stage |
+| Overdue tasks | Pending/in-progress past due + status overdue |
+| Upcoming meetings | Scheduled within 7 days |
+| Pipeline value | Sum of active opportunity values (excludes Won/Lost) |
+
+**Verify:**
+
+```bash
+bin/rails test test/services/dashboard_metrics_test.rb test/controllers/dashboard_controller_test.rb
+npm run check
+bin/rails db:seed   # loads sample CRM data in development
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 6 | Dashboard metrics (Story 1.5) |
 | 7 | First Inertia CRUD pages (Leads index/show/create) |
+| 8 | README course compliance (Story 1.6) |
 
 ---
 

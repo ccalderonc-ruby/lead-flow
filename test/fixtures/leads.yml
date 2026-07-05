@@ -28,3 +28,11 @@ admin_owned:
   user: admin
   company: acme
   country: us
+
+closed_lead:
+  name: Closed Deal Lead
+  email: closed@example.com
+  stage: closed
+  user: advisor
+  company: acme
+  country: us

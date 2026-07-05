@@ -6,3 +6,12 @@ follow_up:
   status: pending
   lead: sarah
   user: advisor
+
+admin_task:
+  title: Review enterprise contract
+  description: Legal review
+  due_date: 2026-07-01
+  priority: high
+  status: pending
+  lead: admin_owned
+  user: admin

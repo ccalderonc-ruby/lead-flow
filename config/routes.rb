@@ -9,7 +9,6 @@ Rails.application.routes.draw do
   delete "logout", to: "sessions#destroy", as: :logout
 
   root "dashboard#index"
-  get "inertia-example", to: "inertia_example#index"
 
   resources :leads, only: :index
   resources :tasks, only: :index

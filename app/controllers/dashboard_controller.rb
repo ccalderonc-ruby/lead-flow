@@ -2,6 +2,10 @@
 
 class DashboardController < InertiaController
   def index
-    render inertia: "dashboard/index"
+    metrics = DashboardMetrics.new(current_user).call
+
+    render inertia: "dashboard/index", props: {
+      metrics: metrics
+    }
   end
 end

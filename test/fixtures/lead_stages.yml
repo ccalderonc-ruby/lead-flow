@@ -7,3 +7,8 @@ qualified:
   name: Qualified
   position: 2
   color: "#22c55e"
+
+closed:
+  name: Closed
+  position: 3
+  color: "#6b7280"

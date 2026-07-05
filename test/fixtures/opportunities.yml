@@ -9,3 +9,15 @@ migration:
   stage: proposal
   lead: sarah
   user: advisor
+
+won_deal:
+  title: Closed Won Deal
+  value: 99999.0
+  probability: 100
+  close_date: 2026-06-01
+  priority: medium
+  source: Inbound
+  description: Already won
+  stage: won
+  lead: admin_owned
+  user: admin

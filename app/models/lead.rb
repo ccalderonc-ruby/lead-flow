@@ -14,6 +14,8 @@ class Lead < ApplicationRecord
   has_many :lead_tags, dependent: :destroy
   has_many :tags, through: :lead_tags
 
+  scope :open, -> { joins(:stage).where.not(lead_stages: { name: "Closed" }) }
+
   validates :name, presence: true
   validates :country, presence: true
   validates :company, presence: true

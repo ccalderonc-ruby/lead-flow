@@ -48,7 +48,9 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Seeds | ✅ | Countries, roles, stages, admin user |
 | Model tests | ✅ | 40 model tests with fixtures |
 | Session auth | ✅ | Login/logout, `Authentication` concern, Inertia login page |
-| Auth tests | ✅ | 6 session controller tests (46 total in suite) |
+| Role authorization | ✅ | Pundit policies + admin routes |
+| App shell | ✅ | Sidebar layout, role-aware nav (Story 1.4) |
+| Dashboard metrics | ✅ | Open leads, overdue tasks, meetings, pipeline value (Story 1.5) |
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
 
@@ -64,11 +66,9 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| Role-based authorization (Pundit or custom) | High |
-| CRM Inertia pages (Leads, Tasks, etc.) | High |
-| App shell / sidebar layout | High |
+| CRM Inertia CRUD pages (Leads, Tasks, etc.) | High |
 | Controller CRUD + integration tests | High |
-| Search, filters, dashboard metrics | Medium |
+| Search and filters | Medium |
 | Stripe integration | Required by course |
 | Background job (Solid Queue) | Required by course |
 | Production deploy (Kamal/Docker scaffold exists) | Required by course |
@@ -121,7 +121,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 - `InertiaController` already: `require_authentication`, shares `auth.user` and `flash` to every page.
 - Public pages (login): inherit `InertiaController` + `allow_unauthenticated_access only: [...]`.
 - Render pages: `render inertia: "folder/page", props: { ... }` — props must be JSON-serializable.
-- Root after login: `inertia_example#index` — replace with dashboard when built.
+- Root after login: `dashboard#index` with summary metric widgets.
 - Dev: `bin/dev` starts Rails **:3000** + Vite **:3036** — only browse port 3000.
 - Host redirect: `127.0.0.1` → `localhost` in routes (Vite/Inertia cookie consistency).
 
