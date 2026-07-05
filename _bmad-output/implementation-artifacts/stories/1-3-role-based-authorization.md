@@ -1,6 +1,6 @@
 # Story 1.3: Role-based authorization
 
-Status: review
+Status: done
 
 <!-- Ultimate context engine analysis completed — comprehensive developer guide for Story 1.3 -->
 
@@ -239,3 +239,35 @@ Composer (dev-story)
 - test/policies/user_policy_test.rb
 - test/controllers/admin_access_test.rb
 - docs/IMPLEMENTATION.md
+
+---
+
+## Review Findings
+
+**Reviewed:** 2026-07-05 (commit `43d9e9f` + post-review patches)
+
+### Applied patches
+
+- [x] [Review][Patch] AC6 admin denial path — add `UserPolicy#destroy?` self-denial test [`test/policies/user_policy_test.rb`]
+- [x] [Review][Patch] Assistant create without lead — require `record_lead.present?` for Note/Task [`app/policies/note_policy.rb`, `app/policies/task_policy.rb`]
+
+### Deferred
+
+- [x] [Review][Defer] Wire `authorize` in all CRUD controllers as Epic 2+ lands — policies exist but only `/admin/users` calls `authorize` today [`app/controllers/`] — deferred, Epic 2 scope
+- [x] [Review][Defer] Add `after_action :verify_authorized` once resource controllers exist [`app/controllers/application_controller.rb`] — deferred, Epic 2 scope
+
+### Dismissed (noise)
+
+- Pundit initializer not generated — optional; gem works without it
+- `.agents/` / `_bmad/` bundled in commit — tooling install, not Story 1.3 scope
+
+### Acceptance criteria verdict
+
+| AC | Result |
+|----|--------|
+| 1 Admin route guard | ✅ Advisor/assistant redirected from `/admin/users` |
+| 2 Advisor lead scope | ✅ Denied update on unassigned lead |
+| 3 Assistant note create | ✅ Permitted on any lead |
+| 4 Assistant lead destroy | ✅ Denied |
+| 5 Admin lead CRUD | ✅ Policy permits all |
+| 6 Denial per role | ✅ Admin (self-destroy), advisor, assistant covered |

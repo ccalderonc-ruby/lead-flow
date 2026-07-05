@@ -14,6 +14,10 @@ class NotePolicyTest < ActiveSupport::TestCase
     assert NotePolicy.new(@assistant, @note).create?
   end
 
+  test "assistant cannot create note without a lead" do
+    refute NotePolicy.new(@assistant, Note.new).create?
+  end
+
   test "advisor cannot create note on lead assigned to another user" do
     refute NotePolicy.new(@advisor, @note).create?
   end

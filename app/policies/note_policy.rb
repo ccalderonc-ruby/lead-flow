@@ -14,7 +14,7 @@ class NotePolicy < ApplicationPolicy
 
   def create?
     return true if admin?
-    return true if assistant?
+    return true if assistant? && record_lead.present?
 
     advisor? && lead_assigned_to_user?
   end

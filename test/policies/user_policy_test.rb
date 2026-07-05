@@ -14,4 +14,9 @@ class UserPolicyTest < ActiveSupport::TestCase
   test "assistant cannot manage users" do
     refute UserPolicy.new(users(:assistant), User).index?
   end
+
+  test "admin cannot destroy themselves" do
+    admin = users(:admin)
+    refute UserPolicy.new(admin, admin).destroy?
+  end
 end
