@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of 1-6-readme-course-compliance (2026-07-05)
+
+- Pipeline stage transitions listed as non-CRUD — acceptable; emphasizes kanban UX beyond bare CRUD
+
 ## Deferred from: code review of 1-5-dashboard-with-summary-metrics (2026-07-05)
 
 - No automated perf assertion for 2s dashboard load AC — dev hardware check sufficient for MVP

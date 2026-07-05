@@ -223,7 +223,7 @@ erDiagram
 | `users` | Authenticated people who log in |
 | `leads` | Central client/prospect record |
 | `opportunities` | Sales deals linked to a lead |
-| `tasks` | Follow-up to-dos with due dates (README: FollowUpTask) |
+| `tasks` | Follow-up to-dos with due dates (`Task` model; table `tasks`) |
 | `meetings` | Scheduled client meetings |
 | `notes` | Comments on a lead |
 

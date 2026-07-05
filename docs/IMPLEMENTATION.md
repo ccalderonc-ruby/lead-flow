@@ -480,14 +480,29 @@ bin/rails db:seed   # loads sample CRM data in development
 
 ---
 
+### Step 7 — README course compliance (Story 1.6)
+
+**Goal:** README satisfies Week 1 course checklist for professor review.
+
+| Requirement | README section |
+|-------------|----------------|
+| 6+ non-CRUD use cases | `Use cases → Non-CRUD use cases` (7 listed) |
+| CRUD scope separate | `Use cases → CRUD use cases` |
+| Stripe, jobs, presentation | `Roadmap` (Weeks 6–7) |
+| Task naming | `Main models` + naming note |
+
+**Verify:** Review [README.md](../README.md) against course checklist.
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 7 | First Inertia CRUD pages (Leads index/show/create) |
-| 8 | README course compliance (Story 1.6) |
+| 8 | First Inertia CRUD pages (Leads index/show/create) |
+| 9 | Epic 1 retrospective (optional) |
 
 ---
 
