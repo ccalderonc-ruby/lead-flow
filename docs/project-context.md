@@ -51,6 +51,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Role authorization | ✅ | Pundit policies + admin routes |
 | App shell | ✅ | Sidebar layout, role-aware nav (Story 1.4) |
 | Dashboard metrics | ✅ | Open leads, overdue tasks, meetings, pipeline value (Story 1.5) |
+| Leads index | ✅ | Role-scoped table + search + pagination (Story 2.1) |
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
 
@@ -66,7 +67,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| CRM Inertia CRUD pages (Leads, Tasks, etc.) | High |
+| CRM Inertia CRUD pages (Leads create/edit/detail, Tasks, etc.) | High |
 | Controller CRUD + integration tests | High |
 | Search and filters | Medium |
 | Stripe integration | Required by course |
@@ -104,6 +105,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 - **Stage foreign keys:** `Lead` belongs_to `:stage` → `lead_stages`; `Opportunity` belongs_to `:stage` → `opportunity_stages`. Always use `foreign_key: { to_table: :lead_stages }` (or `:opportunity_stages`) in migrations — never bare `:stage` without `to_table`.
 - Model is **`Task`**, not `FollowUpTask` — table is `tasks`.
 - **Company dedup:** use `Company.find_or_initialize_by_name(name)` and `Company.normalize_name` — do not create duplicate companies from typos.
+- **Lead email uniqueness:** emails are required, normalized (strip + downcase), and unique. Use `Lead.find_or_initialize_by_email(email, **attrs)` when creating leads — never insert a second lead with the same email.
 - Email lookup: strip + downcase before find (see `SessionsController#normalized_email`).
 - Prefer `update_column` only for non-validated timestamps (e.g. `last_login_at` on login).
 
@@ -129,7 +131,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 - **Tier 1 (course README):** Role, User, Lead, Opportunity, Task, Meeting, Note.
 - **Tier 2 (UI fidelity):** LeadStage, OpportunityStage, Team, Tag, LeadTag, NoteTag, Country, Company.
-- Lead requires: `name`, `company`, `country`, `stage`, `user` (assigned advisor).
+- Lead requires: `name`, `email` (unique), `company`, `country`, `stage`, `user` (assigned advisor).
 - Task requires: `due_date`. Note requires: `content`. Opportunity: `value > 0` when present.
 - Roles (seeded): `admin`, `advisor`, `assistant` — authorization logic not enforced yet; document intended permissions in `docs/DATA_MODEL.md`.
 

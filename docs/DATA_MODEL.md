@@ -464,6 +464,9 @@ class Lead < ApplicationRecord
   validates :name, presence: true
   validates :country, presence: true
   validates :company, presence: true
+  validates :email, presence: true, uniqueness: { case_sensitive: false }
+
+  # Prefer Lead.find_or_initialize_by_email when creating from forms.
 end
 ```
 
@@ -540,7 +543,7 @@ end
 | Model | Validation |
 |-------|------------|
 | `User` | `email` — presence, uniqueness |
-| `Lead` | `name` — presence; `country` — presence; `company` — presence |
+| `Lead` | `name` — presence; `email` — presence + uniqueness (case-insensitive); `country`, `company` — presence |
 | `Company` | `name`, `normalized_name`, `country` — presence; `normalized_name` — uniqueness |
 | `Country` | `name`, `iso_code` — presence, uniqueness |
 | `Task` | `due_date` — presence |

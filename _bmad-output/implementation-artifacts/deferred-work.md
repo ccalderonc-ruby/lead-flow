@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: code review of 2-1-leads-index-with-search (2026-07-13)
+
+- Closed leads still appear in index — AC lists all assigned stages; revisit if product wants open-only
+- USD hardcoded for estimated value — MVP course demo; localize later if needed
+- Wire `Lead.find_or_initialize_by_email` into create/import path — Story 2.2
+- Rescue/retry concurrent `RecordNotUnique` on lead create — Story 2.2
+
 ## Deferred from: code review of 1-6-readme-course-compliance (2026-07-05)
 
 - Pipeline stage transitions listed as non-CRUD — acceptable; emphasizes kanban UX beyond bare CRUD

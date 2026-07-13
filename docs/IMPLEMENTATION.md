@@ -495,14 +495,34 @@ bin/rails db:seed   # loads sample CRM data in development
 
 ---
 
+### Step 8 — Leads index with search (Story 2.1)
+
+**Goal:** Role-scoped leads table with search and pagination at `/leads`.
+
+| Piece | Behavior |
+|-------|----------|
+| Scope | Advisor → assigned only; Admin/Assistant → all |
+| Search | Case-insensitive match on name, email, company |
+| Table | name, company, stage, advisor, last activity, estimated value |
+| Pagination | 25 per page |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 8 | First Inertia CRUD pages (Leads index/show/create) |
-| 9 | Epic 1 retrospective (optional) |
+| 9 | Create / edit lead + lead detail (Stories 2.2–2.4) |
+| 10 | Epic 1 retrospective (optional) |
 
 ---
 
