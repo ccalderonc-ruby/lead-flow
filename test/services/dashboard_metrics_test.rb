@@ -15,7 +15,7 @@ class DashboardMetricsTest < ActiveSupport::TestCase
     metrics = DashboardMetrics.new(users(:advisor)).call
 
     assert_equal 2, metrics[:open_leads]
-    assert_equal 1, metrics[:overdue_tasks]
+    assert_equal 2, metrics[:overdue_tasks]
     assert_equal 1, metrics[:upcoming_meetings]
     assert_in_delta 32_000.0, metrics[:pipeline_value]
   end
@@ -24,7 +24,7 @@ class DashboardMetricsTest < ActiveSupport::TestCase
     metrics = DashboardMetrics.new(users(:admin)).call
 
     assert_equal 3, metrics[:open_leads]
-    assert_equal 2, metrics[:overdue_tasks]
+    assert_equal 3, metrics[:overdue_tasks]
     assert_equal 1, metrics[:upcoming_meetings]
     assert_in_delta 32_000.0, metrics[:pipeline_value]
   end

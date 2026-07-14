@@ -15,3 +15,30 @@ admin_task:
   status: pending
   lead: admin_owned
   user: admin
+
+future_follow_up:
+  title: Schedule product demo
+  description: Wait until Q4 kickoff
+  due_date: 2026-12-15
+  priority: low
+  status: pending
+  lead: sarah
+  user: advisor
+
+completed_follow_up:
+  title: Send welcome packet
+  description: Already delivered
+  due_date: 2026-06-15
+  priority: medium
+  status: completed
+  lead: sarah
+  user: advisor
+
+assistant_owned_task:
+  title: Prep meeting notes
+  description: Draft notes for advisor review
+  due_date: 2026-07-01
+  priority: medium
+  status: pending
+  lead: sarah
+  user: assistant

@@ -55,6 +55,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Create lead | ✅ | New lead form + company dedup + unique email (Story 2.2) |
 | Edit lead | ✅ | Edit form + per-row authorize + shared LeadForm (Story 2.3) |
 | Lead detail | ✅ | Show page + related previews; create/update redirect to detail (Story 2.4) |
+| Tasks list | ✅ | Role-scoped table + All/Mine/Overdue filters (Story 3.1) |
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
 
@@ -70,7 +71,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| CRM Inertia CRUD pages (Tasks, Meetings, Notes, Opportunities) | High |
+| CRM Inertia CRUD pages (Task create/complete, Notes, Meetings, Opportunities) | High |
 | Controller CRUD + integration tests | High |
 | Search and filters | Medium |
 | Stripe integration | Required by course |

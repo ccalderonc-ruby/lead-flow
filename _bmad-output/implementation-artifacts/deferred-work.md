@@ -1,5 +1,20 @@
 # Deferred Work
 
+## Deferred from: code review of 3-1-tasks-list-with-filters (2026-07-14)
+
+- Overdue list vs `Task.overdue`/dashboard diverge by design (AC is pending-only) — unify only if product wants one definition
+- Shared fixtures bump dashboard overdue counts — acceptable coupling for MVP
+- Status humanization / filter-aware empty copy — polish
+- Clamped `page` left in URL / preserveState races — same pattern as leads index
+- Broader TaskPolicy action tests beyond index/scope — when write paths ship (3.2+)
+
+## Later backlog (parked after Epic 2 retro — 2026-07-13)
+
+Not required to start Epic 3. Revisit when polishing form UX or before/while adding more authorized controllers:
+
+- **Inertia form-error remount** — On validation failure, lead forms remount from server props and can lose submitted field values (deferred in 2.2 + 2.3). Decide: accept for Epic 3 task/note forms, or fix a shared keep-values pattern.
+- **`verify_authorized` after-action** — Pundit safety net so controller actions cannot forget `authorize`. Optional hardening before/during Epic 3 Tasks/Notes controllers.
+
 ## Deferred from: code review of 2-4-lead-detail-page (2026-07-13)
 
 - Eight COUNT+SELECT queries per show — acceptable for MVP fixture sizes

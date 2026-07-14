@@ -577,14 +577,34 @@ npm run check
 
 ---
 
+### Step 12 — Tasks list with filters (Story 3.1)
+
+**Goal:** Role-scoped `/tasks` table with All / Mine / Overdue filters.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Any signed-in user; `TaskPolicy::Scope` roles |
+| Columns | Title, lead (links to detail), due date, status, assignee |
+| Filters | `all` (default), `mine` (`user_id`), `overdue` (pending + due_date &lt; today) |
+| Pagination | 25 per page |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/tasks_controller_test.rb test/policies/task_policy_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 12 | Epic 1 retrospective (optional) |
-| 13 | Tasks list + create/complete (Stories 3.1–3.2) |
+| 13 | Create and complete tasks (Story 3.2) |
+| 14 | Notes timeline on lead detail (Story 3.3) |
 
 ---
 
