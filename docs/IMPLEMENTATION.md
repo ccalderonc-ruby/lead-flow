@@ -495,14 +495,96 @@ bin/rails db:seed   # loads sample CRM data in development
 
 ---
 
+### Step 8 — Leads index with search (Story 2.1)
+
+**Goal:** Role-scoped leads table with search and pagination at `/leads`.
+
+| Piece | Behavior |
+|-------|----------|
+| Scope | Advisor → assigned only; Admin/Assistant → all |
+| Search | Case-insensitive match on name, email, company |
+| Table | name, company, stage, advisor, last activity, estimated value |
+| Pagination | 25 per page |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb
+npm run check
+```
+
+---
+
+### Step 9 — Create lead (Story 2.2)
+
+**Goal:** Admin/Advisor create form at `/leads/new` with company dedup and unique email.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Admin + Advisor create; Assistant denied |
+| Company | `Company.find_or_initialize_by_name` (free-text name + company country) |
+| Email | Required unique; reject duplicates via `Lead.find_or_initialize_by_email` |
+| Assignment | Advisor forced to self; Admin picks assignee |
+| Success | Redirect to `/leads` with flash notice |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb test/policies/lead_policy_test.rb
+npm run check
+```
+
+---
+
+### Step 10 — Edit lead (Story 2.3)
+
+**Goal:** Authorized update form at `/leads/:id/edit` reusing the shared lead form.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Admin any; Advisor assigned only; Assistant denied |
+| Form | Shared `LeadForm` with create; company dedup + country checkbox |
+| Assignment | Advisor forced to self; Admin may reassign |
+| Success | Redirect to `/leads/:id` with flash notice |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb test/policies/lead_policy_test.rb
+npm run check
+```
+
+---
+
+### Step 11 — Lead detail (Story 2.4)
+
+**Goal:** Authorized read view at `/leads/:id` with related-record counts and previews.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Admin/Assistant any; Advisor assigned only |
+| Fields | Name, email, phone, value, last activity, company, country, stage, advisor |
+| Related | Tasks, meetings, notes, opportunities — count + preview rows |
+| Index | Lead name links to detail; Edit when `can_update` |
+| Saves | Create/update redirect to detail |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb test/policies/lead_policy_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 8 | First Inertia CRUD pages (Leads index/show/create) |
-| 9 | Epic 1 retrospective (optional) |
+| 12 | Epic 1 retrospective (optional) |
+| 13 | Tasks list + create/complete (Stories 3.1–3.2) |
 
 ---
 

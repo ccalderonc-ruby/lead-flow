@@ -30,4 +30,17 @@ class LeadPolicyTest < ActiveSupport::TestCase
   test "assistant can show any lead" do
     assert LeadPolicy.new(@assistant, @other_lead).show?
   end
+
+  test "admin and advisor can create leads" do
+    assert LeadPolicy.new(@admin, Lead).create?
+    assert LeadPolicy.new(@advisor, Lead).create?
+  end
+
+  test "assistant cannot create leads" do
+    refute LeadPolicy.new(@assistant, Lead).create?
+  end
+
+  test "assistant cannot update leads" do
+    refute LeadPolicy.new(@assistant, @advisor_lead).update?
+  end
 end

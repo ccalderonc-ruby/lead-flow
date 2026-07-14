@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_24_023634) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_13_210214) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,7 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_023634) do
     t.bigint "country_id", null: false
     t.datetime "created_at", null: false
     t.text "discovery_notes"
-    t.string "email"
+    t.string "email", null: false
     t.decimal "estimated_value"
     t.date "expected_close_date"
     t.datetime "last_activity_at"
@@ -70,11 +70,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_023634) do
     t.bigint "team_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index "lower((email)::text)", name: "index_leads_on_lower_email_unique", unique: true
     t.index ["company_id"], name: "index_leads_on_company_id"
     t.index ["country_id"], name: "index_leads_on_country_id"
     t.index ["stage_id"], name: "index_leads_on_stage_id"
     t.index ["team_id"], name: "index_leads_on_team_id"
     t.index ["user_id"], name: "index_leads_on_user_id"
+    t.check_constraint "email::text <> ''::text", name: "leads_email_not_blank"
   end
 
   create_table "meetings", force: :cascade do |t|
