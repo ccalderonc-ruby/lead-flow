@@ -28,4 +28,32 @@ class TaskPolicyTest < ActiveSupport::TestCase
     assert_includes TaskPolicy::Scope.new(@admin, Task).resolve, @admin_task
     assert_includes TaskPolicy::Scope.new(@assistant, Task).resolve, @advisor_task
   end
+
+  test "assistant can create and update when lead present" do
+    task = Task.new(lead: leads(:admin_owned))
+
+    assert TaskPolicy.new(@assistant, task).create?
+    assert TaskPolicy.new(@assistant, task).update?
+  end
+
+  test "assistant cannot create without lead" do
+    refute TaskPolicy.new(@assistant, Task.new).create?
+  end
+
+  test "advisor can create and update on assigned lead only" do
+    assigned = Task.new(lead: leads(:sarah))
+    other = Task.new(lead: leads(:admin_owned))
+
+    assert TaskPolicy.new(@advisor, assigned).create?
+    assert TaskPolicy.new(@advisor, assigned).update?
+    refute TaskPolicy.new(@advisor, other).create?
+    refute TaskPolicy.new(@advisor, other).update?
+  end
+
+  test "admin can create and update any task" do
+    task = Task.new(lead: leads(:sarah))
+
+    assert TaskPolicy.new(@admin, task).create?
+    assert TaskPolicy.new(@admin, @admin_task).update?
+  end
 end

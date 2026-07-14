@@ -1,7 +1,14 @@
-import { Head, Link } from '@inertiajs/react'
-import type { ReactNode } from 'react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import NoteFormModal from '@/components/notes/NoteFormModal'
+import { hasNoteCreateErrors } from '@/components/notes/noteFormErrors'
+import TaskFormModal, {
+  type TaskFormDefaults,
+  type TaskFormOption,
+} from '@/components/tasks/TaskFormModal'
+import { hasTaskCreateErrors } from '@/components/tasks/taskFormErrors'
 
 type LeadDetail = {
   id: number
@@ -22,6 +29,7 @@ type TaskPreview = {
   title: string
   due_date: string | null
   status: string | null
+  can_complete: boolean
 }
 
 type MeetingPreview = {
@@ -33,7 +41,7 @@ type MeetingPreview = {
 
 type NotePreview = {
   id: number
-  content_preview: string
+  content: string
   author: string | null
   created_at: string | null
 }
@@ -50,12 +58,33 @@ type RelatedSection<T> = {
   items: T[]
 }
 
+type NotesSection = RelatedSection<NotePreview> & {
+  showing: number
+  truncated: boolean
+}
+
+type TaskFormProps = {
+  leads: TaskFormOption[]
+  assignees: TaskFormOption[]
+  defaults: TaskFormDefaults
+  return_to: string
+}
+
+type NoteFormProps = {
+  lead_id: number
+  return_to: string
+}
+
 type LeadsShowProps = {
   lead: LeadDetail
   tasks: RelatedSection<TaskPreview>
   meetings: RelatedSection<MeetingPreview>
-  notes: RelatedSection<NotePreview>
+  notes: NotesSection
   opportunities: RelatedSection<OpportunityPreview>
+  can_create_task: boolean
+  task_form: TaskFormProps
+  can_create_note: boolean
+  note_form: NoteFormProps
 }
 
 function formatCurrency(amount: string | number | null): string {
@@ -72,7 +101,6 @@ function formatCurrency(amount: string | number | null): string {
 function formatDate(iso: string | null): string {
   if (!iso) return '—'
 
-  // Date-only values must not be parsed as local midnight (UTC day shift in AMERICAs).
   if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
     const [year, month, day] = iso.split('-').map(Number)
     return new Intl.DateTimeFormat('en-US', {
@@ -83,11 +111,29 @@ function formatDate(iso: string | null): string {
     }).format(new Date(Date.UTC(year, month - 1, day)))
   }
 
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return '—'
+
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(new Date(iso))
+  }).format(parsed)
+}
+
+function formatDateTime(iso: string | null): string {
+  if (!iso) return '—'
+
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return '—'
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(parsed)
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -103,25 +149,35 @@ function Section({
   title,
   count,
   empty,
+  action,
+  footer,
   children,
 }: {
   title: string
   count: number
   empty: string
+  action?: ReactNode
+  footer?: ReactNode
   children: ReactNode
 }) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white">
-      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-        <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-          {count}
-        </span>
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+            {count}
+          </span>
+        </div>
+        {action}
       </div>
       {count === 0 ? (
         <p className="px-4 py-6 text-sm text-slate-500">{empty}</p>
       ) : (
-        <ul className="divide-y divide-slate-100">{children}</ul>
+        <>
+          <ul className="divide-y divide-slate-100">{children}</ul>
+          {footer}
+        </>
       )}
     </section>
   )
@@ -133,7 +189,39 @@ export default function LeadsShow({
   meetings,
   notes,
   opportunities,
+  can_create_task: canCreateTask,
+  task_form: taskForm,
+  can_create_note: canCreateNote,
+  note_form: noteForm,
 }: LeadsShowProps) {
+  const page = usePage()
+  const pageErrors = page.props.errors as Record<string, unknown> | undefined
+  const noteErrorsPresent = hasNoteCreateErrors(pageErrors)
+  // On lead show, note wins shared lead_id/base errors so both modals do not open.
+  const taskErrorsPresent = hasTaskCreateErrors(pageErrors) && !noteErrorsPresent
+  const [taskModalOpen, setTaskModalOpen] = useState(() => taskErrorsPresent)
+  const [noteModalOpen, setNoteModalOpen] = useState(() => noteErrorsPresent)
+  const [completingId, setCompletingId] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (noteErrorsPresent) setNoteModalOpen(true)
+    if (taskErrorsPresent) setTaskModalOpen(true)
+  }, [noteErrorsPresent, taskErrorsPresent])
+
+  function completeTask(taskId: number) {
+    if (completingId != null) return
+
+    setCompletingId(taskId)
+    router.patch(
+      `/tasks/${taskId}`,
+      { status: 'completed', return_to: taskForm.return_to },
+      {
+        preserveScroll: true,
+        onFinish: () => setCompletingId(null),
+      },
+    )
+  }
+
   return (
     <AuthenticatedPage>
       <Head title={lead.name} />
@@ -171,13 +259,40 @@ export default function LeadsShow({
         </dl>
 
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
-          <Section title="Tasks" count={tasks.count} empty="No tasks yet.">
+          <Section
+            title="Tasks"
+            count={tasks.count}
+            empty="No tasks yet."
+            action={
+              canCreateTask ? (
+                <button
+                  type="button"
+                  onClick={() => setTaskModalOpen(true)}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  New task
+                </button>
+              ) : null
+            }
+          >
             {tasks.items.map((task) => (
-              <li key={task.id} className="px-4 py-3">
-                <div className="font-medium text-slate-900">{task.title}</div>
-                <div className="mt-1 text-xs text-slate-500">
-                  Due {formatDate(task.due_date)} · {task.status || '—'}
+              <li key={task.id} className="flex items-start justify-between gap-3 px-4 py-3">
+                <div>
+                  <div className="font-medium text-slate-900">{task.title}</div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Due {formatDate(task.due_date)} · {task.status || '—'}
+                  </div>
                 </div>
+                {task.can_complete && (
+                  <button
+                    type="button"
+                    disabled={completingId != null}
+                    onClick={() => completeTask(task.id)}
+                    className="shrink-0 text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {completingId === task.id ? 'Completing…' : 'Complete'}
+                  </button>
+                )}
               </li>
             ))}
           </Section>
@@ -193,12 +308,34 @@ export default function LeadsShow({
             ))}
           </Section>
 
-          <Section title="Notes" count={notes.count} empty="No notes yet.">
+          <Section
+            title="Notes"
+            count={notes.count}
+            empty="No notes yet."
+            action={
+              canCreateNote ? (
+                <button
+                  type="button"
+                  onClick={() => setNoteModalOpen(true)}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  Add note
+                </button>
+              ) : null
+            }
+            footer={
+              notes.truncated ? (
+                <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
+                  Showing {notes.showing} of {notes.count} notes
+                </p>
+              ) : null
+            }
+          >
             {notes.items.map((note) => (
               <li key={note.id} className="px-4 py-3">
-                <div className="text-sm text-slate-900">{note.content_preview}</div>
+                <div className="whitespace-pre-wrap text-sm text-slate-900">{note.content}</div>
                 <div className="mt-1 text-xs text-slate-500">
-                  {note.author || '—'} · {formatDate(note.created_at)}
+                  {note.author || '—'} · {formatDateTime(note.created_at)}
                 </div>
               </li>
             ))}
@@ -216,6 +353,27 @@ export default function LeadsShow({
           </Section>
         </div>
       </div>
+
+      {canCreateTask && (
+        <TaskFormModal
+          open={taskModalOpen}
+          onClose={() => setTaskModalOpen(false)}
+          leads={taskForm.leads}
+          assignees={taskForm.assignees}
+          defaults={taskForm.defaults}
+          returnTo={taskForm.return_to}
+          lockedLeadId={lead.id}
+        />
+      )}
+
+      {canCreateNote && (
+        <NoteFormModal
+          open={noteModalOpen}
+          onClose={() => setNoteModalOpen(false)}
+          leadId={noteForm.lead_id}
+          returnTo={noteForm.return_to}
+        />
+      )}
     </AuthenticatedPage>
   )
 }

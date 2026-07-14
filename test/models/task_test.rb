@@ -14,4 +14,15 @@ class TaskTest < ActiveSupport::TestCase
     assert_not task.valid?
     assert_includes task.errors[:due_date], "can't be blank"
   end
+
+  test "requires title" do
+    task = Task.new(
+      title: "",
+      due_date: Date.current,
+      lead: leads(:sarah),
+      user: users(:advisor)
+    )
+    assert_not task.valid?
+    assert_includes task.errors[:title], "can't be blank"
+  end
 end

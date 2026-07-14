@@ -549,10 +549,16 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, lead.stage.name
     assert_includes response.body, lead.user.name
     assert_includes response.body, '"can_update":true'
+    assert_includes response.body, '"can_create_task":true'
+    assert_includes response.body, '"can_create_note":true'
+    assert_includes response.body, '"truncated":false'
+    assert_includes response.body, '"showing":1'
     assert_includes response.body, '"count":1'
     assert_includes response.body, tasks(:follow_up).title
+    assert_includes response.body, '"can_complete":true'
     assert_includes response.body, meetings(:review).title
     assert_includes response.body, "Successful discovery call"
+    assert_includes response.body, '"content":'
     assert_includes response.body, opportunities(:migration).title
   end
 
@@ -572,6 +578,8 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, '"component":"leads/show"'
     assert_includes response.body, '"can_update":false'
+    assert_includes response.body, '"can_create_task":true'
+    assert_includes response.body, '"can_create_note":true'
   end
 
   test "admin can show any lead" do

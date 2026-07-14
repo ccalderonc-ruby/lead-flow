@@ -597,14 +597,56 @@ npm run check
 
 ---
 
+### Step 13 — Create and complete tasks (Story 3.2)
+
+**Goal:** New Task modal (lead detail + tasks list) and Complete on pending tasks.
+
+| Piece | Behavior |
+|-------|----------|
+| Create | `POST /tasks` — title, due_date, lead_id, user_id; always `pending` |
+| Auth | Lead via `policy_scope(Lead)`; authorize `Task.new(lead:)`; advisor forced to self assignee |
+| Validation | Title + due_date required; blank → Inertia errors on return path |
+| Complete | `PATCH /tasks/:id` — status `completed` only from `pending` |
+| UI | Shared `TaskFormModal`; lead-detail New Task + Complete on previews |
+| Return | Allowlisted `return_to` → `/tasks` (optional filter/page) or `/leads/:id` |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/tasks_controller_test.rb test/policies/task_policy_test.rb test/models/task_test.rb test/controllers/leads_controller_test.rb
+npm run check
+```
+
+---
+
+### Step 14 — Notes timeline on lead (Story 3.3)
+
+**Goal:** Chronological notes on lead detail with Add note modal; bump `last_activity_at`.
+
+| Piece | Behavior |
+|-------|----------|
+| Create | `POST /notes` — content + lead_id; author = current user |
+| Auth | `policy_scope(Lead)` + authorize `Note.new(lead:)` |
+| Timeline | Full content + author + timestamp (newest first, up to 50) |
+| Activity | Successful create sets `lead.last_activity_at` |
+| UI | Add note CTA + modal; reopen on validation errors |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/notes_controller_test.rb test/controllers/leads_controller_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 13 | Create and complete tasks (Story 3.2) |
-| 14 | Notes timeline on lead detail (Story 3.3) |
+| 15 | Meetings list and scheduling (Story 4.1) |
 
 ---
 
