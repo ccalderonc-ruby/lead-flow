@@ -545,7 +545,28 @@ npm run check
 | Auth | Admin any; Advisor assigned only; Assistant denied |
 | Form | Shared `LeadForm` with create; company dedup + country checkbox |
 | Assignment | Advisor forced to self; Admin may reassign |
-| Success | Redirect to `/leads` with flash notice |
+| Success | Redirect to `/leads/:id` with flash notice |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb test/policies/lead_policy_test.rb
+npm run check
+```
+
+---
+
+### Step 11 — Lead detail (Story 2.4)
+
+**Goal:** Authorized read view at `/leads/:id` with related-record counts and previews.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Admin/Assistant any; Advisor assigned only |
+| Fields | Name, email, phone, value, last activity, company, country, stage, advisor |
+| Related | Tasks, meetings, notes, opportunities — count + preview rows |
+| Index | Lead name links to detail; Edit when `can_update` |
+| Saves | Create/update redirect to detail |
 
 **Verify:**
 
@@ -562,8 +583,8 @@ These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 11 | Lead detail page (Story 2.4) |
 | 12 | Epic 1 retrospective (optional) |
+| 13 | Tasks list + create/complete (Stories 3.1–3.2) |
 
 ---
 

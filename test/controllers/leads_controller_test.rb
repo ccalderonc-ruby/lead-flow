@@ -149,7 +149,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     lead = Lead.order(:id).last
     assert_equal users(:advisor).id, lead.user_id
     assert_equal "new.prospect@example.com", lead.email
-    assert_redirected_to leads_path
+    assert_redirected_to lead_path(lead)
     assert_equal "Lead created.", flash[:notice]
   end
 
@@ -165,6 +165,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
 
     lead = Lead.find_by!(email: "admin.created@example.com")
     assert_equal users(:advisor).id, lead.user_id
+    assert_redirected_to lead_path(lead)
   end
 
   test "company name variants reuse existing company without updating country" do
@@ -198,7 +199,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
       update_existing_company_country: true
     )
 
-    assert_redirected_to leads_path
+    assert_redirected_to lead_path(Lead.find_by!(email: "acme.update-country@example.com"))
     assert_equal countries(:cr).id, existing.reload.country_id
   end
 
@@ -355,7 +356,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
       user_id: users(:admin).id
     )
 
-    assert_redirected_to leads_path
+    assert_redirected_to lead_path(lead)
     assert_equal "Lead updated.", flash[:notice]
     lead.reload
     assert_equal "Marcus Updated", lead.name
@@ -418,7 +419,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
       )
     end
 
-    assert_redirected_to leads_path
+    assert_redirected_to lead_path(lead)
     assert_equal existing.id, lead.reload.company_id
     assert_equal countries(:us).id, existing.reload.country_id
   end
@@ -452,7 +453,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
       user_id: users(:admin).id
     )
 
-    assert_redirected_to leads_path
+    assert_redirected_to lead_path(lead)
     assert_equal "Lead updated.", flash[:notice]
     lead.reload
     assert_equal "Sarah Reassigned", lead.name
@@ -474,7 +475,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
       stage_id: lead.stage_id
     )
 
-    assert_redirected_to leads_path
+    assert_redirected_to lead_path(lead)
     assert_equal countries(:cr).id, company.reload.country_id
   end
 
@@ -523,8 +524,64 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
       stage_id: lead.stage_id
     ).except(:phone)
 
-    assert_redirected_to leads_path
+    assert_redirected_to lead_path(lead)
     assert_equal original_phone, lead.reload.phone
+  end
+
+  test "show lead requires authentication" do
+    get lead_path(leads(:sarah))
+
+    assert_redirected_to login_path
+  end
+
+  test "advisor can show assigned lead with related previews" do
+    sign_in_as users(:advisor)
+    lead = leads(:sarah)
+
+    get lead_path(lead)
+
+    assert_response :success
+    assert_includes response.body, '"component":"leads/show"'
+    assert_includes response.body, lead.email
+    assert_includes response.body, lead.phone
+    assert_includes response.body, lead.company.name
+    assert_includes response.body, lead.country.name
+    assert_includes response.body, lead.stage.name
+    assert_includes response.body, lead.user.name
+    assert_includes response.body, '"can_update":true'
+    assert_includes response.body, '"count":1'
+    assert_includes response.body, tasks(:follow_up).title
+    assert_includes response.body, meetings(:review).title
+    assert_includes response.body, "Successful discovery call"
+    assert_includes response.body, opportunities(:migration).title
+  end
+
+  test "advisor cannot show unassigned lead" do
+    sign_in_as users(:advisor)
+
+    get lead_path(leads(:admin_owned))
+
+    assert_response :not_found
+  end
+
+  test "assistant can show lead read-only" do
+    sign_in_as users(:assistant)
+
+    get lead_path(leads(:sarah))
+
+    assert_response :success
+    assert_includes response.body, '"component":"leads/show"'
+    assert_includes response.body, '"can_update":false'
+  end
+
+  test "admin can show any lead" do
+    sign_in_as users(:admin)
+
+    get lead_path(leads(:sarah))
+
+    assert_response :success
+    assert_includes response.body, '"component":"leads/show"'
+    assert_includes response.body, '"can_update":true'
   end
 
   private

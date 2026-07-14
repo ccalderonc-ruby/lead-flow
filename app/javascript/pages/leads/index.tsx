@@ -140,7 +140,12 @@ export default function LeadsIndex({ leads, meta, can_create: canCreate }: Leads
                 leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-medium text-slate-900">
-                      <div>{lead.name}</div>
+                      <Link
+                        href={`/leads/${lead.id}`}
+                        className="text-indigo-600 hover:text-indigo-500"
+                      >
+                        {lead.name}
+                      </Link>
                       {lead.email && <div className="text-xs font-normal text-slate-500">{lead.email}</div>}
                     </td>
                     <td className="px-4 py-3 text-slate-700">{lead.company}</td>

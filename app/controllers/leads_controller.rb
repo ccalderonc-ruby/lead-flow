@@ -4,8 +4,9 @@ class LeadsController < InertiaController
   PER_PAGE = 25
   MAX_QUERY_LENGTH = 100
   EMAIL_TAKEN = "already belongs to another lead"
+  PREVIEW_LIMIT = 5
 
-  before_action :set_lead, only: %i[edit update]
+  before_action :set_lead, only: %i[show edit update]
 
   def index
     authorize Lead
@@ -58,6 +59,12 @@ class LeadsController < InertiaController
     save_lead!(lead, success_notice: "Lead created.", failure_path: new_lead_path)
   end
 
+  def show
+    authorize @lead
+
+    render inertia: "leads/show", props: show_props(@lead)
+  end
+
   def edit
     authorize @lead
 
@@ -73,7 +80,9 @@ class LeadsController < InertiaController
   private
 
   def set_lead
-    @lead = policy_scope(Lead).find(params[:id])
+    @lead = policy_scope(Lead)
+      .includes(:company, :country, :stage, :user)
+      .find(params[:id])
   end
 
   def save_lead!(lead, success_notice:, failure_path:)
@@ -104,7 +113,7 @@ class LeadsController < InertiaController
     end
 
     flash[:notice] = success_notice
-    redirect_to leads_path
+    redirect_to lead_path(lead)
   rescue ActiveRecord::RecordInvalid => e
     redirect_to failure_path, inertia: { errors: validation_error_hash(e.record, company, lead) }
   rescue ActiveRecord::RecordNotUnique => e
@@ -156,6 +165,75 @@ class LeadsController < InertiaController
         company_country_id: lead.company&.country_id
       }
     )
+  end
+
+  def show_props(lead)
+    {
+      lead: {
+        id: lead.id,
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        estimated_value: lead.estimated_value&.to_s,
+        last_activity_at: (lead.last_activity_at || lead.updated_at)&.iso8601,
+        company: lead.company&.name,
+        country: lead.country&.name,
+        stage: lead.stage&.name,
+        advisor: lead.user&.name,
+        can_update: policy(lead).update?
+      },
+      tasks: {
+        count: lead.tasks.count,
+        items: lead.tasks.order(created_at: :desc).limit(PREVIEW_LIMIT).map do |task|
+          {
+            id: task.id,
+            title: task.title,
+            due_date: task.due_date&.iso8601,
+            status: task.status
+          }
+        end
+      },
+      meetings: {
+        count: lead.meetings.count,
+        items: lead.meetings.order(Arel.sql("scheduled_on DESC NULLS LAST"), created_at: :desc).limit(PREVIEW_LIMIT).map do |meeting|
+          {
+            id: meeting.id,
+            title: meeting.title,
+            scheduled_on: meeting.scheduled_on&.iso8601,
+            status: meeting.status
+          }
+        end
+      },
+      notes: {
+        count: lead.notes.count,
+        items: lead.notes.includes(:user).order(created_at: :desc).limit(PREVIEW_LIMIT).map do |note|
+          {
+            id: note.id,
+            content_preview: truncate_preview(note.content),
+            author: note.user&.name,
+            created_at: note.created_at&.iso8601
+          }
+        end
+      },
+      opportunities: {
+        count: lead.opportunities.count,
+        items: lead.opportunities.includes(:stage).order(created_at: :desc).limit(PREVIEW_LIMIT).map do |opportunity|
+          {
+            id: opportunity.id,
+            title: opportunity.title,
+            value: opportunity.value&.to_s,
+            stage: opportunity.stage&.name
+          }
+        end
+      }
+    }
+  end
+
+  def truncate_preview(text, length = 120)
+    value = text.to_s
+    return value if value.length <= length
+
+    "#{value[0, length - 1]}…"
   end
 
   def assignees_for_form(lead = nil)

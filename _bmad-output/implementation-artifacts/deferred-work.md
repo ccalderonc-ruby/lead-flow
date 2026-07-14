@@ -1,5 +1,14 @@
 # Deferred Work
 
+## Deferred from: code review of 2-4-lead-detail-page (2026-07-13)
+
+- Eight COUNT+SELECT queries per show — acceptable for MVP fixture sizes
+- Meeting preview omits start_time — Epic 4 meeting UX
+- Raw status strings / no mailto-tel / inert related rows — polish + Epic 3/4 write flows
+- Back-to-leads drops index search/page params — same pattern as edit
+- Duplicated currency/date helpers across leads pages — extract later if needed
+- Note truncate mid-grapheme / mid-word — rare for seeded content
+
 ## Deferred from: code review of 2-3-edit-lead (2026-07-13)
 
 - Validation-failure remount shows DB values not submitted payload — same Inertia pattern as Story 2.2
@@ -18,7 +27,7 @@
 - USD hardcoded for estimated value — MVP course demo; localize later if needed
 - ~~Wire `Lead.find_or_initialize_by_email` into create/import path — Story 2.2~~ ✅ done in Story 2.2
 - ~~Rescue/retry concurrent `RecordNotUnique` on lead create — Story 2.2~~ ✅ done in Story 2.2
-- Create success still redirects to list (not detail) until Story 2.4
+- ~~Create success still redirects to list (not detail) until Story 2.4~~ ✅ done in Story 2.4
 ## Deferred from: code review of 1-6-readme-course-compliance (2026-07-05)
 
 - Pipeline stage transitions listed as non-CRUD — acceptable; emphasizes kanban UX beyond bare CRUD
