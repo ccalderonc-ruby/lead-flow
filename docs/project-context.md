@@ -52,6 +52,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | App shell | ✅ | Sidebar layout, role-aware nav (Story 1.4) |
 | Dashboard metrics | ✅ | Open leads, overdue tasks, meetings, pipeline value (Story 1.5) |
 | Leads index | ✅ | Role-scoped table + search + pagination (Story 2.1) |
+| Create lead | ✅ | New lead form + company dedup + unique email (Story 2.2) |
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
 
@@ -67,7 +68,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| CRM Inertia CRUD pages (Leads create/edit/detail, Tasks, etc.) | High |
+| CRM Inertia CRUD pages (Leads edit/detail, Tasks, etc.) | High |
 | Controller CRUD + integration tests | High |
 | Search and filters | Medium |
 | Stripe integration | Required by course |

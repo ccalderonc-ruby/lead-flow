@@ -10,7 +10,7 @@ Rails.application.routes.draw do
 
   root "dashboard#index"
 
-  resources :leads, only: :index
+  resources :leads, only: %i[index new create]
   resources :tasks, only: :index
   resources :meetings, only: :index
   resources :opportunities, only: :index

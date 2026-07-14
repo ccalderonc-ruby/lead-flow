@@ -52,7 +52,7 @@
 # Week 7 → Epic 7
 
 generated: "2026-07-05"
-last_updated: "2026-07-13T15:01:00-06:00"
+last_updated: "2026-07-13T15:30:00-06:00"
 project: LeadFlow CRM
 project_key: NOKEY
 tracking_system: file-system
@@ -72,7 +72,7 @@ development_status:
   # ── Week 2: Manage Leads ───────────────────────────────────────
   epic-2: in-progress
   2-1-leads-index-with-search: done
-  2-2-create-lead: backlog
+  2-2-create-lead: review
   2-3-edit-lead: backlog
   2-4-lead-detail-page: backlog
   epic-2-retrospective: optional

@@ -515,14 +515,35 @@ npm run check
 
 ---
 
+### Step 9 — Create lead (Story 2.2)
+
+**Goal:** Admin/Advisor create form at `/leads/new` with company dedup and unique email.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Admin + Advisor create; Assistant denied |
+| Company | `Company.find_or_initialize_by_name` (free-text name + company country) |
+| Email | Required unique; reject duplicates via `Lead.find_or_initialize_by_email` |
+| Assignment | Advisor forced to self; Admin picks assignee |
+| Success | Redirect to `/leads` with flash notice |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb test/policies/lead_policy_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 9 | Create / edit lead + lead detail (Stories 2.2–2.4) |
-| 10 | Epic 1 retrospective (optional) |
+| 10 | Edit lead + lead detail (Stories 2.3–2.4) |
+| 11 | Epic 1 retrospective (optional) |
 
 ---
 
