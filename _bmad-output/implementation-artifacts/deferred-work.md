@@ -1,5 +1,10 @@
 # Deferred Work
 
+## Deferred from: code review of 2-2-create-lead (2026-07-13)
+
+- Concurrent `RecordNotUnique` automated test — flaky without dedicated concurrency harness
+- Form remount loses client `useForm` values after error redirect — matches SessionsController Inertia pattern
+
 ## Deferred from: code review of 2-1-leads-index-with-search (2026-07-13)
 
 - Closed leads still appear in index — AC lists all assigned stages; revisit if product wants open-only

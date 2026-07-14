@@ -4,7 +4,7 @@ baseline_commit: abeb740e88f2007a379ef4922e0b370bb5acce45
 
 # Story 2.2: Create lead
 
-Status: review
+Status: done
 
 <!-- Ultimate context engine analysis completed - comprehensive developer guide created -->
 
@@ -90,6 +90,25 @@ So that I can add prospects to my pipeline (UJ-2).
 - [x] **Docs**
   - [x] Update `docs/IMPLEMENTATION.md` Step for create lead
   - [x] Mark deferred-work items for email find-or-initialize / RecordNotUnique as done when implemented
+
+### Review Findings
+
+- [x] [Review][Patch] Company country reuse choice: keep existing by default; checkbox `update_existing_company_country` applies form country on reuse; new companies still require company country [app/controllers/leads_controller.rb] [app/javascript/pages/leads/new.tsx]
+- [x] [Review][Patch] Distinguish company vs email `RecordNotUnique` [app/controllers/leads_controller.rb]
+- [x] [Review][Patch] Rescue `InvalidForeignKey` on create for bad country/stage IDs [app/controllers/leads_controller.rb]
+- [x] [Review][Patch] Guard blank `company_name` before `find_or_initialize_by_name` [app/controllers/leads_controller.rb]
+- [x] [Review][Patch] Surface lead field errors even when company save fails first [app/controllers/leads_controller.rb]
+- [x] [Review][Patch] Normalize duplicate-email error strings (bare message vs `full_message`) [app/controllers/leads_controller.rb]
+- [x] [Review][Patch] Assert Inertia `errors` payload in missing-field and duplicate-email tests [test/controllers/leads_controller_test.rb]
+- [x] [Review][Patch] Safe integer parse for admin `user_id` (avoid `to_i` on non-digits) [app/controllers/leads_controller.rb]
+- [x] [Review][Patch] Use `policy(Lead).create?` for `can_create` [app/controllers/leads_controller.rb]
+- [x] [Review][Patch] Label assignee field “Assigned user”; remove unused forced-assignee hidden input [app/javascript/pages/leads/new.tsx]
+- [x] [Review][Patch] Add admin blank/unallowlisted assignee test [test/controllers/leads_controller_test.rb]
+- [x] [Review][Patch] Mark required fields in the new-lead form UI [app/javascript/pages/leads/new.tsx]
+
+- [x] [Review][Defer] Concurrent `RecordNotUnique` automated test — deferred, flaky without dedicated concurrency harness
+- [x] [Review][Defer] Form remount loses client `useForm` values after error redirect — deferred, matches SessionsController Inertia pattern
+- [x] [Review][Decision] Existing company country → resolved: keep by default + optional update checkbox (user choice of 1 and 3)
 
 ---
 
@@ -246,6 +265,7 @@ Composer (dev-story)
 - Advisor assignment forced server-side; Admin picks from assignee list
 - Index CTA gated by `can_create` prop from Pundit
 - Success redirects to `/leads` with flash (detail deferred to 2.4)
+- Applied code-review patches: company-country update checkbox, RecordNotUnique discrimination, InvalidForeignKey rescue, preflight validations, stronger tests
 
 ### File List
 
@@ -264,6 +284,8 @@ Composer (dev-story)
 ### Change Log
 
 - 2026-07-13: Implemented Story 2.2 create lead end-to-end; status → review
+- 2026-07-13: Code review complete — patches left as action items; status → in-progress
+- 2026-07-13: Applied review patches + re-review clean; status → done
 
 ---
 

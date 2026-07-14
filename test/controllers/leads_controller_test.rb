@@ -167,9 +167,10 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_equal users(:advisor).id, lead.user_id
   end
 
-  test "company name variants reuse existing company" do
+  test "company name variants reuse existing company without updating country" do
     sign_in_as users(:advisor)
     existing = companies(:acme)
+    original_country_id = existing.country_id
 
     assert_no_difference "Company.count" do
       assert_difference "Lead.count", 1 do
@@ -183,6 +184,22 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
 
     lead = Lead.find_by!(email: "acme.variant@example.com")
     assert_equal existing.id, lead.company_id
+    assert_equal original_country_id, existing.reload.country_id
+  end
+
+  test "checkbox updates existing company country on reuse" do
+    sign_in_as users(:advisor)
+    existing = companies(:acme)
+
+    post leads_path, params: valid_lead_params.merge(
+      email: "acme.update-country@example.com",
+      company_name: "ACME CORP.",
+      company_country_id: countries(:cr).id,
+      update_existing_company_country: true
+    )
+
+    assert_redirected_to leads_path
+    assert_equal countries(:cr).id, existing.reload.country_id
   end
 
   test "missing required fields redirect with inertia errors" do
@@ -200,6 +217,9 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to new_lead_path
+    follow_redirect!
+    assert_includes response.body, '"company_name"'
+    assert_includes response.body, "can't be blank"
   end
 
   test "duplicate email is rejected without creating lead" do
@@ -213,7 +233,56 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to new_lead_path
+    follow_redirect!
+    assert_includes response.body, "already belongs to another lead"
     assert_equal "Sarah Jenkins", leads(:sarah).reload.name
+  end
+
+  test "checkbox without company country rejects update request" do
+    sign_in_as users(:advisor)
+
+    assert_no_difference "Lead.count" do
+      post leads_path, params: valid_lead_params.merge(
+        email: "acme.blank-update@example.com",
+        company_name: "ACME CORP.",
+        company_country_id: "",
+        update_existing_company_country: true
+      )
+    end
+
+    assert_redirected_to new_lead_path
+    follow_redirect!
+    assert_includes response.body, "company_country_id"
+  end
+
+  test "admin blank assignee is rejected with user_id error" do
+    sign_in_as users(:admin)
+
+    assert_no_difference "Lead.count" do
+      post leads_path, params: valid_lead_params.merge(
+        email: "needs.assignee@example.com",
+        user_id: ""
+      )
+    end
+
+    assert_redirected_to new_lead_path
+    follow_redirect!
+    assert_includes response.body, '"user_id"'
+  end
+
+  test "admin unallowlisted assignee is rejected" do
+    sign_in_as users(:admin)
+
+    assert_no_difference "Lead.count" do
+      post leads_path, params: valid_lead_params.merge(
+        email: "bad.assignee@example.com",
+        user_id: users(:assistant).id
+      )
+    end
+
+    assert_redirected_to new_lead_path
+    follow_redirect!
+    assert_includes response.body, '"user_id"'
   end
 
   test "assistant cannot create lead" do

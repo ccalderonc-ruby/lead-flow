@@ -3,6 +3,7 @@
 class LeadsController < InertiaController
   PER_PAGE = 25
   MAX_QUERY_LENGTH = 100
+  EMAIL_TAKEN = "already belongs to another lead"
 
   def index
     authorize Lead
@@ -31,7 +32,7 @@ class LeadsController < InertiaController
         total_count: total_count,
         total_pages: total_pages
       },
-      can_create: LeadPolicy.new(current_user, Lead).create?
+      can_create: policy(Lead).create?
     }
   end
 
@@ -48,22 +49,28 @@ class LeadsController < InertiaController
     lead = Lead.find_or_initialize_by_email(email)
 
     if lead.persisted?
-      redirect_to new_lead_path, inertia: {
-        errors: { email: [ "already belongs to another lead" ] }
-      }
+      redirect_to new_lead_path, inertia: { errors: { email: [ EMAIL_TAKEN ] } }
       return
     end
 
-    company = Company.find_or_initialize_by_name(company_name_param)
-    if company.new_record?
-      company.country_id = company_country_id_param
-    elsif company.country_id.blank? && company_country_id_param.present?
-      company.country_id = company_country_id_param
-    end
-
+    company = build_company_for_create
     lead.assign_attributes(lead_attributes_for_create)
     lead.company = company
     lead.user_id = assigned_user_id
+
+    company_valid =
+      if company_name_param.blank?
+        false
+      elsif company.errors.any?
+        false
+      else
+        company.valid?
+      end
+    lead.valid?
+    unless company_valid && lead.errors.empty? && assignee_present?
+      redirect_to new_lead_path, inertia: { errors: validation_error_hash(company, lead) }
+      return
+    end
 
     ActiveRecord::Base.transaction do
       company.save!
@@ -74,9 +81,11 @@ class LeadsController < InertiaController
     redirect_to leads_path
   rescue ActiveRecord::RecordInvalid => e
     redirect_to new_lead_path, inertia: { errors: validation_error_hash(e.record, company, lead) }
-  rescue ActiveRecord::RecordNotUnique
+  rescue ActiveRecord::RecordNotUnique => e
+    redirect_to new_lead_path, inertia: { errors: not_unique_errors(e) }
+  rescue ActiveRecord::InvalidForeignKey
     redirect_to new_lead_path, inertia: {
-      errors: { email: [ "already belongs to another lead" ] }
+      errors: { base: [ "One or more selected references are invalid" ] }
     }
   end
 
@@ -134,16 +143,46 @@ class LeadsController < InertiaController
       :stage_id,
       :user_id,
       :company_name,
-      :company_country_id
+      :company_country_id,
+      :update_existing_company_country
     )
   end
 
   def company_name_param
-    create_params[:company_name].to_s
+    create_params[:company_name].to_s.strip
   end
 
   def company_country_id_param
     create_params[:company_country_id].presence
+  end
+
+  def update_existing_company_country?
+    ActiveModel::Type::Boolean.new.cast(create_params[:update_existing_company_country])
+  end
+
+  def build_company_for_create
+    if company_name_param.blank?
+      company = Company.new
+      company.errors.add(:name, "can't be blank")
+      return company
+    end
+
+    company = Company.find_or_initialize_by_name(company_name_param)
+    apply_company_country!(company)
+    company
+  end
+
+  def apply_company_country!(company)
+    if !company.new_record? && update_existing_company_country? && company_country_id_param.blank?
+      company.errors.add(:country, "can't be blank when updating an existing company")
+      return
+    end
+
+    return if company_country_id_param.blank?
+
+    if company.new_record? || company.country_id.blank? || update_existing_company_country?
+      company.country_id = company_country_id_param
+    end
   end
 
   def lead_attributes_for_create
@@ -167,10 +206,14 @@ class LeadsController < InertiaController
   def assigned_user_id
     return current_user.id unless current_user.admin?
 
-    requested = create_params[:user_id].presence&.to_i
+    requested = Integer(create_params[:user_id], exception: false)
     return requested if requested && assignable_user_ids.include?(requested)
 
     nil
+  end
+
+  def assignee_present?
+    !assigned_user_id.nil?
   end
 
   def validation_error_hash(*records)
@@ -178,25 +221,32 @@ class LeadsController < InertiaController
     records.compact.each do |record|
       record.errors.each do |error|
         key = error.attribute.to_s
-        # Surface company model errors under company_name for the form.
         key = "company_name" if record.is_a?(Company) && key == "name"
-        key = "company_country_id" if record.is_a?(Company) && key == "country"
-        key = "company_country_id" if record.is_a?(Company) && key == "country_id"
+        key = "company_country_id" if record.is_a?(Company) && %w[country country_id].include?(key)
         errors[key] ||= []
-        errors[key] << error.full_message
+        errors[key] << error.message
       end
     end
 
     if company_name_param.blank?
       errors["company_name"] ||= []
-      errors["company_name"] << "Company name can't be blank" unless errors["company_name"].any?
+      errors["company_name"] << "can't be blank" unless errors["company_name"].any?
     end
 
-    if assigned_user_id.nil? && current_user.admin?
+    if current_user.admin? && assigned_user_id.nil?
       errors["user_id"] ||= []
-      errors["user_id"] << "Assigned user can't be blank" unless errors["user_id"].any?
+      errors["user_id"] << "can't be blank" unless errors["user_id"].any?
     end
 
     errors.transform_values(&:uniq)
+  end
+
+  def not_unique_errors(error)
+    message = error.message.to_s
+    if message.match?(/companies|normalized_name/i)
+      { "company_name" => [ "already exists" ] }
+    else
+      { "email" => [ EMAIL_TAKEN ] }
+    end
   end
 end

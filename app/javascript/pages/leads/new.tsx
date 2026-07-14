@@ -25,6 +25,10 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
   return Array.isArray(value) ? value.join(', ') : value
 }
 
+function RequiredMark() {
+  return <span className="text-red-600"> *</span>
+}
+
 export default function LeadsNew({ countries, stages, assignees, defaults }: LeadsNewProps) {
   const { auth } = usePage<SharedProps>().props
   const { data, setData, post, processing, errors } = useForm({
@@ -34,6 +38,7 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
     estimated_value: '',
     company_name: '',
     company_country_id: '',
+    update_existing_company_country: false,
     country_id: '',
     stage_id: '',
     user_id: defaults.user_id ? String(defaults.user_id) : '',
@@ -65,13 +70,21 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
         </div>
 
         <form onSubmit={submit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6">
+          {fieldError(errors, 'base') && (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {fieldError(errors, 'base')}
+            </p>
+          )}
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-slate-700">
               Name
+              <RequiredMark />
             </label>
             <input
               id="name"
               type="text"
+              required
               value={data.name}
               onChange={(event) => setData('name', event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -84,10 +97,12 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-slate-700">
               Email
+              <RequiredMark />
             </label>
             <input
               id="email"
               type="email"
+              required
               value={data.email}
               onChange={(event) => setData('email', event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -116,10 +131,12 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
           <div>
             <label htmlFor="company_name" className="block text-sm font-medium text-slate-700">
               Company
+              <RequiredMark />
             </label>
             <input
               id="company_name"
               type="text"
+              required
               value={data.company_name}
               onChange={(event) => setData('company_name', event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -132,9 +149,11 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
           <div>
             <label htmlFor="company_country_id" className="block text-sm font-medium text-slate-700">
               Company country
+              <RequiredMark />
             </label>
             <select
               id="company_country_id"
+              required
               value={data.company_country_id}
               onChange={(event) => setData('company_country_id', event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -146,6 +165,18 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
                 </option>
               ))}
             </select>
+            <label className="mt-2 flex items-start gap-2 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                className="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                checked={data.update_existing_company_country}
+                onChange={(event) => setData('update_existing_company_country', event.target.checked)}
+              />
+              <span>
+                If this company already exists, update its country to the selection above (otherwise keep
+                the existing company country).
+              </span>
+            </label>
             {fieldError(errors, 'company_country_id') && (
               <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'company_country_id')}</p>
             )}
@@ -154,9 +185,11 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
           <div>
             <label htmlFor="country_id" className="block text-sm font-medium text-slate-700">
               Lead country
+              <RequiredMark />
             </label>
             <select
               id="country_id"
+              required
               value={data.country_id}
               onChange={(event) => setData('country_id', event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -179,9 +212,11 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
           <div>
             <label htmlFor="stage_id" className="block text-sm font-medium text-slate-700">
               Stage
+              <RequiredMark />
             </label>
             <select
               id="stage_id"
+              required
               value={data.stage_id}
               onChange={(event) => setData('stage_id', event.target.value)}
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -203,23 +238,22 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
 
           <div>
             <label htmlFor="user_id" className="block text-sm font-medium text-slate-700">
-              Assigned advisor
+              Assigned user
+              <RequiredMark />
             </label>
             {defaults.force_assignee ? (
-              <>
-                <input type="hidden" name="user_id" value={data.user_id} />
-                <p className="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                  {assigneeLabel}
-                </p>
-              </>
+              <p className="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                {assigneeLabel}
+              </p>
             ) : (
               <select
                 id="user_id"
+                required
                 value={data.user_id}
                 onChange={(event) => setData('user_id', event.target.value)}
                 className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               >
-                <option value="">Select advisor</option>
+                <option value="">Select user</option>
                 {assignees.map((assignee) => (
                   <option key={assignee.id} value={assignee.id}>
                     {assignee.name}
