@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: code review of 2-3-edit-lead (2026-07-13)
+
+- Validation-failure remount shows DB values not submitted payload — same Inertia pattern as Story 2.2
+- Updating shared company country affects other leads on that company — checkbox warning is the UX notice
+- No optimistic lock / stale update protection on concurrent edits — MVP out of scope
+- Unassigned advisor gets 404 via `policy_scope` rather than Pundit 403 — intentional fail-closed scoping
+
 ## Deferred from: code review of 2-2-create-lead (2026-07-13)
 
 - Concurrent `RecordNotUnique` automated test — flaky without dedicated concurrency harness

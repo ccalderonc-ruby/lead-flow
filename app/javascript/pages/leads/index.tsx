@@ -12,6 +12,7 @@ export type LeadRow = {
   advisor: string
   last_activity_at: string | null
   estimated_value: string | number | null
+  can_update: boolean
 }
 
 export type LeadsMeta = {
@@ -125,12 +126,13 @@ export default function LeadsIndex({ leads, meta, can_create: canCreate }: Leads
                 <th className="px-4 py-3">Advisor</th>
                 <th className="px-4 py-3">Last activity</th>
                 <th className="px-4 py-3 text-right">Value</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {leads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                     No leads found.
                   </td>
                 </tr>
@@ -147,6 +149,18 @@ export default function LeadsIndex({ leads, meta, can_create: canCreate }: Leads
                     <td className="px-4 py-3 text-slate-700">{formatActivity(lead.last_activity_at)}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-slate-900">
                       {formatCurrency(lead.estimated_value)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {lead.can_update ? (
+                        <Link
+                          href={`/leads/${lead.id}/edit`}
+                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                        >
+                          Edit
+                        </Link>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
                     </td>
                   </tr>
                 ))

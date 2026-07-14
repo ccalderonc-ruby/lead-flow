@@ -536,14 +536,34 @@ npm run check
 
 ---
 
+### Step 10 — Edit lead (Story 2.3)
+
+**Goal:** Authorized update form at `/leads/:id/edit` reusing the shared lead form.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Admin any; Advisor assigned only; Assistant denied |
+| Form | Shared `LeadForm` with create; company dedup + country checkbox |
+| Assignment | Advisor forced to self; Admin may reassign |
+| Success | Redirect to `/leads` with flash notice |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb test/policies/lead_policy_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 10 | Edit lead + lead detail (Stories 2.3–2.4) |
-| 11 | Epic 1 retrospective (optional) |
+| 11 | Lead detail page (Story 2.4) |
+| 12 | Epic 1 retrospective (optional) |
 
 ---
 

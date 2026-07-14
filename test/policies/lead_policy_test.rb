@@ -39,4 +39,8 @@ class LeadPolicyTest < ActiveSupport::TestCase
   test "assistant cannot create leads" do
     refute LeadPolicy.new(@assistant, Lead).create?
   end
+
+  test "assistant cannot update leads" do
+    refute LeadPolicy.new(@assistant, @advisor_lead).update?
+  end
 end

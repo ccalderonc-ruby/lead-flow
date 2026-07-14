@@ -5,6 +5,8 @@ class LeadsController < InertiaController
   MAX_QUERY_LENGTH = 100
   EMAIL_TAKEN = "already belongs to another lead"
 
+  before_action :set_lead, only: %i[edit update]
+
   def index
     authorize Lead
 
@@ -45,7 +47,7 @@ class LeadsController < InertiaController
   def create
     authorize Lead
 
-    email = create_params[:email]
+    email = lead_form_params[:email]
     lead = Lead.find_or_initialize_by_email(email)
 
     if lead.persisted?
@@ -53,10 +55,33 @@ class LeadsController < InertiaController
       return
     end
 
-    company = build_company_for_create
-    lead.assign_attributes(lead_attributes_for_create)
+    save_lead!(lead, success_notice: "Lead created.", failure_path: new_lead_path)
+  end
+
+  def edit
+    authorize @lead
+
+    render inertia: "leads/edit", props: edit_props(@lead)
+  end
+
+  def update
+    authorize @lead
+
+    save_lead!(@lead, success_notice: "Lead updated.", failure_path: edit_lead_path(@lead))
+  end
+
+  private
+
+  def set_lead
+    @lead = policy_scope(Lead).find(params[:id])
+  end
+
+  def save_lead!(lead, success_notice:, failure_path:)
+    @invalid_estimated_value = false
+    company = build_company_from_params
+    lead.assign_attributes(lead_attributes_from_params(updating: lead.persisted?))
     lead.company = company
-    lead.user_id = assigned_user_id
+    lead.user_id = assigned_user_id(lead)
 
     company_valid =
       if company_name_param.blank?
@@ -67,8 +92,9 @@ class LeadsController < InertiaController
         company.valid?
       end
     lead.valid?
-    unless company_valid && lead.errors.empty? && assignee_present?
-      redirect_to new_lead_path, inertia: { errors: validation_error_hash(company, lead) }
+    lead.errors.add(:estimated_value, "is not a number") if @invalid_estimated_value
+    unless company_valid && lead.errors.empty? && assignee_present?(lead)
+      redirect_to failure_path, inertia: { errors: validation_error_hash(company, lead) }
       return
     end
 
@@ -77,19 +103,17 @@ class LeadsController < InertiaController
       lead.save!
     end
 
-    flash[:notice] = "Lead created."
+    flash[:notice] = success_notice
     redirect_to leads_path
   rescue ActiveRecord::RecordInvalid => e
-    redirect_to new_lead_path, inertia: { errors: validation_error_hash(e.record, company, lead) }
+    redirect_to failure_path, inertia: { errors: validation_error_hash(e.record, company, lead) }
   rescue ActiveRecord::RecordNotUnique => e
-    redirect_to new_lead_path, inertia: { errors: not_unique_errors(e) }
+    redirect_to failure_path, inertia: { errors: not_unique_errors(e) }
   rescue ActiveRecord::InvalidForeignKey
-    redirect_to new_lead_path, inertia: {
+    redirect_to failure_path, inertia: {
       errors: { base: [ "One or more selected references are invalid" ] }
     }
   end
-
-  private
 
   def serialize_lead(lead)
     {
@@ -100,15 +124,16 @@ class LeadsController < InertiaController
       stage: lead.stage&.name,
       advisor: lead.user&.name,
       last_activity_at: (lead.last_activity_at || lead.updated_at)&.iso8601,
-      estimated_value: lead.estimated_value&.to_s
+      estimated_value: lead.estimated_value&.to_s,
+      can_update: policy(lead).update?
     }
   end
 
-  def form_props
+  def form_props(lead: nil)
     {
       countries: Country.order(:name).map { |c| { id: c.id, name: c.name } },
       stages: LeadStage.order(:position).map { |s| { id: s.id, name: s.name } },
-      assignees: assignees_for_form,
+      assignees: assignees_for_form(lead),
       defaults: {
         user_id: current_user.admin? ? nil : current_user.id,
         force_assignee: !current_user.admin?
@@ -116,10 +141,32 @@ class LeadsController < InertiaController
     }
   end
 
-  def assignees_for_form
+  def edit_props(lead)
+    form_props(lead: lead).merge(
+      lead: {
+        id: lead.id,
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        estimated_value: lead.estimated_value&.to_s,
+        country_id: lead.country_id,
+        stage_id: lead.stage_id,
+        user_id: lead.user_id,
+        company_name: lead.company&.name.to_s,
+        company_country_id: lead.company&.country_id
+      }
+    )
+  end
+
+  def assignees_for_form(lead = nil)
     return [] unless current_user.admin?
 
-    assignable_users.map { |u| { id: u.id, name: u.name } }
+    users = assignable_users.to_a
+    if lead&.user && users.none? { |user| user.id == lead.user_id }
+      users << lead.user
+      users.sort_by!(&:name)
+    end
+    users.map { |user| { id: user.id, name: user.name } }
   end
 
   def assignable_users
@@ -129,11 +176,13 @@ class LeadsController < InertiaController
       .order(:name)
   end
 
-  def assignable_user_ids
-    @assignable_user_ids ||= assignable_users.pluck(:id)
+  def assignable_user_ids(lead = nil)
+    ids = assignable_users.pluck(:id)
+    ids |= [ lead.user_id ] if lead&.user_id
+    ids
   end
 
-  def create_params
+  def lead_form_params
     params.permit(
       :name,
       :email,
@@ -148,19 +197,23 @@ class LeadsController < InertiaController
     )
   end
 
+  def param_key?(key)
+    params.key?(key) || params.key?(key.to_s)
+  end
+
   def company_name_param
-    create_params[:company_name].to_s.strip
+    lead_form_params[:company_name].to_s.strip
   end
 
   def company_country_id_param
-    create_params[:company_country_id].presence
+    lead_form_params[:company_country_id].presence
   end
 
   def update_existing_company_country?
-    ActiveModel::Type::Boolean.new.cast(create_params[:update_existing_company_country])
+    ActiveModel::Type::Boolean.new.cast(lead_form_params[:update_existing_company_country])
   end
 
-  def build_company_for_create
+  def build_company_from_params
     if company_name_param.blank?
       company = Company.new
       company.errors.add(:name, "can't be blank")
@@ -185,35 +238,48 @@ class LeadsController < InertiaController
     end
   end
 
-  def lead_attributes_for_create
-    {
-      name: create_params[:name],
-      email: create_params[:email],
-      phone: create_params[:phone].presence,
-      estimated_value: estimated_value_param,
-      country_id: create_params[:country_id].presence,
-      stage_id: create_params[:stage_id].presence
+  def lead_attributes_from_params(updating:)
+    attrs = {
+      name: lead_form_params[:name],
+      email: lead_form_params[:email],
+      country_id: lead_form_params[:country_id].presence,
+      stage_id: lead_form_params[:stage_id].presence
     }
+
+    if !updating || param_key?(:phone)
+      attrs[:phone] = lead_form_params[:phone].presence
+    end
+
+    if !updating || param_key?(:estimated_value)
+      parsed = parse_estimated_value
+      if parsed == :invalid
+        @invalid_estimated_value = true
+      else
+        attrs[:estimated_value] = parsed
+      end
+    end
+
+    attrs
   end
 
-  def estimated_value_param
-    raw = create_params[:estimated_value]
+  def parse_estimated_value
+    raw = lead_form_params[:estimated_value]
     return if raw.blank?
 
-    raw
+    Float(raw, exception: false) || :invalid
   end
 
-  def assigned_user_id
+  def assigned_user_id(lead = nil)
     return current_user.id unless current_user.admin?
 
-    requested = Integer(create_params[:user_id], exception: false)
-    return requested if requested && assignable_user_ids.include?(requested)
+    requested = Integer(lead_form_params[:user_id], exception: false)
+    return requested if requested && assignable_user_ids(lead).include?(requested)
 
     nil
   end
 
-  def assignee_present?
-    !assigned_user_id.nil?
+  def assignee_present?(lead = nil)
+    !assigned_user_id(lead).nil?
   end
 
   def validation_error_hash(*records)
@@ -233,7 +299,8 @@ class LeadsController < InertiaController
       errors["company_name"] << "can't be blank" unless errors["company_name"].any?
     end
 
-    if current_user.admin? && assigned_user_id.nil?
+    lead_for_assignee = records.find { |record| record.is_a?(Lead) }
+    if current_user.admin? && assigned_user_id(lead_for_assignee).nil?
       errors["user_id"] ||= []
       errors["user_id"] << "can't be blank" unless errors["user_id"].any?
     end

@@ -308,6 +308,225 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"can_create":false'
   end
 
+  test "edit lead requires authentication" do
+    get edit_lead_path(leads(:sarah))
+
+    assert_redirected_to login_path
+  end
+
+  test "advisor can edit assigned lead" do
+    sign_in_as users(:advisor)
+
+    get edit_lead_path(leads(:sarah))
+
+    assert_response :success
+    assert_includes response.body, '"component":"leads/edit"'
+    assert_includes response.body, leads(:sarah).email
+  end
+
+  test "advisor cannot edit unassigned lead" do
+    sign_in_as users(:advisor)
+
+    get edit_lead_path(leads(:admin_owned))
+
+    assert_response :not_found
+  end
+
+  test "assistant cannot edit lead" do
+    sign_in_as users(:assistant)
+
+    get edit_lead_path(leads(:sarah))
+
+    assert_redirected_to root_path
+    assert_equal "You are not authorized to perform this action.", flash[:alert]
+  end
+
+  test "advisor updates assigned lead" do
+    sign_in_as users(:advisor)
+    lead = leads(:marcus)
+
+    patch lead_path(lead), params: valid_lead_params.merge(
+      name: "Marcus Updated",
+      email: lead.email,
+      company_name: lead.company.name,
+      company_country_id: lead.company.country_id,
+      country_id: lead.country_id,
+      stage_id: lead.stage_id,
+      user_id: users(:admin).id
+    )
+
+    assert_redirected_to leads_path
+    assert_equal "Lead updated.", flash[:notice]
+    lead.reload
+    assert_equal "Marcus Updated", lead.name
+    assert_equal users(:advisor).id, lead.user_id
+  end
+
+  test "advisor cannot update unassigned lead" do
+    sign_in_as users(:advisor)
+
+    patch lead_path(leads(:admin_owned)), params: valid_lead_params.merge(
+      email: "should.not@example.com"
+    )
+
+    assert_response :not_found
+    refute_equal "should.not@example.com", leads(:admin_owned).reload.email
+  end
+
+  test "assistant cannot update lead" do
+    sign_in_as users(:assistant)
+
+    patch lead_path(leads(:sarah)), params: valid_lead_params.merge(
+      email: leads(:sarah).email,
+      name: "Hacked"
+    )
+
+    assert_redirected_to root_path
+    assert_equal "Sarah Jenkins", leads(:sarah).reload.name
+  end
+
+  test "update rejects duplicate email belonging to another lead" do
+    sign_in_as users(:advisor)
+    lead = leads(:marcus)
+
+    patch lead_path(lead), params: valid_lead_params.merge(
+      email: "SARAH@EXAMPLE.COM",
+      company_name: lead.company.name,
+      company_country_id: lead.company.country_id,
+      country_id: lead.country_id,
+      stage_id: lead.stage_id
+    )
+
+    assert_redirected_to edit_lead_path(lead)
+    follow_redirect!
+    assert_includes response.body, "already belongs to another lead"
+    assert_equal "marcus@example.com", lead.reload.email
+  end
+
+  test "update reuses company by normalized name" do
+    sign_in_as users(:advisor)
+    lead = leads(:marcus)
+    existing = companies(:technova)
+
+    assert_no_difference "Company.count" do
+      patch lead_path(lead), params: valid_lead_params.merge(
+        email: lead.email,
+        company_name: "TECHNOVA SOLUTIONS",
+        company_country_id: countries(:cr).id,
+        country_id: lead.country_id,
+        stage_id: lead.stage_id
+      )
+    end
+
+    assert_redirected_to leads_path
+    assert_equal existing.id, lead.reload.company_id
+    assert_equal countries(:us).id, existing.reload.country_id
+  end
+
+  test "index includes can_update per lead for advisor" do
+    sign_in_as users(:advisor)
+
+    get leads_path
+
+    assert_response :success
+    assert_includes response.body, '"can_update":true'
+  end
+
+  test "admin can edit and reassign lead" do
+    sign_in_as users(:admin)
+    lead = leads(:sarah)
+
+    get edit_lead_path(lead)
+
+    assert_response :success
+    assert_includes response.body, '"component":"leads/edit"'
+    assert_includes response.body, lead.email
+
+    patch lead_path(lead), params: valid_lead_params.merge(
+      name: "Sarah Reassigned",
+      email: lead.email,
+      company_name: lead.company.name,
+      company_country_id: lead.company.country_id,
+      country_id: lead.country_id,
+      stage_id: lead.stage_id,
+      user_id: users(:admin).id
+    )
+
+    assert_redirected_to leads_path
+    assert_equal "Lead updated.", flash[:notice]
+    lead.reload
+    assert_equal "Sarah Reassigned", lead.name
+    assert_equal users(:admin).id, lead.user_id
+  end
+
+  test "update can opt in to change existing company country" do
+    sign_in_as users(:advisor)
+    lead = leads(:marcus)
+    company = companies(:acme)
+    assert_equal company.id, lead.company_id
+
+    patch lead_path(lead), params: valid_lead_params.merge(
+      email: lead.email,
+      company_name: "ACME CORP.",
+      company_country_id: countries(:cr).id,
+      update_existing_company_country: true,
+      country_id: lead.country_id,
+      stage_id: lead.stage_id
+    )
+
+    assert_redirected_to leads_path
+    assert_equal countries(:cr).id, company.reload.country_id
+  end
+
+  test "index shows can_update false for assistant" do
+    sign_in_as users(:assistant)
+
+    get leads_path
+
+    assert_response :success
+    assert_includes response.body, '"can_update":false'
+    refute_includes response.body, '"can_update":true'
+  end
+
+  test "update rejects non-numeric estimated_value" do
+    sign_in_as users(:advisor)
+    lead = leads(:marcus)
+
+    assert_no_changes -> { lead.reload.estimated_value } do
+      patch lead_path(lead), params: valid_lead_params.merge(
+        email: lead.email,
+        company_name: lead.company.name,
+        company_country_id: lead.company.country_id,
+        country_id: lead.country_id,
+        stage_id: lead.stage_id,
+        estimated_value: "not-a-number"
+      )
+    end
+
+    assert_redirected_to edit_lead_path(lead)
+    follow_redirect!
+    assert_includes response.body, "estimated_value"
+  end
+
+  test "update preserves phone when phone key omitted" do
+    sign_in_as users(:advisor)
+    lead = leads(:sarah)
+    original_phone = lead.phone
+    assert_predicate original_phone, :present?
+
+    patch lead_path(lead), params: valid_lead_params.merge(
+      name: lead.name,
+      email: lead.email,
+      company_name: lead.company.name,
+      company_country_id: lead.company.country_id,
+      country_id: lead.country_id,
+      stage_id: lead.stage_id
+    ).except(:phone)
+
+    assert_redirected_to leads_path
+    assert_equal original_phone, lead.reload.phone
+  end
+
   private
 
   def valid_lead_params
