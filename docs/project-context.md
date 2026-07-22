@@ -157,10 +157,11 @@ _This file contains critical rules, current project state, and patterns that AI 
 ### Development Workflow Rules
 
 - Feature branches: `cursor/<feature-name>` pattern in use.
-- Primary working branch: `cursor/data-model-v2`.
+- Integration branch: `dev` (not `main` for epic PRs).
 - GitHub remote: `https://github.com/ccalderonc-ruby/lead-flow.git`.
-- CI runs on PRs and pushes to `main` — keep green.
+- CI runs on PRs — keep green before merge.
 - Implementation details for humans: update `docs/IMPLEMENTATION.md` when completing major steps.
+- **Bug / polish triage:** follow `docs/BUG_POLISH_TRIAGE.md` — patch now vs before next epic vs park-with-label. Never leave unlabeled “fix later” piles.
 
 ### Critical Don't-Miss Rules
 

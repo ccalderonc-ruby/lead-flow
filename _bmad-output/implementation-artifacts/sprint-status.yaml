@@ -135,6 +135,10 @@ action_items:
     action: "Keep polish deferrals labeled unless demo pain (closed-only index, USD locale, show N+1, mailto/tel)"
     owner: "Product"
     status: deferred
+  - epic: 4
+    action: "Write bug/polish triage rule (patch now / before next epic / park-with-label)"
+    owner: "Project Lead + Amelia"
+    status: done
   - epic: 3
     action: "Merge PR #20 Epic 3 → dev"
     owner: "Project Lead"
