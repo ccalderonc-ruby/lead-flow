@@ -1,5 +1,14 @@
 # Deferred Work
 
+## Deferred from: Epic 4 retrospective (2026-07-21)
+
+- Pipeline pagination / unbounded board load — labeled; revisit if demo data grows
+- Brittle `response.body` substring controller tests — strengthen in Epic 7 test pass
+- Serialize/helper duplication (opportunities, fieldError, assignee queries) — extract when touching those files
+- Validation remount loses submitted form values — keep redirect+reopen; promote if demo pain
+- Mid-save opportunity card switch — polish if reproduced
+- Counter cache / TasksTable extract / remaining professor polish — still deferred (modal a11y done)
+
 ## Deferred from: Epic 4 retrospective prep (2026-07-21)
 
 - ~~No written bug/polish triage rule~~ ✅ `docs/BUG_POLISH_TRIAGE.md` (Project Lead + Amelia)

@@ -52,7 +52,7 @@
 # Week 7 → Epic 7
 
 generated: "2026-07-05"
-last_updated: "2026-07-21T20:40:00-06:00"
+last_updated: "2026-07-21T21:17:00-06:00"
 project: LeadFlow CRM
 project_key: NOKEY
 tracking_system: file-system
@@ -85,11 +85,11 @@ development_status:
   epic-3-retrospective: done
 
   # ── Week 4: Run the Sales Pipeline ─────────────────────────────
-  epic-4: in-progress
+  epic-4: done
   4-1-meetings-list-and-scheduling: done
   4-2-opportunities-pipeline-board: done
   4-3-opportunity-detail-drawer: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
 
   # ── Week 5: Administer the Team ────────────────────────────────
   epic-5: backlog
@@ -139,6 +139,26 @@ action_items:
     action: "Write bug/polish triage rule (patch now / before next epic / park-with-label)"
     owner: "Project Lead + Amelia"
     status: done
+  - epic: 4
+    action: "Merge Epic 4 (PR #25) to dev"
+    owner: "Project Lead + Amelia"
+    status: done
+  - epic: 4
+    action: "Fix modal/drawer a11y with useDialogA11y (Task/Note/Meeting/Opportunity)"
+    owner: "Amelia"
+    status: done
+  - epic: 4
+    action: "Close superseded kickoff PR #24"
+    owner: "Project Lead"
+    status: done
+  - epic: 4
+    action: "Create Story 5.1 (verify seeds) then 5.2 — cite triage rule and useDialogA11y"
+    owner: "Amelia / John"
+    status: open
+  - epic: 4
+    action: "Keep remaining polish labeled (pipeline pagination, brittle tests, serialize/helper dup, validation remount values, mid-save card switch, counter cache / table extract)"
+    owner: "Amelia + Product"
+    status: deferred
   - epic: 3
     action: "Merge PR #20 Epic 3 → dev"
     owner: "Project Lead"
@@ -148,6 +168,6 @@ action_items:
     owner: "Amelia"
     status: done
   - epic: 3
-    action: "Week 7: counter cache / table extract / modal a11y / remaining professor polish unless demo pain earlier"
+    action: "Week 7: counter cache / table extract / remaining professor polish (modal a11y done in PR #27)"
     owner: "Amelia + Product"
     status: deferred
