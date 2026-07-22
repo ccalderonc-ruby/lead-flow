@@ -1,5 +1,20 @@
 # Deferred Work
 
+## Deferred from: Epic 3 retrospective / professor PR #20 (2026-07-21)
+
+**Epic 4 kickoff (do before Story 4.1):**
+- Task status as Rails enum or shared constants (replace magic `"pending"` / `"completed"`)
+- Extract `formatDate` / `formatDateTime` / `formatCurrency` to shared JS utils
+- Shared atomic form fields (TextField / TextArea / Select) for Task, Note, and upcoming Meeting forms
+- Remove `useEffect` that only syncs form props; set on submit or remount; derive modal-open from errors
+- Decide Inertia 422 vs redirect+reopen once for all CRM forms
+
+**Week 7 (or earlier if demo pain):**
+- Counter cache for lead task/note/meeting counts
+- Extract TasksTable / fat page types
+- Modal a11y (focus trap / Escape / backdrop)
+- Remaining polish (mailto/tel, locale, empty copy, closed-only index)
+
 ## Deferred from: code review of 3-3-notes-timeline-on-lead (2026-07-14)
 
 - Note content max length / oversized Inertia payload on lead show — MVP OK
