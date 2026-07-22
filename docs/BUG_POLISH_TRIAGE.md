@@ -32,7 +32,7 @@ Do before starting the next epic’s first story when the finding is:
 
 Defer only if **labeled** in story Review Findings **and** `_bmad-output/implementation-artifacts/deferred-work.md`:
 
-- Accessibility polish (Escape / focus trap / restore focus) when mouse demo works
+- Accessibility polish when mouse demo works (most CRM dialogs now use `useDialogA11y`; new overlays should too)
 - Performance at demo scale (pagination, per-row policy) unless slow in practice
 - Test style (brittle `response.body` substrings)
 - Helper duplication / extract refactors

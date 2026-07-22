@@ -1,8 +1,9 @@
 import { useForm } from '@inertiajs/react'
-import { FormEvent } from 'react'
+import { FormEvent, useRef } from 'react'
 import { Link } from '@inertiajs/react'
 
 import { SelectField, TextAreaField, TextField } from '@/components/ui/FormFields'
+import { useDialogA11y } from '@/hooks/useDialogA11y'
 
 export type OpportunityStageOption = {
   id: number
@@ -67,17 +68,24 @@ export default function OpportunityDrawer({
       description: '',
     },
   )
-
-  if (!open || !opportunity) return null
-
-  const record = opportunity
-  const readOnly = !record.can_update
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   function handleClose() {
     if (form.processing) return
     form.clearErrors()
     onClose()
   }
+
+  useDialogA11y({
+    open: open && opportunity != null,
+    onClose: handleClose,
+    containerRef: dialogRef,
+  })
+
+  if (!open || !opportunity) return null
+
+  const record = opportunity
+  const readOnly = !record.can_update
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -97,9 +105,8 @@ export default function OpportunityDrawer({
     })
   }
 
-  // Sync form when opening a different card (no useEffect — key remounts from parent).
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40">
+    <div ref={dialogRef} className="fixed inset-0 z-50 flex justify-end bg-slate-900/40">
       <button
         type="button"
         className="flex-1 cursor-default"
