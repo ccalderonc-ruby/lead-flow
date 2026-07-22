@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: Epic 4 retrospective prep (2026-07-21)
+
+- ~~No written bug/polish triage rule~~ ✅ `docs/BUG_POLISH_TRIAGE.md` (Project Lead + Amelia)
+
 ## Deferred from: code review of 4-3-opportunity-detail-drawer (2026-07-21)
 
 - Drawer dialog a11y (focus trap / Escape / restore focus) — same Week 7 modal a11y deferral as Meetings/Tasks/Notes
