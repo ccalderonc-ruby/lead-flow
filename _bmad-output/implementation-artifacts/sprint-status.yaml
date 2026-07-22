@@ -118,11 +118,11 @@ action_items:
   - epic: 2
     action: "Decide Inertia validation remount UX once before Epic 3 forms (accept or fix shared pattern)"
     owner: "Amelia + Sally"
-    status: deferred
+    status: done
   - epic: 2
     action: "Add verify_authorized after-action before Epic 3 controllers proliferate"
     owner: "Amelia / Winston"
-    status: deferred
+    status: done
   - epic: 2
     action: "Epic 3 story specs must include lead-detail CTAs (New Task / notes), not list-only"
     owner: "John (PM) via create-story"
@@ -138,11 +138,11 @@ action_items:
   - epic: 3
     action: "Merge PR #20 Epic 3 → dev"
     owner: "Project Lead"
-    status: in-progress
+    status: done
   - epic: 3
     action: "Epic 4 kickoff: Task status enum/constants; format utils; shared form fields; no useEffect form sync"
     owner: "Amelia"
-    status: open
+    status: done
   - epic: 3
     action: "Week 7: counter cache / table extract / modal a11y / remaining professor polish unless demo pain earlier"
     owner: "Amelia + Product"

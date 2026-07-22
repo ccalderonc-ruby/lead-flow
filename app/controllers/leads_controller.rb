@@ -191,7 +191,7 @@ class LeadsController < InertiaController
             title: task.title,
             due_date: task.due_date&.iso8601,
             status: task.status,
-            can_complete: task.status == "pending" && policy(task).update?
+            can_complete: task.pending? && policy(task).update?
           }
         end
       },

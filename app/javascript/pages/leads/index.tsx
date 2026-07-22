@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { FormEvent, useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import { formatCurrency, formatDate } from '@/lib/format'
 
 export type LeadRow = {
   id: number
@@ -27,26 +28,6 @@ type LeadsIndexProps = {
   leads: LeadRow[]
   meta: LeadsMeta
   can_create: boolean
-}
-
-function formatCurrency(amount: string | number | null): string {
-  if (amount == null || amount === '') return '—'
-  const value = typeof amount === 'number' ? amount : Number(amount)
-  if (Number.isNaN(value)) return '—'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-function formatActivity(iso: string | null): string {
-  if (!iso) return '—'
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(new Date(iso))
 }
 
 export default function LeadsIndex({ leads, meta, can_create: canCreate }: LeadsIndexProps) {
@@ -151,7 +132,7 @@ export default function LeadsIndex({ leads, meta, can_create: canCreate }: Leads
                     <td className="px-4 py-3 text-slate-700">{lead.company}</td>
                     <td className="px-4 py-3 text-slate-700">{lead.stage}</td>
                     <td className="px-4 py-3 text-slate-700">{lead.advisor}</td>
-                    <td className="px-4 py-3 text-slate-700">{formatActivity(lead.last_activity_at)}</td>
+                    <td className="px-4 py-3 text-slate-700">{formatDate(lead.last_activity_at)}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-slate-900">
                       {formatCurrency(lead.estimated_value)}
                     </td>

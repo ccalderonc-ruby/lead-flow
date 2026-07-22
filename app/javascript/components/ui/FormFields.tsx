@@ -1,0 +1,128 @@
+import { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
+
+const fieldClassName =
+  'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200'
+
+type FieldErrorProps = {
+  error?: string | null
+}
+
+export function FieldError({ error }: FieldErrorProps) {
+  if (!error) return null
+  return <p className="mt-1 text-sm text-red-600">{error}</p>
+}
+
+type TextFieldProps = {
+  id: string
+  label: string
+  required?: boolean
+  error?: string | null
+  value: string
+  onChange: (value: string) => void
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'value' | 'onChange'>
+
+export function TextField({
+  id,
+  label,
+  required = false,
+  error,
+  value,
+  onChange,
+  type = 'text',
+  ...rest
+}: TextFieldProps) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+        {label}
+        {required && <span className="text-red-600"> *</span>}
+      </label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+        className={fieldClassName}
+        {...rest}
+      />
+      <FieldError error={error} />
+    </div>
+  )
+}
+
+type TextAreaFieldProps = {
+  id: string
+  label: string
+  required?: boolean
+  error?: string | null
+  value: string
+  onChange: (value: string) => void
+  rows?: number
+} & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id' | 'value' | 'onChange'>
+
+export function TextAreaField({
+  id,
+  label,
+  required = false,
+  error,
+  value,
+  onChange,
+  rows = 5,
+  ...rest
+}: TextAreaFieldProps) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+        {label}
+        {required && <span className="text-red-600"> *</span>}
+      </label>
+      <textarea
+        id={id}
+        rows={rows}
+        value={value}
+        onChange={(event: ChangeEvent<HTMLTextAreaElement>) => onChange(event.target.value)}
+        className={fieldClassName}
+        {...rest}
+      />
+      <FieldError error={error} />
+    </div>
+  )
+}
+
+type SelectFieldProps = {
+  id: string
+  label: string
+  required?: boolean
+  error?: string | null
+  value: string
+  onChange: (value: string) => void
+  children: ReactNode
+}
+
+export function SelectField({
+  id,
+  label,
+  required = false,
+  error,
+  value,
+  onChange,
+  children,
+}: SelectFieldProps) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+        {label}
+        {required && <span className="text-red-600"> *</span>}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)}
+        className={fieldClassName}
+      >
+        {children}
+      </select>
+      <FieldError error={error} />
+    </div>
+  )
+}

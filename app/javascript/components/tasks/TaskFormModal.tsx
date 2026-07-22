@@ -1,5 +1,7 @@
 import { useForm } from '@inertiajs/react'
-import { FormEvent, useEffect } from 'react'
+import { FormEvent } from 'react'
+
+import { FieldError, SelectField, TextField } from '@/components/ui/FormFields'
 
 export type TaskFormOption = {
   id: number
@@ -35,9 +37,6 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
   return Array.isArray(value) ? value.join(', ') : value
 }
 
-const inputClassName =
-  'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200'
-
 export default function TaskFormModal({
   open,
   onClose,
@@ -62,10 +61,6 @@ export default function TaskFormModal({
     return_to: returnTo,
   })
 
-  useEffect(() => {
-    form.setData('return_to', returnTo)
-  }, [returnTo])
-
   if (!open) return null
 
   function resetForm() {
@@ -87,7 +82,11 @@ export default function TaskFormModal({
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    form.setData('return_to', returnTo)
+    form.transform((data) => ({
+      ...data,
+      return_to: returnTo,
+      lead_id: lockedLeadId != null ? String(lockedLeadId) : data.lead_id,
+    }))
     form.post('/tasks', {
       preserveScroll: true,
       onSuccess: () => {
@@ -129,98 +128,79 @@ export default function TaskFormModal({
             </p>
           )}
 
-          <div>
-            <label htmlFor="task-title" className="block text-sm font-medium text-slate-700">
-              Title <span className="text-red-600">*</span>
-            </label>
-            <input
-              id="task-title"
-              type="text"
-              value={form.data.title}
-              onChange={(event) => form.setData('title', event.target.value)}
-              className={inputClassName}
-            />
-            {fieldError(form.errors, 'title') && (
-              <p className="mt-1 text-sm text-red-600">{fieldError(form.errors, 'title')}</p>
-            )}
-          </div>
+          <TextField
+            id="task-title"
+            label="Title"
+            required
+            value={form.data.title}
+            onChange={(value) => form.setData('title', value)}
+            error={fieldError(form.errors, 'title')}
+          />
 
-          <div>
-            <label htmlFor="task-due-date" className="block text-sm font-medium text-slate-700">
-              Due date <span className="text-red-600">*</span>
-            </label>
-            <input
-              id="task-due-date"
-              type="date"
-              value={form.data.due_date}
-              onChange={(event) => form.setData('due_date', event.target.value)}
-              className={inputClassName}
-            />
-            {fieldError(form.errors, 'due_date') && (
-              <p className="mt-1 text-sm text-red-600">{fieldError(form.errors, 'due_date')}</p>
-            )}
-          </div>
+          <TextField
+            id="task-due-date"
+            label="Due date"
+            type="date"
+            required
+            value={form.data.due_date}
+            onChange={(value) => form.setData('due_date', value)}
+            error={fieldError(form.errors, 'due_date')}
+          />
 
-          <div>
-            <label htmlFor="task-lead" className="block text-sm font-medium text-slate-700">
-              Lead <span className="text-red-600">*</span>
-            </label>
-            {lockedLeadId != null ? (
+          {lockedLeadId != null ? (
+            <div>
+              <p className="block text-sm font-medium text-slate-700">
+                Lead <span className="text-red-600">*</span>
+              </p>
               <p className="mt-1 text-sm text-slate-900">
                 {leads.find((lead) => lead.id === lockedLeadId)?.name || 'Selected lead'}
               </p>
-            ) : (
-              <select
-                id="task-lead"
-                value={form.data.lead_id}
-                onChange={(event) => form.setData('lead_id', event.target.value)}
-                className={inputClassName}
-              >
-                <option value="">Select a lead</option>
-                {leads.map((lead) => (
-                  <option key={lead.id} value={lead.id}>
-                    {lead.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            {fieldError(form.errors, 'lead_id') && (
-              <p className="mt-1 text-sm text-red-600">{fieldError(form.errors, 'lead_id')}</p>
-            )}
-            {fieldError(form.errors, 'lead') && (
-              <p className="mt-1 text-sm text-red-600">{fieldError(form.errors, 'lead')}</p>
-            )}
-          </div>
+              <FieldError error={fieldError(form.errors, 'lead_id') || fieldError(form.errors, 'lead')} />
+            </div>
+          ) : (
+            <SelectField
+              id="task-lead"
+              label="Lead"
+              required
+              value={form.data.lead_id}
+              onChange={(value) => form.setData('lead_id', value)}
+              error={fieldError(form.errors, 'lead_id') || fieldError(form.errors, 'lead')}
+            >
+              <option value="">Select a lead</option>
+              {leads.map((lead) => (
+                <option key={lead.id} value={lead.id}>
+                  {lead.name}
+                </option>
+              ))}
+            </SelectField>
+          )}
 
-          <div>
-            <label htmlFor="task-assignee" className="block text-sm font-medium text-slate-700">
-              Assignee <span className="text-red-600">*</span>
-            </label>
-            {defaults.force_assignee ? (
+          {defaults.force_assignee ? (
+            <div>
+              <p className="block text-sm font-medium text-slate-700">
+                Assignee <span className="text-red-600">*</span>
+              </p>
               <p className="mt-1 text-sm text-slate-900">
                 {assignees.find((user) => String(user.id) === form.data.user_id)?.name || 'You'}
               </p>
-            ) : (
-              <select
-                id="task-assignee"
-                value={form.data.user_id}
-                onChange={(event) => form.setData('user_id', event.target.value)}
-                className={inputClassName}
-              >
-                {assignees.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            {fieldError(form.errors, 'user_id') && (
-              <p className="mt-1 text-sm text-red-600">{fieldError(form.errors, 'user_id')}</p>
-            )}
-            {fieldError(form.errors, 'user') && (
-              <p className="mt-1 text-sm text-red-600">{fieldError(form.errors, 'user')}</p>
-            )}
-          </div>
+              <FieldError error={fieldError(form.errors, 'user_id') || fieldError(form.errors, 'user')} />
+            </div>
+          ) : (
+            <SelectField
+              id="task-assignee"
+              label="Assignee"
+              required
+              value={form.data.user_id}
+              onChange={(value) => form.setData('user_id', value)}
+              error={fieldError(form.errors, 'user_id') || fieldError(form.errors, 'user')}
+            >
+              {assignees.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </SelectField>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button

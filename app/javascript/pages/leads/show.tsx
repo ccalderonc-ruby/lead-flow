@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import NoteFormModal from '@/components/notes/NoteFormModal'
@@ -9,6 +9,7 @@ import TaskFormModal, {
   type TaskFormOption,
 } from '@/components/tasks/TaskFormModal'
 import { hasTaskCreateErrors } from '@/components/tasks/taskFormErrors'
+import { formatCurrency, formatDate, formatDateTime } from '@/lib/format'
 
 type LeadDetail = {
   id: number
@@ -87,55 +88,6 @@ type LeadsShowProps = {
   note_form: NoteFormProps
 }
 
-function formatCurrency(amount: string | number | null): string {
-  if (amount == null || amount === '') return '—'
-  const value = typeof amount === 'number' ? amount : Number(amount)
-  if (Number.isNaN(value)) return '—'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-    const [year, month, day] = iso.split('-').map(Number)
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(Date.UTC(year, month - 1, day)))
-  }
-
-  const parsed = new Date(iso)
-  if (Number.isNaN(parsed.getTime())) return '—'
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(parsed)
-}
-
-function formatDateTime(iso: string | null): string {
-  if (!iso) return '—'
-
-  const parsed = new Date(iso)
-  if (Number.isNaN(parsed.getTime())) return '—'
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(parsed)
-}
-
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -199,14 +151,38 @@ export default function LeadsShow({
   const noteErrorsPresent = hasNoteCreateErrors(pageErrors)
   // On lead show, note wins shared lead_id/base errors so both modals do not open.
   const taskErrorsPresent = hasTaskCreateErrors(pageErrors) && !noteErrorsPresent
-  const [taskModalOpen, setTaskModalOpen] = useState(() => taskErrorsPresent)
-  const [noteModalOpen, setNoteModalOpen] = useState(() => noteErrorsPresent)
+  const taskErrorKey = taskErrorsPresent ? JSON.stringify(pageErrors) : null
+  const noteErrorKey = noteErrorsPresent ? JSON.stringify(pageErrors) : null
+  const [taskManualOpen, setTaskManualOpen] = useState(false)
+  const [noteManualOpen, setNoteManualOpen] = useState(false)
+  const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
+  const [dismissedNoteErrorKey, setDismissedNoteErrorKey] = useState<string | null>(null)
   const [completingId, setCompletingId] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (noteErrorsPresent) setNoteModalOpen(true)
-    if (taskErrorsPresent) setTaskModalOpen(true)
-  }, [noteErrorsPresent, taskErrorsPresent])
+  const taskModalOpen =
+    taskManualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey)
+  const noteModalOpen =
+    noteManualOpen || (noteErrorKey != null && dismissedNoteErrorKey !== noteErrorKey)
+
+  function openTaskModal() {
+    setDismissedTaskErrorKey(null)
+    setTaskManualOpen(true)
+  }
+
+  function closeTaskModal() {
+    setTaskManualOpen(false)
+    if (taskErrorKey != null) setDismissedTaskErrorKey(taskErrorKey)
+  }
+
+  function openNoteModal() {
+    setDismissedNoteErrorKey(null)
+    setNoteManualOpen(true)
+  }
+
+  function closeNoteModal() {
+    setNoteManualOpen(false)
+    if (noteErrorKey != null) setDismissedNoteErrorKey(noteErrorKey)
+  }
 
   function completeTask(taskId: number) {
     if (completingId != null) return
@@ -267,7 +243,7 @@ export default function LeadsShow({
               canCreateTask ? (
                 <button
                   type="button"
-                  onClick={() => setTaskModalOpen(true)}
+                  onClick={openTaskModal}
                   className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                 >
                   New task
@@ -316,7 +292,7 @@ export default function LeadsShow({
               canCreateNote ? (
                 <button
                   type="button"
-                  onClick={() => setNoteModalOpen(true)}
+                  onClick={openNoteModal}
                   className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                 >
                   Add note
@@ -357,7 +333,7 @@ export default function LeadsShow({
       {canCreateTask && (
         <TaskFormModal
           open={taskModalOpen}
-          onClose={() => setTaskModalOpen(false)}
+          onClose={closeTaskModal}
           leads={taskForm.leads}
           assignees={taskForm.assignees}
           defaults={taskForm.defaults}
@@ -369,7 +345,7 @@ export default function LeadsShow({
       {canCreateNote && (
         <NoteFormModal
           open={noteModalOpen}
-          onClose={() => setNoteModalOpen(false)}
+          onClose={closeNoteModal}
           leadId={noteForm.lead_id}
           returnTo={noteForm.return_to}
         />

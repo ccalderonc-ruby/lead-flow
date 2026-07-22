@@ -2,12 +2,13 @@
 
 ## Deferred from: Epic 3 retrospective / professor PR #20 (2026-07-21)
 
-**Epic 4 kickoff (do before Story 4.1):**
-- Task status as Rails enum or shared constants (replace magic `"pending"` / `"completed"`)
-- Extract `formatDate` / `formatDateTime` / `formatCurrency` to shared JS utils
-- Shared atomic form fields (TextField / TextArea / Select) for Task, Note, and upcoming Meeting forms
-- Remove `useEffect` that only syncs form props; set on submit or remount; derive modal-open from errors
-- Decide Inertia 422 vs redirect+reopen once for all CRM forms
+**Epic 4 kickoff — done (2026-07-21):**
+- ~~Task status as Rails enum~~ ✅ `Task` enum `:status`
+- ~~Extract formatDate / formatDateTime / formatCurrency~~ ✅ `app/javascript/lib/format.ts`
+- ~~Shared atomic form fields~~ ✅ `app/javascript/components/ui/FormFields.tsx` (Task + Note modals)
+- ~~Remove useEffect form/modal prop sync~~ ✅ set on submit via `transform`; modal-open derived from errors
+- ~~Decide Inertia 422 vs redirect+reopen~~ ✅ keep **redirect + reopen modal** for CRM forms (matches Tasks/Notes; revisit only if remount UX hurts demo)
+- ~~`verify_authorized` after-action~~ ✅ on `ApplicationController` (Sessions skipped; Dashboard/Meetings/Opportunities authorize)
 
 **Week 7 (or earlier if demo pain):**
 - Counter cache for lead task/note/meeting counts

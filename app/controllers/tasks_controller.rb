@@ -3,8 +3,6 @@
 class TasksController < InertiaController
   PER_PAGE = 25
   FILTERS = %w[all mine overdue].freeze
-  COMPLETED = "completed"
-  PENDING = "pending"
 
   before_action :set_task, only: :update
 
@@ -51,6 +49,7 @@ class TasksController < InertiaController
   def create
     lead = policy_scope(Lead).find_by(id: task_create_params[:lead_id])
     unless lead
+      skip_authorization
       redirect_to safe_return_path, inertia: { errors: lead_missing_errors }
       return
     end
@@ -62,7 +61,7 @@ class TasksController < InertiaController
       title: task_create_params[:title],
       due_date: task_create_params[:due_date],
       user_id: assigned_user_id(lead),
-      status: PENDING
+      status: :pending
     )
 
     if task.save
@@ -77,7 +76,7 @@ class TasksController < InertiaController
     authorize @task
 
     requested = task_update_params[:status].to_s
-    unless requested == COMPLETED
+    unless requested == Task.statuses[:completed]
       flash[:alert] = "Could not complete task."
       redirect_to safe_return_path, inertia: {
         errors: { status: [ "can only be set to completed" ] }
@@ -85,7 +84,7 @@ class TasksController < InertiaController
       return
     end
 
-    unless @task.status == PENDING
+    unless @task.pending?
       flash[:alert] = "Could not complete task."
       redirect_to safe_return_path, inertia: {
         errors: { status: [ "can only complete pending tasks" ] }
@@ -93,7 +92,7 @@ class TasksController < InertiaController
       return
     end
 
-    if @task.update(status: COMPLETED)
+    if @task.update(status: :completed)
       flash[:notice] = "Task completed."
       redirect_to safe_return_path
     else
@@ -113,7 +112,7 @@ class TasksController < InertiaController
     when "mine"
       scoped.where(user_id: current_user.id)
     when "overdue"
-      scoped.where(status: "pending").where(due_date: ...Date.current)
+      scoped.where(status: :pending).where(due_date: ...Date.current)
     else
       scoped
     end
@@ -133,7 +132,7 @@ class TasksController < InertiaController
   end
 
   def can_complete?(task)
-    task.status == PENDING && policy(task).update?
+    task.pending? && policy(task).update?
   end
 
   def can_create_tasks?
