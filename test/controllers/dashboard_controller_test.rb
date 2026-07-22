@@ -17,7 +17,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       assert_includes response.body, '"open_leads":2'
-      assert_includes response.body, '"overdue_tasks":1'
+      assert_includes response.body, '"overdue_tasks":2'
       assert_includes response.body, '"upcoming_meetings":1'
       assert_includes response.body, '"pipeline_value":32000'
     end

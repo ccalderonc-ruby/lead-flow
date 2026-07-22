@@ -1,0 +1,251 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+class TasksControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    travel_to Date.new(2026, 7, 5)
+  end
+
+  test "tasks index requires authentication" do
+    get tasks_path
+
+    assert_redirected_to login_path
+  end
+
+  test "advisor sees only tasks on assigned leads by default" do
+    sign_in_as users(:advisor)
+    task = tasks(:follow_up)
+
+    get tasks_path
+
+    assert_response :success
+    assert_includes response.body, '"component":"tasks/index"'
+    assert_includes response.body, '"filter":"all"'
+    assert_includes response.body, '"per_page":25'
+    assert_includes response.body, '"page":1'
+    assert_includes response.body, '"total_pages"'
+    assert_includes response.body, '"total_count"'
+    assert_includes response.body, '"can_create":true'
+    assert_includes response.body, task.title
+    assert_includes response.body, task.lead.name
+    assert_includes response.body, '"lead_id":'
+    assert_includes response.body, task.due_date.iso8601
+    assert_includes response.body, '"status":"pending"'
+    assert_includes response.body, task.user.name
+    assert_includes response.body, '"can_complete":true'
+    assert_includes response.body, tasks(:future_follow_up).title
+    assert_includes response.body, tasks(:assistant_owned_task).title
+    refute_includes response.body, tasks(:admin_task).title
+  end
+
+  test "advisor mine filter only includes tasks assigned to advisor" do
+    sign_in_as users(:advisor)
+
+    get tasks_path, params: { filter: "mine" }
+
+    assert_response :success
+    assert_includes response.body, '"filter":"mine"'
+    assert_includes response.body, tasks(:follow_up).title
+    refute_includes response.body, tasks(:assistant_owned_task).title
+  end
+
+  test "advisor overdue filter only pending past due" do
+    sign_in_as users(:advisor)
+
+    get tasks_path, params: { filter: "overdue" }
+
+    assert_response :success
+    assert_includes response.body, '"filter":"overdue"'
+    assert_includes response.body, tasks(:follow_up).title
+    assert_includes response.body, tasks(:assistant_owned_task).title
+    refute_includes response.body, tasks(:future_follow_up).title
+    refute_includes response.body, tasks(:completed_follow_up).title
+  end
+
+  test "admin all filter includes org tasks" do
+    sign_in_as users(:admin)
+
+    get tasks_path
+
+    assert_response :success
+    assert_includes response.body, tasks(:follow_up).title
+    assert_includes response.body, tasks(:admin_task).title
+  end
+
+  test "admin mine filter only admin assignee" do
+    sign_in_as users(:admin)
+
+    get tasks_path, params: { filter: "mine" }
+
+    assert_response :success
+    assert_includes response.body, tasks(:admin_task).title
+    refute_includes response.body, tasks(:follow_up).title
+  end
+
+  test "assistant can list all tasks" do
+    sign_in_as users(:assistant)
+
+    get tasks_path
+
+    assert_response :success
+    assert_includes response.body, tasks(:follow_up).title
+    assert_includes response.body, tasks(:admin_task).title
+  end
+
+  test "invalid filter redirects to canonical all list" do
+    sign_in_as users(:advisor)
+
+    get tasks_path, params: { filter: "nope" }
+
+    assert_redirected_to tasks_path
+    follow_redirect!
+    assert_includes response.body, '"filter":"all"'
+  end
+
+  test "assistant creates task on any lead" do
+    sign_in_as users(:assistant)
+
+    assert_difference "Task.count", 1 do
+      post tasks_path, params: {
+        title: "Prep briefing",
+        due_date: "2026-07-20",
+        lead_id: leads(:admin_owned).id,
+        user_id: users(:admin).id,
+        return_to: tasks_path
+      }
+    end
+
+    task = Task.order(:id).last
+    assert_equal "pending", task.status
+    assert_equal users(:admin).id, task.user_id
+    assert_redirected_to tasks_path
+    assert_equal "Task created.", flash[:notice]
+  end
+
+  test "advisor creates task only on assigned lead and forces self assignee" do
+    sign_in_as users(:advisor)
+
+    assert_difference "Task.count", 1 do
+      post tasks_path, params: {
+        title: "Call prospect",
+        due_date: "2026-07-22",
+        lead_id: leads(:sarah).id,
+        user_id: users(:admin).id,
+        return_to: lead_path(leads(:sarah))
+      }
+    end
+
+    task = Task.order(:id).last
+    assert_equal users(:advisor).id, task.user_id
+    assert_redirected_to lead_path(leads(:sarah))
+  end
+
+  test "advisor cannot create task on unassigned lead" do
+    sign_in_as users(:advisor)
+
+    assert_no_difference "Task.count" do
+      post tasks_path, params: {
+        title: "Should fail",
+        due_date: "2026-07-22",
+        lead_id: leads(:admin_owned).id,
+        return_to: tasks_path
+      }
+    end
+
+    assert_redirected_to tasks_path
+    follow_redirect!
+    assert_includes response.body, "lead_id"
+    assert_includes response.body, "is invalid or inaccessible"
+  end
+
+  test "create without due_date returns inertia errors" do
+    sign_in_as users(:advisor)
+
+    assert_no_difference "Task.count" do
+      post tasks_path, params: {
+        title: "Missing due date",
+        due_date: "",
+        lead_id: leads(:sarah).id,
+        return_to: tasks_path
+      }
+    end
+
+    assert_redirected_to tasks_path
+    follow_redirect!
+    assert_includes response.body, "due_date"
+  end
+
+  test "create without title returns inertia errors" do
+    sign_in_as users(:advisor)
+
+    assert_no_difference "Task.count" do
+      post tasks_path, params: {
+        title: "",
+        due_date: "2026-07-22",
+        lead_id: leads(:sarah).id,
+        return_to: tasks_path
+      }
+    end
+
+    assert_redirected_to tasks_path
+    follow_redirect!
+    assert_includes response.body, "title"
+  end
+
+  test "advisor completes pending task" do
+    sign_in_as users(:advisor)
+    task = tasks(:follow_up)
+
+    patch task_path(task), params: { status: "completed", return_to: tasks_path }
+
+    assert_redirected_to tasks_path
+    assert_equal "Task completed.", flash[:notice]
+    assert_equal "completed", task.reload.status
+  end
+
+  test "complete preserves filter and page in return_to" do
+    sign_in_as users(:advisor)
+    task = tasks(:follow_up)
+
+    patch task_path(task), params: {
+      status: "completed",
+      return_to: "/tasks?filter=mine&page=2"
+    }
+
+    assert_redirected_to tasks_path(filter: "mine", page: 2)
+    assert_equal "completed", task.reload.status
+  end
+
+  test "complete with invalid status sets alert" do
+    sign_in_as users(:advisor)
+    task = tasks(:follow_up)
+
+    patch task_path(task), params: { status: "pending", return_to: tasks_path }
+
+    assert_redirected_to tasks_path
+    assert_equal "Could not complete task.", flash[:alert]
+    assert_equal "pending", task.reload.status
+  end
+
+  test "complete rejects already completed task" do
+    sign_in_as users(:advisor)
+    task = tasks(:completed_follow_up)
+
+    patch task_path(task), params: { status: "completed", return_to: tasks_path }
+
+    assert_redirected_to tasks_path
+    assert_equal "Could not complete task.", flash[:alert]
+    assert_equal "completed", task.reload.status
+  end
+
+  test "advisor cannot complete task on unassigned lead" do
+    sign_in_as users(:advisor)
+    task = tasks(:admin_task)
+
+    patch task_path(task), params: { status: "completed", return_to: tasks_path }
+
+    assert_response :not_found
+    assert_equal "pending", task.reload.status
+  end
+end

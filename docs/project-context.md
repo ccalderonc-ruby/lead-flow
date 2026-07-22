@@ -54,7 +54,8 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Leads index | ✅ | Role-scoped table + search + pagination (Story 2.1) |
 | Create lead | ✅ | New lead form + company dedup + unique email (Story 2.2) |
 | Edit lead | ✅ | Edit form + per-row authorize + shared LeadForm (Story 2.3) |
-| Lead detail | ✅ | Show page + related previews; create/update redirect to detail (Story 2.4) |
+| Lead detail | ✅ | Show page + related previews; create/update redirect to detail (Story 2.4); New Task + Complete (3.2); Notes timeline + Add note (3.3) |
+| Tasks list | ✅ | Role-scoped table + All/Mine/Overdue (3.1); create/complete modal + CTA (3.2) |
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
 
@@ -70,7 +71,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| CRM Inertia CRUD pages (Tasks, Meetings, Notes, Opportunities) | High |
+| CRM Inertia CRUD pages (Meetings, Opportunities) | High |
 | Controller CRUD + integration tests | High |
 | Search and filters | Medium |
 | Stripe integration | Required by course |
@@ -135,8 +136,8 @@ _This file contains critical rules, current project state, and patterns that AI 
 - **Tier 1 (course README):** Role, User, Lead, Opportunity, Task, Meeting, Note.
 - **Tier 2 (UI fidelity):** LeadStage, OpportunityStage, Team, Tag, LeadTag, NoteTag, Country, Company.
 - Lead requires: `name`, `email` (unique), `company`, `country`, `stage`, `user` (assigned advisor).
-- Task requires: `due_date`. Note requires: `content`. Opportunity: `value > 0` when present.
-- Roles (seeded): `admin`, `advisor`, `assistant` — authorization logic not enforced yet; document intended permissions in `docs/DATA_MODEL.md`.
+- Task requires: `title`, `due_date`. Note requires: `content`. Opportunity: `value > 0` when present.
+- Roles (seeded): `admin`, `advisor`, `assistant` — Pundit policies enforce access for Leads/Tasks (and related child records); see `docs/DATA_MODEL.md` for intended permissions.
 
 ### Testing Rules
 

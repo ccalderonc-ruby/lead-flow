@@ -1,5 +1,58 @@
 # Deferred Work
 
+## Deferred from: Epic 3 retrospective / professor PR #20 (2026-07-21)
+
+**Epic 4 kickoff (do before Story 4.1):**
+- Task status as Rails enum or shared constants (replace magic `"pending"` / `"completed"`)
+- Extract `formatDate` / `formatDateTime` / `formatCurrency` to shared JS utils
+- Shared atomic form fields (TextField / TextArea / Select) for Task, Note, and upcoming Meeting forms
+- Remove `useEffect` that only syncs form props; set on submit or remount; derive modal-open from errors
+- Decide Inertia 422 vs redirect+reopen once for all CRM forms
+
+**Week 7 (or earlier if demo pain):**
+- Counter cache for lead task/note/meeting counts
+- Extract TasksTable / fat page types
+- Modal a11y (focus trap / Escape / backdrop)
+- Remaining polish (mailto/tel, locale, empty copy, closed-only index)
+
+## Deferred from: code review of 3-3-notes-timeline-on-lead (2026-07-14)
+
+- Note content max length / oversized Inertia payload on lead show — MVP OK
+- NoteFormModal a11y (focus trap / Escape / backdrop) — same polish as TaskFormModal
+- Broader NotesController tests (admin create, return_to allowlist, timeline contract) — expand later
+- When lead_id is inaccessible, soft errors can still land on a different allowlisted `return_to` lead — rare / abuse edge
+
+## Deferred from: code review of 3-2-create-and-complete-tasks round 2 (2026-07-14)
+
+- Skip full `form_options` on tasks index when `can_create` is false — MVP payload size
+- Duplicate assignee listing query on lead show via `default_task_assignee_id` — extract later
+- List modal preselects first lead instead of forcing an explicit choice — UX polish
+- No request/system tests for modal reopen-on-errors or Complete in-flight disable — add when expanding e2e
+
+## Deferred from: code review of 3-2-create-and-complete-tasks (2026-07-14)
+
+- Dialog a11y (focus trap / Escape / backdrop dismiss) on TaskFormModal — polish
+- Tasks index eagerly loads all in-scope leads into props for New Task — OK for MVP fixture sizes
+- Duplicated admin/advisor assignee queries in LeadsController + TasksController — extract later
+- No Task status inclusion or due_date format guard beyond presence — create hard-codes pending
+- Changing lead in list modal does not refresh default assignee toward that lead’s advisor — UX polish
+- Invalid/omitted user_id silently falls back to lead owner / first assignable — rare with seeded roles
+
+## Deferred from: code review of 3-1-tasks-list-with-filters (2026-07-14)
+
+- Overdue list vs `Task.overdue`/dashboard diverge by design (AC is pending-only) — unify only if product wants one definition
+- Shared fixtures bump dashboard overdue counts — acceptable coupling for MVP
+- Status humanization / filter-aware empty copy — polish
+- Clamped `page` left in URL / preserveState races — same pattern as leads index
+- Broader TaskPolicy action tests beyond index/scope — when write paths ship (3.2+)
+
+## Later backlog (parked after Epic 2 retro — 2026-07-13)
+
+Not required to start Epic 3. Revisit when polishing form UX or before/while adding more authorized controllers:
+
+- **Inertia form-error remount** — On validation failure, lead forms remount from server props and can lose submitted field values (deferred in 2.2 + 2.3). Decide: accept for Epic 3 task/note forms, or fix a shared keep-values pattern.
+- **`verify_authorized` after-action** — Pundit safety net so controller actions cannot forget `authorize`. Optional hardening before/during Epic 3 Tasks/Notes controllers.
+
 ## Deferred from: code review of 2-4-lead-detail-page (2026-07-13)
 
 - Eight COUNT+SELECT queries per show — acceptable for MVP fixture sizes

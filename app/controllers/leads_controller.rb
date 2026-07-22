@@ -5,6 +5,7 @@ class LeadsController < InertiaController
   MAX_QUERY_LENGTH = 100
   EMAIL_TAKEN = "already belongs to another lead"
   PREVIEW_LIMIT = 5
+  NOTES_TIMELINE_LIMIT = 50
 
   before_action :set_lead, only: %i[show edit update]
 
@@ -184,14 +185,25 @@ class LeadsController < InertiaController
       },
       tasks: {
         count: lead.tasks.count,
-        items: lead.tasks.order(created_at: :desc).limit(PREVIEW_LIMIT).map do |task|
+        items: lead.tasks.includes(:user).order(created_at: :desc).limit(PREVIEW_LIMIT).map do |task|
           {
             id: task.id,
             title: task.title,
             due_date: task.due_date&.iso8601,
-            status: task.status
+            status: task.status,
+            can_complete: task.status == "pending" && policy(task).update?
           }
         end
+      },
+      can_create_task: policy(Task.new(lead: lead)).create?,
+      task_form: {
+        leads: [ { id: lead.id, name: lead.name } ],
+        assignees: task_assignees_for_form,
+        defaults: {
+          user_id: default_task_assignee_id(lead),
+          force_assignee: !current_user.admin? && !current_user.assistant?
+        },
+        return_to: lead_path(lead)
       },
       meetings: {
         count: lead.meetings.count,
@@ -204,16 +216,26 @@ class LeadsController < InertiaController
           }
         end
       },
-      notes: {
-        count: lead.notes.count,
-        items: lead.notes.includes(:user).order(created_at: :desc).limit(PREVIEW_LIMIT).map do |note|
-          {
-            id: note.id,
-            content_preview: truncate_preview(note.content),
-            author: note.user&.name,
-            created_at: note.created_at&.iso8601
-          }
-        end
+      notes: begin
+        note_count = lead.notes.count
+        {
+          count: note_count,
+          showing: [ note_count, NOTES_TIMELINE_LIMIT ].min,
+          truncated: note_count > NOTES_TIMELINE_LIMIT,
+          items: lead.notes.includes(:user).order(created_at: :desc).limit(NOTES_TIMELINE_LIMIT).map do |note|
+            {
+              id: note.id,
+              content: note.content,
+              author: note.user&.name,
+              created_at: note.created_at&.iso8601
+            }
+          end
+        }
+      end,
+      can_create_note: policy(Note.new(lead: lead)).create?,
+      note_form: {
+        lead_id: lead.id,
+        return_to: lead_path(lead)
       },
       opportunities: {
         count: lead.opportunities.count,
@@ -229,11 +251,23 @@ class LeadsController < InertiaController
     }
   end
 
-  def truncate_preview(text, length = 120)
-    value = text.to_s
-    return value if value.length <= length
+  def task_assignees_for_form
+    return [ { id: current_user.id, name: current_user.name } ] if current_user.advisor?
 
-    "#{value[0, length - 1]}…"
+    User.joins(:role)
+      .where(roles: { name: %w[admin advisor] })
+      .where(status: [ "active", nil ])
+      .order(:name)
+      .map { |user| { id: user.id, name: user.name } }
+  end
+
+  def default_task_assignee_id(lead)
+    return current_user.id if current_user.advisor?
+
+    ids = task_assignees_for_form.map { |user| user[:id] }
+    return lead.user_id if lead.user_id && ids.include?(lead.user_id)
+
+    ids.first
   end
 
   def assignees_for_form(lead = nil)
