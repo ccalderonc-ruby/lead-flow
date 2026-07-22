@@ -96,6 +96,7 @@ type SelectFieldProps = {
   error?: string | null
   value: string
   onChange: (value: string) => void
+  disabled?: boolean
   children: ReactNode
 }
 
@@ -106,6 +107,7 @@ export function SelectField({
   error,
   value,
   onChange,
+  disabled = false,
   children,
 }: SelectFieldProps) {
   return (
@@ -117,6 +119,7 @@ export function SelectField({
       <select
         id={id}
         value={value}
+        disabled={disabled}
         onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)}
         className={fieldClassName}
       >

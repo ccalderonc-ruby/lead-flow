@@ -216,6 +216,16 @@ class LeadsController < InertiaController
           }
         end
       },
+      can_create_meeting: policy(Meeting.new(lead: lead)).create?,
+      meeting_form: {
+        leads: [ { id: lead.id, name: lead.name } ],
+        hosts: task_assignees_for_form,
+        defaults: {
+          user_id: default_task_assignee_id(lead),
+          force_host: !current_user.admin?
+        },
+        return_to: lead_path(lead)
+      },
       notes: begin
         note_count = lead.notes.count
         {

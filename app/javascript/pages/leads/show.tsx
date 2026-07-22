@@ -2,6 +2,11 @@ import { Head, Link, router, usePage } from '@inertiajs/react'
 import { useState, type ReactNode } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import MeetingFormModal, {
+  type MeetingFormDefaults,
+  type MeetingFormOption,
+} from '@/components/meetings/MeetingFormModal'
+import { hasMeetingCreateErrors } from '@/components/meetings/meetingFormErrors'
 import NoteFormModal from '@/components/notes/NoteFormModal'
 import { hasNoteCreateErrors } from '@/components/notes/noteFormErrors'
 import TaskFormModal, {
@@ -71,6 +76,13 @@ type TaskFormProps = {
   return_to: string
 }
 
+type MeetingFormProps = {
+  leads: MeetingFormOption[]
+  hosts: MeetingFormOption[]
+  defaults: MeetingFormDefaults
+  return_to: string
+}
+
 type NoteFormProps = {
   lead_id: number
   return_to: string
@@ -84,6 +96,8 @@ type LeadsShowProps = {
   opportunities: RelatedSection<OpportunityPreview>
   can_create_task: boolean
   task_form: TaskFormProps
+  can_create_meeting: boolean
+  meeting_form: MeetingFormProps
   can_create_note: boolean
   note_form: NoteFormProps
 }
@@ -143,26 +157,35 @@ export default function LeadsShow({
   opportunities,
   can_create_task: canCreateTask,
   task_form: taskForm,
+  can_create_meeting: canCreateMeeting,
+  meeting_form: meetingForm,
   can_create_note: canCreateNote,
   note_form: noteForm,
 }: LeadsShowProps) {
   const page = usePage()
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
-  const noteErrorsPresent = hasNoteCreateErrors(pageErrors)
-  // On lead show, note wins shared lead_id/base errors so both modals do not open.
-  const taskErrorsPresent = hasTaskCreateErrors(pageErrors) && !noteErrorsPresent
+  const meetingErrorsPresent = hasMeetingCreateErrors(pageErrors)
+  const noteErrorsPresent = hasNoteCreateErrors(pageErrors) && !meetingErrorsPresent
+  // Meeting marker wins shared keys; note wins over task for remaining shared errors.
+  const taskErrorsPresent =
+    hasTaskCreateErrors(pageErrors) && !noteErrorsPresent && !meetingErrorsPresent
   const taskErrorKey = taskErrorsPresent ? JSON.stringify(pageErrors) : null
   const noteErrorKey = noteErrorsPresent ? JSON.stringify(pageErrors) : null
+  const meetingErrorKey = meetingErrorsPresent ? JSON.stringify(pageErrors) : null
   const [taskManualOpen, setTaskManualOpen] = useState(false)
   const [noteManualOpen, setNoteManualOpen] = useState(false)
+  const [meetingManualOpen, setMeetingManualOpen] = useState(false)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [dismissedNoteErrorKey, setDismissedNoteErrorKey] = useState<string | null>(null)
+  const [dismissedMeetingErrorKey, setDismissedMeetingErrorKey] = useState<string | null>(null)
   const [completingId, setCompletingId] = useState<number | null>(null)
 
   const taskModalOpen =
     taskManualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey)
   const noteModalOpen =
     noteManualOpen || (noteErrorKey != null && dismissedNoteErrorKey !== noteErrorKey)
+  const meetingModalOpen =
+    meetingManualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey)
 
   function openTaskModal() {
     setDismissedTaskErrorKey(null)
@@ -182,6 +205,16 @@ export default function LeadsShow({
   function closeNoteModal() {
     setNoteManualOpen(false)
     if (noteErrorKey != null) setDismissedNoteErrorKey(noteErrorKey)
+  }
+
+  function openMeetingModal() {
+    setDismissedMeetingErrorKey(null)
+    setMeetingManualOpen(true)
+  }
+
+  function closeMeetingModal() {
+    setMeetingManualOpen(false)
+    if (meetingErrorKey != null) setDismissedMeetingErrorKey(meetingErrorKey)
   }
 
   function completeTask(taskId: number) {
@@ -273,7 +306,22 @@ export default function LeadsShow({
             ))}
           </Section>
 
-          <Section title="Meetings" count={meetings.count} empty="No meetings yet.">
+          <Section
+            title="Meetings"
+            count={meetings.count}
+            empty="No meetings yet."
+            action={
+              canCreateMeeting ? (
+                <button
+                  type="button"
+                  onClick={openMeetingModal}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  Schedule meeting
+                </button>
+              ) : null
+            }
+          >
             {meetings.items.map((meeting) => (
               <li key={meeting.id} className="px-4 py-3">
                 <div className="font-medium text-slate-900">{meeting.title}</div>
@@ -338,6 +386,18 @@ export default function LeadsShow({
           assignees={taskForm.assignees}
           defaults={taskForm.defaults}
           returnTo={taskForm.return_to}
+          lockedLeadId={lead.id}
+        />
+      )}
+
+      {canCreateMeeting && (
+        <MeetingFormModal
+          open={meetingModalOpen}
+          onClose={closeMeetingModal}
+          leads={meetingForm.leads}
+          hosts={meetingForm.hosts}
+          defaults={meetingForm.defaults}
+          returnTo={meetingForm.return_to}
           lockedLeadId={lead.id}
         />
       )}

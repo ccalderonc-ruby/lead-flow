@@ -13,8 +13,8 @@ Rails.application.routes.draw do
   resources :leads, only: %i[index show new create edit update]
   resources :tasks, only: %i[index create update]
   resources :notes, only: :create
-  resources :meetings, only: :index
-  resources :opportunities, only: :index
+  resources :meetings, only: %i[index create]
+  resources :opportunities, only: %i[index update]
 
   namespace :admin do
     resources :users, only: :index
