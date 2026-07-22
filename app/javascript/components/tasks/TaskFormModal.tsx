@@ -1,7 +1,8 @@
 import { useForm } from '@inertiajs/react'
-import { FormEvent } from 'react'
+import { FormEvent, useRef } from 'react'
 
 import { FieldError, SelectField, TextField } from '@/components/ui/FormFields'
+import { useDialogA11y } from '@/hooks/useDialogA11y'
 
 export type TaskFormOption = {
   id: number
@@ -60,8 +61,7 @@ export default function TaskFormModal({
     user_id: defaults.user_id != null ? String(defaults.user_id) : '',
     return_to: returnTo,
   })
-
-  if (!open) return null
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   function resetForm() {
     form.setData({
@@ -80,6 +80,10 @@ export default function TaskFormModal({
     onClose()
   }
 
+  useDialogA11y({ open, onClose: handleClose, containerRef: dialogRef })
+
+  if (!open) return null
+
   function submit(event: FormEvent) {
     event.preventDefault()
     form.transform((data) => ({
@@ -97,7 +101,7 @@ export default function TaskFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+    <div ref={dialogRef} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
       <div
         role="dialog"
         aria-modal="true"

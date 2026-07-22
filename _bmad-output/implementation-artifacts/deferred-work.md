@@ -3,10 +3,11 @@
 ## Deferred from: Epic 4 retrospective prep (2026-07-21)
 
 - ~~No written bug/polish triage rule~~ ✅ `docs/BUG_POLISH_TRIAGE.md` (Project Lead + Amelia)
+- ~~Modal/drawer a11y (Escape / focus trap / restore focus)~~ ✅ `useDialogA11y` on Task, Note, Meeting modals + Opportunity drawer
 
 ## Deferred from: code review of 4-3-opportunity-detail-drawer (2026-07-21)
 
-- Drawer dialog a11y (focus trap / Escape / restore focus) — same Week 7 modal a11y deferral as Meetings/Tasks/Notes
+- ~~Drawer dialog a11y (focus trap / Escape / restore focus) — same Week 7 modal a11y deferral as Meetings/Tasks/Notes~~ ✅
 - Orphan stage_id deals omitted from board columns — already noted under 4.2; FK normally prevents
 - Mid-save card switch remounts drawer via key — polish if demo pain
 - Per-card policy(update?) on index serialize — batch/cache later if payload cost shows up
@@ -27,7 +28,7 @@
 - Duplicated host/assignee listing queries across Meetings/Tasks/Leads controllers — extract later
 - Duplicated `fieldError` helper in MeetingFormModal — share with FormFields later
 - Validation remount loses submitted meeting form values — keep redirect+reopen (kickoff); revisit if demo pain
-- MeetingFormModal a11y (focus trap / Escape / backdrop) — Week 7
+- ~~MeetingFormModal a11y (focus trap / Escape / backdrop) — Week 7~~ ✅ `useDialogA11y`
 - Raw status enum strings in UI — humanize with Tasks polish
 - Lead show meeting preview thinner than list row — intentional MVP preview
 - Title max length / duration_minutes numericality — broader model guards later
@@ -46,7 +47,7 @@
 **Week 7 (or earlier if demo pain):**
 - Counter cache for lead task/note/meeting counts
 - Extract TasksTable / fat page types
-- Modal a11y (focus trap / Escape / backdrop)
+- ~~Modal a11y (focus trap / Escape / backdrop)~~ ✅ `app/javascript/hooks/useDialogA11y.ts` (2026-07-21)
 - Remaining polish (mailto/tel, locale, empty copy, closed-only index)
 
 ## Deferred from: code review of 3-3-notes-timeline-on-lead (2026-07-14)
