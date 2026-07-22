@@ -5,6 +5,13 @@ class OpportunityTest < ActiveSupport::TestCase
     assert opportunities(:migration).valid?
   end
 
+  test "rejects blank title" do
+    opportunity = opportunities(:migration).dup
+    opportunity.title = ""
+    assert_not opportunity.valid?
+    assert_includes opportunity.errors[:title], "can't be blank"
+  end
+
   test "rejects zero or negative value" do
     opportunity = opportunities(:migration).dup
     opportunity.value = 0

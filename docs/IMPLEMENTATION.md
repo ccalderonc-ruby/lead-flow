@@ -88,7 +88,7 @@ Each model defines `belongs_to` / `has_many` associations, plus validations wher
 | `Lead` | belongs_to stage (LeadStage), user, company, country; optional team | name, country, company required |
 | `Opportunity` | belongs_to stage (OpportunityStage), lead, user | value > 0 when present |
 | `Task` | belongs_to lead, user | due_date required |
-| `Meeting` | belongs_to lead, user | (no validations yet) |
+| `Meeting` | belongs_to lead, user | title, scheduled_on, start_time presence; location or virtual_link; status enum |
 | `Note` | belongs_to lead, user; has tags through note_tags | content required |
 | `Tag` | has many leads/notes through join tables | name present, unique |
 | `LeadTag` | belongs_to lead, tag | join table only |
@@ -640,13 +640,74 @@ npm run check
 
 ---
 
+### Step 15 — Meetings list and scheduling (Story 4.1)
+
+**Goal:** Role-scoped `/meetings` table + Schedule Meeting modal (list + lead detail).
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Index for signed-in users; create Admin/Advisor only (assistant read-only) |
+| Sort | `scheduled_on`, `start_time` ascending |
+| Create | Modal: title, date, time, lead, host, location **or** virtual link; status `scheduled` |
+| Dashboard | Existing upcoming widget counts `Meeting.upcoming` (no UI change) |
+| Pagination | 25 per page |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/meetings_controller_test.rb test/policies/meeting_policy_test.rb test/models/meeting_test.rb
+npm run check
+```
+
+---
+
+### Step 16 — Opportunities pipeline board (Story 4.2)
+
+**Goal:** Kanban-style `/opportunities` board with one column per `OpportunityStage`.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | Any signed-in user; `OpportunityPolicy::Scope` |
+| Columns | All stages ordered by `position` (empty columns kept) |
+| Cards | Title, value, lead link, optional close date (read-only; drawer in 4.3) |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/opportunities_controller_test.rb
+npm run check
+```
+
+---
+
+### Step 17 — Opportunity detail drawer (Story 4.3)
+
+**Goal:** Click a pipeline card to open a side drawer; authorized users update stage/fields.
+
+| Piece | Behavior |
+|-------|----------|
+| Route | `PATCH /opportunities/:id` (`update` on OpportunitiesController) |
+| Auth | Scoped find + `authorize`; assistant view-only (`can_update: false`) |
+| Fields | Title, value, stage, close date, description; lead is link-only |
+| Errors | Redirect + `form: ["opportunity"]` + `opportunity_id` reopen drawer |
+| Kit | FormFields + format helpers; remount via `key` (no form useEffect sync) |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/opportunities_controller_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 15 | Meetings list and scheduling (Story 4.1) |
+| 18+ | Epic 5 admin / remaining course features |
 
 ---
 

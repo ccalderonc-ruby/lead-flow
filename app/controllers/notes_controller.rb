@@ -4,6 +4,7 @@ class NotesController < InertiaController
   def create
     lead = policy_scope(Lead).find_by(id: note_params[:lead_id])
     unless lead
+      skip_authorization
       redirect_to safe_return_path, inertia: { errors: lead_missing_errors }
       return
     end

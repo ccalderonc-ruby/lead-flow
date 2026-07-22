@@ -191,7 +191,7 @@ class LeadsController < InertiaController
             title: task.title,
             due_date: task.due_date&.iso8601,
             status: task.status,
-            can_complete: task.status == "pending" && policy(task).update?
+            can_complete: task.pending? && policy(task).update?
           }
         end
       },
@@ -215,6 +215,16 @@ class LeadsController < InertiaController
             status: meeting.status
           }
         end
+      },
+      can_create_meeting: policy(Meeting.new(lead: lead)).create?,
+      meeting_form: {
+        leads: [ { id: lead.id, name: lead.name } ],
+        hosts: task_assignees_for_form,
+        defaults: {
+          user_id: default_task_assignee_id(lead),
+          force_host: !current_user.admin?
+        },
+        return_to: lead_path(lead)
       },
       notes: begin
         note_count = lead.notes.count

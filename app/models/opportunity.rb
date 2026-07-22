@@ -7,5 +7,6 @@ class Opportunity < ApplicationRecord
 
   scope :active_pipeline, -> { joins(:stage).where.not(opportunity_stages: { name: %w[Won Lost] }) }
 
+  validates :title, presence: true
   validates :value, numericality: { greater_than: 0 }, allow_nil: true
 end

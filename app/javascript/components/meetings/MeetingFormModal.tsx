@@ -3,30 +3,34 @@ import { FormEvent } from 'react'
 
 import { FieldError, SelectField, TextField } from '@/components/ui/FormFields'
 
-export type TaskFormOption = {
+export type MeetingFormOption = {
   id: number
   name: string
 }
 
-export type TaskFormDefaults = {
+export type MeetingFormDefaults = {
   user_id: number | null
-  force_assignee: boolean
+  force_host: boolean
 }
 
-export type TaskFormValues = {
+export type MeetingFormValues = {
   title: string
-  due_date: string
+  scheduled_on: string
+  start_time: string
   lead_id: string
   user_id: string
+  location: string
+  virtual_link: string
+  virtual_meeting: boolean
   return_to: string
 }
 
-type TaskFormModalProps = {
+type MeetingFormModalProps = {
   open: boolean
   onClose: () => void
-  leads: TaskFormOption[]
-  assignees: TaskFormOption[]
-  defaults: TaskFormDefaults
+  leads: MeetingFormOption[]
+  hosts: MeetingFormOption[]
+  defaults: MeetingFormDefaults
   returnTo: string
   lockedLeadId?: number | null
 }
@@ -37,15 +41,15 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
   return Array.isArray(value) ? value.join(', ') : value
 }
 
-export default function TaskFormModal({
+export default function MeetingFormModal({
   open,
   onClose,
   leads,
-  assignees,
+  hosts,
   defaults,
   returnTo,
   lockedLeadId = null,
-}: TaskFormModalProps) {
+}: MeetingFormModalProps) {
   const initialLeadId =
     lockedLeadId != null
       ? String(lockedLeadId)
@@ -53,11 +57,15 @@ export default function TaskFormModal({
         ? String(leads[0].id)
         : ''
 
-  const form = useForm<TaskFormValues>({
+  const form = useForm<MeetingFormValues>({
     title: '',
-    due_date: '',
+    scheduled_on: '',
+    start_time: '',
     lead_id: initialLeadId,
     user_id: defaults.user_id != null ? String(defaults.user_id) : '',
+    location: '',
+    virtual_link: '',
+    virtual_meeting: false,
     return_to: returnTo,
   })
 
@@ -66,9 +74,13 @@ export default function TaskFormModal({
   function resetForm() {
     form.setData({
       title: '',
-      due_date: '',
+      scheduled_on: '',
+      start_time: '',
       lead_id: initialLeadId,
       user_id: defaults.user_id != null ? String(defaults.user_id) : '',
+      location: '',
+      virtual_link: '',
+      virtual_meeting: false,
       return_to: returnTo,
     })
     form.clearErrors()
@@ -86,8 +98,9 @@ export default function TaskFormModal({
       ...data,
       return_to: returnTo,
       lead_id: lockedLeadId != null ? String(lockedLeadId) : data.lead_id,
+      virtual_meeting: data.virtual_meeting || data.virtual_link.trim().length > 0,
     }))
-    form.post('/tasks', {
+    form.post('/meetings', {
       preserveScroll: true,
       onSuccess: () => {
         resetForm()
@@ -101,15 +114,15 @@ export default function TaskFormModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="new-task-title"
+        aria-labelledby="schedule-meeting-title"
         className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-lg"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="new-task-title" className="text-lg font-semibold text-slate-900">
-              New task
+            <h2 id="schedule-meeting-title" className="text-lg font-semibold text-slate-900">
+              Schedule meeting
             </h2>
-            <p className="mt-1 text-sm text-slate-600">Create a follow-up with a due date.</p>
+            <p className="mt-1 text-sm text-slate-600">Book time with a lead.</p>
           </div>
           <button
             type="button"
@@ -129,7 +142,7 @@ export default function TaskFormModal({
           )}
 
           <TextField
-            id="task-title"
+            id="meeting-title"
             label="Title"
             required
             value={form.data.title}
@@ -137,15 +150,26 @@ export default function TaskFormModal({
             error={fieldError(form.errors, 'title')}
           />
 
-          <TextField
-            id="task-due-date"
-            label="Due date"
-            type="date"
-            required
-            value={form.data.due_date}
-            onChange={(value) => form.setData('due_date', value)}
-            error={fieldError(form.errors, 'due_date')}
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              id="meeting-date"
+              label="Date"
+              type="date"
+              required
+              value={form.data.scheduled_on}
+              onChange={(value) => form.setData('scheduled_on', value)}
+              error={fieldError(form.errors, 'scheduled_on')}
+            />
+            <TextField
+              id="meeting-time"
+              label="Time"
+              type="time"
+              required
+              value={form.data.start_time}
+              onChange={(value) => form.setData('start_time', value)}
+              error={fieldError(form.errors, 'start_time')}
+            />
+          </div>
 
           {lockedLeadId != null ? (
             <div>
@@ -159,7 +183,7 @@ export default function TaskFormModal({
             </div>
           ) : (
             <SelectField
-              id="task-lead"
+              id="meeting-lead"
               label="Lead"
               required
               value={form.data.lead_id}
@@ -175,32 +199,54 @@ export default function TaskFormModal({
             </SelectField>
           )}
 
-          {defaults.force_assignee ? (
+          {defaults.force_host ? (
             <div>
               <p className="block text-sm font-medium text-slate-700">
-                Assignee <span className="text-red-600">*</span>
+                Host <span className="text-red-600">*</span>
               </p>
               <p className="mt-1 text-sm text-slate-900">
-                {assignees.find((user) => String(user.id) === form.data.user_id)?.name || 'You'}
+                {hosts.find((user) => String(user.id) === form.data.user_id)?.name || 'You'}
               </p>
               <FieldError error={fieldError(form.errors, 'user_id') || fieldError(form.errors, 'user')} />
             </div>
           ) : (
             <SelectField
-              id="task-assignee"
-              label="Assignee"
+              id="meeting-host"
+              label="Host"
               required
               value={form.data.user_id}
               onChange={(value) => form.setData('user_id', value)}
               error={fieldError(form.errors, 'user_id') || fieldError(form.errors, 'user')}
             >
-              {assignees.map((user) => (
+              {hosts.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>
               ))}
             </SelectField>
           )}
+
+          <TextField
+            id="meeting-location"
+            label="Location"
+            value={form.data.location}
+            onChange={(value) => form.setData('location', value)}
+            error={fieldError(form.errors, 'location')}
+            placeholder="Office / address"
+          />
+
+          <TextField
+            id="meeting-virtual-link"
+            label="Virtual link"
+            type="url"
+            value={form.data.virtual_link}
+            onChange={(value) => {
+              form.setData('virtual_link', value)
+              if (value.trim()) form.setData('virtual_meeting', true)
+            }}
+            error={fieldError(form.errors, 'virtual_link')}
+            placeholder="https://"
+          />
 
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -216,7 +262,7 @@ export default function TaskFormModal({
               disabled={form.processing}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
             >
-              {form.processing ? 'Creating…' : 'Create task'}
+              {form.processing ? 'Scheduling…' : 'Schedule meeting'}
             </button>
           </div>
         </form>

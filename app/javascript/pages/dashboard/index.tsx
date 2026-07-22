@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import MetricCard from '@/components/dashboard/MetricCard'
-import type { SharedProps } from '@/types'
+import { formatCurrency } from '@/lib/format'
 
 export type DashboardMetrics = {
   open_leads: number
@@ -13,14 +13,6 @@ export type DashboardMetrics = {
 
 type DashboardIndexProps = {
   metrics: DashboardMetrics
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(amount)
 }
 
 export default function DashboardIndex({ metrics }: DashboardIndexProps) {
@@ -59,4 +51,4 @@ export default function DashboardIndex({ metrics }: DashboardIndexProps) {
   )
 }
 
-export type DashboardPageProps = DashboardIndexProps & SharedProps
+export type DashboardPageProps = DashboardIndexProps

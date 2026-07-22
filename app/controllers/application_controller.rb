@@ -10,6 +10,8 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  after_action :verify_authorized
+
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   private

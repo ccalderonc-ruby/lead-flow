@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import TaskFormModal, {
@@ -7,6 +7,7 @@ import TaskFormModal, {
   type TaskFormOption,
 } from '@/components/tasks/TaskFormModal'
 import { hasTaskCreateErrors } from '@/components/tasks/taskFormErrors'
+import { formatDate } from '@/lib/format'
 
 export type TaskRow = {
   id: number
@@ -43,29 +44,6 @@ const FILTERS = [
   { value: 'overdue', label: 'Overdue' },
 ] as const
 
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-    const [year, month, day] = iso.split('-').map(Number)
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(Date.UTC(year, month - 1, day)))
-  }
-
-  const parsed = new Date(iso)
-  if (Number.isNaN(parsed.getTime())) return '—'
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(parsed)
-}
-
 function buildTasksReturnTo(meta: TasksMeta): string {
   const params = new URLSearchParams()
   if (meta.filter !== 'all') params.set('filter', meta.filter)
@@ -85,12 +63,23 @@ export default function TasksIndex({
 }: TasksIndexProps) {
   const page = usePage()
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
-  const [modalOpen, setModalOpen] = useState(() => hasTaskCreateErrors(pageErrors))
+  const taskErrorsPresent = hasTaskCreateErrors(pageErrors)
+  const taskErrorKey = taskErrorsPresent ? JSON.stringify(pageErrors) : null
+  const [manualOpen, setManualOpen] = useState(false)
+  const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [completingId, setCompletingId] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (hasTaskCreateErrors(pageErrors)) setModalOpen(true)
-  }, [pageErrors])
+  const modalOpen = manualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey)
+
+  function openModal() {
+    setDismissedTaskErrorKey(null)
+    setManualOpen(true)
+  }
+
+  function closeModal() {
+    setManualOpen(false)
+    if (taskErrorKey != null) setDismissedTaskErrorKey(taskErrorKey)
+  }
 
   const createReturnTo = buildTasksReturnTo(meta) || returnTo
 
@@ -142,7 +131,7 @@ export default function TasksIndex({
             {canCreate && (
               <button
                 type="button"
-                onClick={() => setModalOpen(true)}
+                onClick={openModal}
                 className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
               >
                 New task
@@ -264,7 +253,7 @@ export default function TasksIndex({
       {canCreate && (
         <TaskFormModal
           open={modalOpen}
-          onClose={() => setModalOpen(false)}
+          onClose={closeModal}
           leads={leads}
           assignees={assignees}
           defaults={defaults}

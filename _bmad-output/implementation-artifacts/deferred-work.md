@@ -1,13 +1,43 @@
 # Deferred Work
 
+## Deferred from: code review of 4-3-opportunity-detail-drawer (2026-07-21)
+
+- Drawer dialog a11y (focus trap / Escape / restore focus) — same Week 7 modal a11y deferral as Meetings/Tasks/Notes
+- Orphan stage_id deals omitted from board columns — already noted under 4.2; FK normally prevents
+- Mid-save card switch remounts drawer via key — polish if demo pain
+- Per-card policy(update?) on index serialize — batch/cache later if payload cost shows up
+- Brittle response.body substring assertions in opportunities controller tests — strengthen in Week 7 test pass
+- Stage select blank when record stage missing from stageOptions — tied to orphan-stage edge
+
+## Deferred from: code review of 4-2-opportunities-pipeline-board (2026-07-21)
+
+- Duplicated opportunity serialize/types vs lead show preview — extract shared later (Week 7)
+- Unbounded full pipeline load (no pagination) — OK for MVP demo scale
+- Orphan stage_id not present in OpportunityStage catalog — rare FK edge
+- Unused `position` on client stage props — optional cleanup
+- Empty OpportunityStage catalog empty-board copy — seeds always populate
+
+## Deferred from: code review of 4-1-meetings-list-and-scheduling (2026-07-21)
+
+- Silent invalid `user_id` fallback to lead owner / first assignable — same as tasks create
+- Duplicated host/assignee listing queries across Meetings/Tasks/Leads controllers — extract later
+- Duplicated `fieldError` helper in MeetingFormModal — share with FormFields later
+- Validation remount loses submitted meeting form values — keep redirect+reopen (kickoff); revisit if demo pain
+- MeetingFormModal a11y (focus trap / Escape / backdrop) — Week 7
+- Raw status enum strings in UI — humanize with Tasks polish
+- Lead show meeting preview thinner than list row — intentional MVP preview
+- Title max length / duration_minutes numericality — broader model guards later
+- Tampered return_to / create-for-other-lead while viewing lead A — soft edges like notes/tasks
+
 ## Deferred from: Epic 3 retrospective / professor PR #20 (2026-07-21)
 
-**Epic 4 kickoff (do before Story 4.1):**
-- Task status as Rails enum or shared constants (replace magic `"pending"` / `"completed"`)
-- Extract `formatDate` / `formatDateTime` / `formatCurrency` to shared JS utils
-- Shared atomic form fields (TextField / TextArea / Select) for Task, Note, and upcoming Meeting forms
-- Remove `useEffect` that only syncs form props; set on submit or remount; derive modal-open from errors
-- Decide Inertia 422 vs redirect+reopen once for all CRM forms
+**Epic 4 kickoff — done (2026-07-21):**
+- ~~Task status as Rails enum~~ ✅ `Task` enum `:status`
+- ~~Extract formatDate / formatDateTime / formatCurrency~~ ✅ `app/javascript/lib/format.ts`
+- ~~Shared atomic form fields~~ ✅ `app/javascript/components/ui/FormFields.tsx` (Task + Note modals)
+- ~~Remove useEffect form/modal prop sync~~ ✅ set on submit via `transform`; modal-open derived from errors
+- ~~Decide Inertia 422 vs redirect+reopen~~ ✅ keep **redirect + reopen modal** for CRM forms (matches Tasks/Notes; revisit only if remount UX hurts demo)
+- ~~`verify_authorized` after-action~~ ✅ on `ApplicationController` (Sessions skipped; Dashboard/Meetings/Opportunities authorize)
 
 **Week 7 (or earlier if demo pain):**
 - Counter cache for lead task/note/meeting counts

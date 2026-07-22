@@ -54,8 +54,9 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Leads index | ✅ | Role-scoped table + search + pagination (Story 2.1) |
 | Create lead | ✅ | New lead form + company dedup + unique email (Story 2.2) |
 | Edit lead | ✅ | Edit form + per-row authorize + shared LeadForm (Story 2.3) |
-| Lead detail | ✅ | Show page + related previews; create/update redirect to detail (Story 2.4); New Task + Complete (3.2); Notes timeline + Add note (3.3) |
+| Lead detail | ✅ | Show page + related previews; create/update redirect to detail (Story 2.4); New Task + Complete (3.2); Notes timeline + Add note (3.3); Schedule meeting (4.1) |
 | Tasks list | ✅ | Role-scoped table + All/Mine/Overdue (3.1); create/complete modal + CTA (3.2) |
+| Opportunities pipeline | ✅ | Kanban by OpportunityStage (Story 4.2); detail drawer update (Story 4.3) |
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
 
@@ -71,8 +72,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| CRM Inertia CRUD pages (Meetings, Opportunities) | High |
-| Controller CRUD + integration tests | High |
+| Controller CRUD + integration tests (remaining) | High |
 | Search and filters | Medium |
 | Stripe integration | Required by course |
 | Background job (Solid Queue) | Required by course |

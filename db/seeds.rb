@@ -102,6 +102,7 @@ def seed_dashboard_sample_data(team:, us:, cr:, advisor:, admin:)
     duration_minutes: 45,
     status: "scheduled",
     virtual_meeting: true,
+    virtual_link: "https://meet.example.com/proposal-review",
     lead: sarah,
     user: advisor
   )

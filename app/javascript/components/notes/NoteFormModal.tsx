@@ -1,5 +1,7 @@
 import { useForm } from '@inertiajs/react'
-import { FormEvent, useEffect } from 'react'
+import { FormEvent } from 'react'
+
+import { FieldError, TextAreaField } from '@/components/ui/FormFields'
 
 export type NoteFormValues = {
   content: string
@@ -20,23 +22,12 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
   return Array.isArray(value) ? value.join(', ') : value
 }
 
-const inputClassName =
-  'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200'
-
 export default function NoteFormModal({ open, onClose, leadId, returnTo }: NoteFormModalProps) {
   const form = useForm<NoteFormValues>({
     content: '',
     lead_id: String(leadId),
     return_to: returnTo,
   })
-
-  useEffect(() => {
-    form.setData('return_to', returnTo)
-  }, [returnTo])
-
-  useEffect(() => {
-    form.setData('lead_id', String(leadId))
-  }, [leadId])
 
   if (!open) return null
 
@@ -57,8 +48,11 @@ export default function NoteFormModal({ open, onClose, leadId, returnTo }: NoteF
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    form.setData('return_to', returnTo)
-    form.setData('lead_id', String(leadId))
+    form.transform((data) => ({
+      ...data,
+      lead_id: String(leadId),
+      return_to: returnTo,
+    }))
     form.post('/notes', {
       preserveScroll: true,
       onSuccess: () => {
@@ -100,25 +94,17 @@ export default function NoteFormModal({ open, onClose, leadId, returnTo }: NoteF
             </p>
           )}
 
-          <div>
-            <label htmlFor="note-content" className="block text-sm font-medium text-slate-700">
-              Note <span className="text-red-600">*</span>
-            </label>
-            <textarea
-              id="note-content"
-              rows={5}
-              value={form.data.content}
-              onChange={(event) => form.setData('content', event.target.value)}
-              className={inputClassName}
-            />
-            {fieldError(form.errors, 'content') && (
-              <p className="mt-1 text-sm text-red-600">{fieldError(form.errors, 'content')}</p>
-            )}
-          </div>
+          <TextAreaField
+            id="note-content"
+            label="Note"
+            required
+            rows={5}
+            value={form.data.content}
+            onChange={(value) => form.setData('content', value)}
+            error={fieldError(form.errors, 'content')}
+          />
 
-          {fieldError(form.errors, 'lead_id') && (
-            <p className="text-sm text-red-600">{fieldError(form.errors, 'lead_id')}</p>
-          )}
+          <FieldError error={fieldError(form.errors, 'lead_id')} />
 
           <div className="flex justify-end gap-2 pt-2">
             <button
