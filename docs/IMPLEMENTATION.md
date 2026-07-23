@@ -701,13 +701,81 @@ npm run check
 
 ---
 
+### Step 18 — Demo seed users for role testing (Story 5.1)
+
+**Goal:** Verify (and gap-fill) development demo users so all three roles are login-ready without rewriting seeds.
+
+| Piece | Behavior |
+|-------|----------|
+| Users | `admin@leadflow.local`, `advisor@leadflow.local`, `assistant@leadflow.local` — password `password` |
+| Helper | `DemoSeeds` (`app/services/demo_seeds.rb`) — `ensure_demo_users!` + sample CRM |
+| Re-seed | Restores advertised demo logins (password + name/role/team/country/status) every `db:seed` |
+| Idempotency | If leads already exist but advisor has none, `ensure_advisor_assigned_lead!` creates/reclaims `demo.advisor.lead@leadflow.local` (user + team/stage/company/country) |
+| Assistant | Read-only via existing `LeadPolicy` (no seed permission changes) |
+| Docs | README + project-context login tables |
+
+**Verify:**
+
+```bash
+bin/rails db:seed
+bin/rails test test/services/demo_seeds_test.rb test/policies/lead_policy_test.rb
+```
+
+---
+
+### Step 19 — Admin user management (Story 5.2)
+
+**Goal:** Admin CRUD for users at `/admin/users` — create, edit role/status, disable (no hard delete).
+
+| Piece | Behavior |
+|-------|----------|
+| Routes | `admin/users` index/new/create/edit/update |
+| Auth | Disabled users cannot sign in or keep a session (`User#active?` in `Authentication`) |
+| Self-protect | Cannot disable self; cannot demote own admin role; cannot remove last active admin |
+| Validations | Status `active\|disabled`; password min 8 on create / when set |
+| UI | List + `UserForm` (FormFields); team/country/role required |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/admin/users_controller_test.rb \
+  test/controllers/sessions_controller_test.rb \
+  test/policies/user_policy_test.rb test/models/user_test.rb
+npm run check
+```
+
+---
+
+### Step 20 — Role management page (Story 5.3)
+
+**Goal:** Admin-only read-only roles + permission matrix at `/admin/roles`.
+
+| Piece | Behavior |
+|-------|----------|
+| Auth | `authorize User` (admin only) — same gate as Users |
+| Props | Seeded `roles` + static `matrix` from `Admin::RolePermissions` |
+| UI | Table of Leads / Opportunities / Tasks / Meetings / Notes / Users |
+| Editing | None — permissions are seeded / fixed |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/admin/roles_controller_test.rb \
+  test/services/admin/role_permissions_test.rb \
+  test/controllers/app_navigation_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 18+ | Epic 5 admin / remaining course features |
+| 21+ | Advanced lead filters (Story 5.4) / Epic 6+ |
+
 
 ---
 

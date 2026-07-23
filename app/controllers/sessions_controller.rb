@@ -16,7 +16,7 @@ class SessionsController < InertiaController
   def create
     user = User.find_by(email: normalized_email)
 
-    if user&.authenticate(params[:password])
+    if user&.authenticate(params[:password]) && user.active?
       start_new_session_for(user)
       flash[:notice] = "Signed in successfully."
 

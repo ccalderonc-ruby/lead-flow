@@ -45,4 +45,27 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_path
   end
+
+  test "disabled user cannot sign in" do
+    user = users(:advisor)
+    user.update!(status: "disabled")
+
+    post session_path, params: { email: user.email, password: "password" }
+
+    assert_redirected_to login_path
+    get root_path
+    assert_redirected_to login_path
+  end
+
+  test "disabled user loses an existing session" do
+    user = users(:advisor)
+    post session_path, params: { email: user.email, password: "password" }
+    get root_path
+    assert_response :success
+
+    user.update!(status: "disabled")
+
+    get root_path
+    assert_redirected_to login_path
+  end
 end

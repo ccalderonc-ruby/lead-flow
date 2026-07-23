@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   resources :opportunities, only: %i[index update]
 
   namespace :admin do
-    resources :users, only: :index
+    resources :users, only: %i[index new create edit update]
     resources :roles, only: :index
   end
 
