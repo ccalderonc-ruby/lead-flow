@@ -21,5 +21,11 @@ Rails.application.routes.draw do
     resources :roles, only: :index
   end
 
+  namespace :settings do
+    resource :subscription, only: %i[show create], controller: "subscriptions"
+  end
+
+  post "webhooks/stripe", to: "webhooks/stripe#create"
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

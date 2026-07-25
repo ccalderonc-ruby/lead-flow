@@ -73,7 +73,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Area | Priority |
 |------|----------|
 | Controller CRUD + integration tests (remaining) | High |
-| Stripe integration | Required by course |
+| Stripe integration | Required by course | Checkout + webhook ✅ (CSV gate = 6.3) |
 | Production deploy (Kamal/Docker scaffold exists) | Required by course |
 | BMad planning artifacts (PRD, epics, sprint plan) | Optional but recommended |
 
@@ -184,7 +184,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 6. Dashboard widgets
 7. Admin: Users + Role management + authorization
 8. Background job (overdue tasks) ✅
-9. Stripe (minimal checkout)
+9. Stripe (minimal checkout) ✅
 10. Kamal deploy + presentation prep
 
 ---

@@ -42,6 +42,21 @@ class UserTest < ActiveSupport::TestCase
     assert_includes user.errors[:status], "is not included in the list"
   end
 
+  test "subscription_status must be inactive or active" do
+    user = users(:advisor)
+    user.subscription_status = "trialing"
+    assert_not user.valid?
+    assert_includes user.errors[:subscription_status], "is not included in the list"
+  end
+
+  test "subscribed? reflects active subscription" do
+    user = users(:advisor)
+    assert_not user.subscribed?
+
+    user.update!(subscription_status: "active")
+    assert user.subscribed?
+  end
+
   test "password must be at least 8 characters" do
     user = User.new(
       name: "Short",

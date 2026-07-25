@@ -808,13 +808,41 @@ bin/rails test test/jobs/mark_overdue_tasks_job_test.rb test/controllers/tasks_c
 
 ---
 
+### Step 23 — Stripe checkout and webhook (Story 6.2)
+
+**Goal:** Advisor subscribes via Stripe Checkout (test mode); signed webhook sets `users.subscription_status` to `active`.
+
+| Piece | Behavior |
+|-------|----------|
+| Keys | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` (see `.env.example`; loaded via `dotenv-rails` in development/test) |
+| UI | `/settings/subscription` — Advisor nav “Subscription” |
+| Checkout | `POST /settings/subscription` → Stripe Checkout Session → redirect (requires all three keys) |
+| Webhook | `POST /webhooks/stripe` — verify signature; `checkout.session.completed` with paid status → activate user |
+| Mapping | `client_reference_id` / metadata `user_id` |
+| Unknown user | Log warning and return **200** (avoid Stripe retry storms) |
+
+**Local webhook:**
+
+```bash
+stripe listen --forward-to localhost:3000/webhooks/stripe
+```
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/settings/subscriptions_controller_test.rb test/controllers/webhooks/stripe_controller_test.rb test/models/user_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 23+ | Stripe checkout/webhook (6.2), gated CSV (6.3), production deploy (6.4) |
+| 23+ | Gated CSV export (6.3), production deploy (6.4) |
 
 
 ---

@@ -26,3 +26,9 @@
 
 - Daily Solid Queue schedule has no explicit timezone while overdue uses `Date.current` — set `config.time_zone` + scheduler TZ when tightening production behavior.
 - Nil `Task.status` is allowed by enum but excluded from job (`pending` only) and from overdue scope SQL (`NULL` not `completed`) — normalize or include if legacy nil rows appear.
+
+## Deferred from: code review of 6-2-stripe-checkout-and-webhook (2026-07-25)
+
+- Unique indexes on `users.stripe_customer_id` / `users.stripe_subscription_id` — not required for checkout/webhook ACs; add when lookup-by-Stripe-id becomes hot.
+- Optional integration test that exercises real `Stripe::Webhook.construct_event` signature verification (current stubs satisfy story “no live network”).
+- Dedicated fixture user with `subscription_status: active` for Story 6.3 gated CSV — 6.2 uses `update!` in tests.
