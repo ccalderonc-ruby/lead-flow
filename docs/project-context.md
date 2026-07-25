@@ -74,7 +74,6 @@ _This file contains critical rules, current project state, and patterns that AI 
 |------|----------|
 | Controller CRUD + integration tests (remaining) | High |
 | Stripe integration | Required by course |
-| Background job (Solid Queue) | Required by course |
 | Production deploy (Kamal/Docker scaffold exists) | Required by course |
 | BMad planning artifacts (PRD, epics, sprint plan) | Optional but recommended |
 
@@ -93,7 +92,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Bundler | Vite | ^8.0.13, `vite_rails` ~> 3.11 |
 | CSS | Tailwind CSS | ^4.3.0 via `@tailwindcss/vite` |
 | Language | TypeScript | ^6.0.3 — run `npm run check` in CI locally |
-| Jobs | Solid Queue | Configured, no domain jobs yet |
+| Jobs | Solid Queue | `MarkOverdueTasksJob` + recurring daily schedule |
 | Deploy | Kamal + Docker | Scaffold present, not deployed |
 | Tests | Minitest + Capybara | Model + controller tests; system test scaffold |
 
@@ -184,7 +183,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 5. Meetings + Opportunities pipeline
 6. Dashboard widgets
 7. Admin: Users + Role management + authorization
-8. Background job (overdue tasks)
+8. Background job (overdue tasks) ✅
 9. Stripe (minimal checkout)
 10. Kamal deploy + presentation prep
 

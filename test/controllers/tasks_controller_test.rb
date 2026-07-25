@@ -50,8 +50,9 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, tasks(:assistant_owned_task).title
   end
 
-  test "advisor overdue filter only pending past due" do
+  test "advisor overdue filter includes pending past due and status overdue" do
     sign_in_as users(:advisor)
+    travel_to Date.new(2026, 7, 25)
 
     get tasks_path, params: { filter: "overdue" }
 
@@ -61,6 +62,19 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, tasks(:assistant_owned_task).title
     refute_includes response.body, tasks(:future_follow_up).title
     refute_includes response.body, tasks(:completed_follow_up).title
+  end
+
+  test "advisor overdue filter includes tasks already marked overdue" do
+    sign_in_as users(:advisor)
+    travel_to Date.new(2026, 7, 25)
+    tasks(:follow_up).update!(status: :overdue)
+
+    get tasks_path, params: { filter: "overdue" }
+
+    assert_response :success
+    assert_includes response.body, tasks(:follow_up).title
+    assert_includes response.body, '"status":"overdue"'
+    assert_includes response.body, '"can_complete":true'
   end
 
   test "admin all filter includes org tasks" do
@@ -196,6 +210,18 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "advisor completes pending task" do
     sign_in_as users(:advisor)
     task = tasks(:follow_up)
+
+    patch task_path(task), params: { status: "completed", return_to: tasks_path }
+
+    assert_redirected_to tasks_path
+    assert_equal "Task completed.", flash[:notice]
+    assert_equal "completed", task.reload.status
+  end
+
+  test "advisor completes overdue task" do
+    sign_in_as users(:advisor)
+    task = tasks(:follow_up)
+    task.update!(status: :overdue)
 
     patch task_path(task), params: { status: "completed", return_to: tasks_path }
 
