@@ -84,10 +84,10 @@ class TasksController < InertiaController
       return
     end
 
-    unless @task.pending?
+    unless @task.pending? || @task.overdue?
       flash[:alert] = "Could not complete task."
       redirect_to safe_return_path, inertia: {
-        errors: { status: [ "can only complete pending tasks" ] }
+        errors: { status: [ "can only complete pending or overdue tasks" ] }
       }
       return
     end
@@ -112,7 +112,7 @@ class TasksController < InertiaController
     when "mine"
       scoped.where(user_id: current_user.id)
     when "overdue"
-      scoped.where(status: :pending).where(due_date: ...Date.current)
+      scoped.merge(Task.overdue)
     else
       scoped
     end
@@ -132,7 +132,7 @@ class TasksController < InertiaController
   end
 
   def can_complete?(task)
-    task.pending? && policy(task).update?
+    (task.pending? || task.overdue?) && policy(task).update?
   end
 
   def can_create_tasks?

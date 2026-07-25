@@ -21,3 +21,8 @@
 
 - No frontend/Inertia unit tests for lead filter query preservation — residual; repo relies on controller/integration tests.
 - Full stages + assignable users serialized on every leads index request — acceptable at course scale.
+
+## Deferred from: code review of 6-1-mark-overdue-tasks-job.md (2026-07-25)
+
+- Daily Solid Queue schedule has no explicit timezone while overdue uses `Date.current` — set `config.time_zone` + scheduler TZ when tightening production behavior.
+- Nil `Task.status` is allowed by enum but excluded from job (`pending` only) and from overdue scope SQL (`NULL` not `completed`) — normalize or include if legacy nil rows appear.

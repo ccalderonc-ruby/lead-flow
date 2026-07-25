@@ -585,7 +585,7 @@ npm run check
 |-------|----------|
 | Auth | Any signed-in user; `TaskPolicy::Scope` roles |
 | Columns | Title, lead (links to detail), due date, status, assignee |
-| Filters | `all` (default), `mine` (`user_id`), `overdue` (pending + due_date &lt; today) |
+| Filters | `all` (default), `mine` (`user_id`), `overdue` (`Task.overdue` scope) |
 | Pagination | 25 per page |
 
 **Verify:**
@@ -789,13 +789,32 @@ npm run check
 
 ---
 
+### Step 22 — Mark overdue tasks job (Story 6.1)
+
+**Goal:** Daily Solid Queue job marks pending past-due tasks as `overdue`; tasks UI stays usable after the status flip.
+
+| Piece | Behavior |
+|-------|----------|
+| Job | `MarkOverdueTasksJob` — `pending` + `due_date < Date.current` → `overdue` (idempotent) |
+| Schedule | `config/recurring.yml` — daily at 1am (`production` + `development`) |
+| One-shot | `bin/rails runner "MarkOverdueTasksJob.perform_now"` |
+| Tasks UI | Overdue filter uses `Task.overdue`; Complete allowed from `pending` or `overdue` |
+
+**Verify:**
+
+```bash
+bin/rails test test/jobs/mark_overdue_tasks_job_test.rb test/controllers/tasks_controller_test.rb
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 22+ | Epic 6 SaaS (jobs, Stripe, deploy) / Epic 5 retrospective |
+| 23+ | Stripe checkout/webhook (6.2), gated CSV (6.3), production deploy (6.4) |
 
 
 ---
