@@ -73,6 +73,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Area | Priority |
 |------|----------|
 | Controller CRUD + integration tests (remaining) | High |
+| Advanced lead filters (5.4) | Medium |
 | Search and filters | Medium |
 | Stripe integration | Required by course |
 | Background job (Solid Queue) | Required by course |

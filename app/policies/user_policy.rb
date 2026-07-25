@@ -21,6 +21,10 @@ class UserPolicy < ApplicationPolicy
     admin? && record != user
   end
 
+  def disable?
+    admin? && record != user
+  end
+
   class Scope < Scope
     def resolve
       return scope.none unless user&.admin?

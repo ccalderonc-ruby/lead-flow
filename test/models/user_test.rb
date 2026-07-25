@@ -34,4 +34,32 @@ class UserTest < ActiveSupport::TestCase
     assert users(:admin).authenticate("password")
     assert_not users(:admin).authenticate("wrong")
   end
+
+  test "status must be active or disabled" do
+    user = users(:advisor)
+    user.status = "paused"
+    assert_not user.valid?
+    assert_includes user.errors[:status], "is not included in the list"
+  end
+
+  test "password must be at least 8 characters" do
+    user = User.new(
+      name: "Short",
+      email: "short@example.com",
+      password: "short",
+      role: roles(:advisor),
+      team: teams(:enterprise),
+      country: countries(:us),
+      status: "active"
+    )
+    assert_not user.valid?
+    assert_includes user.errors[:password], "is too short (minimum is 8 characters)"
+  end
+
+  test "active? is true for blank or active status" do
+    user = users(:admin)
+    assert user.active?
+    user.status = "disabled"
+    assert_not user.active?
+  end
 end

@@ -20,7 +20,14 @@ module Authentication
   private
 
   def current_user
-    @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
+    return @current_user if instance_variable_defined?(:@current_user)
+
+    user = User.find_by(id: session[:user_id]) if session[:user_id]
+    if user && !user.active?
+      reset_session
+      user = nil
+    end
+    @current_user = user
   end
 
   def authenticated?

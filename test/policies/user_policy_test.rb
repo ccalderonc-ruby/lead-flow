@@ -19,4 +19,13 @@ class UserPolicyTest < ActiveSupport::TestCase
     admin = users(:admin)
     refute UserPolicy.new(admin, admin).destroy?
   end
+
+  test "admin cannot disable themselves" do
+    admin = users(:admin)
+    refute UserPolicy.new(admin, admin).disable?
+  end
+
+  test "admin can disable another user" do
+    assert UserPolicy.new(users(:admin), users(:advisor)).disable?
+  end
 end
