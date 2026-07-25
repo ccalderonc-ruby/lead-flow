@@ -41,6 +41,9 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 
 group :development, :test do
+  # Load `.env` for local Stripe keys and other secrets (never commit real values)
+  gem "dotenv-rails"
+
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
@@ -68,5 +71,7 @@ end
 gem "inertia_rails", "~> 3.21"
 
 gem "pundit", "~> 2.4"
+
+gem "stripe", "~> 13.0"
 
 gem "vite_rails", "~> 3.11"

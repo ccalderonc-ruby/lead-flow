@@ -8,6 +8,8 @@ export type AuthUser = {
   name: string
   email: string
   role: string
+  subscription_status?: string
+  subscribed?: boolean
 }
 
 export type SharedProps = {

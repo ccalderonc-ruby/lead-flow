@@ -4,6 +4,8 @@ import { useState } from 'react'
 import {
   adminNavItems,
   adminNavVisible,
+  advisorNavItems,
+  advisorNavVisible,
   formatRoleLabel,
   isNavItemActive,
   mainNavItems,
@@ -38,6 +40,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   const user = auth.user
   const showAdminNav = adminNavVisible(user?.role)
+  const showAdvisorNav = advisorNavVisible(user?.role)
 
   function signOut() {
     router.delete('/logout')
@@ -59,6 +62,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {mainNavItems.map((item) => (
           <NavLink key={item.href} href={item.href} label={item.label} currentUrl={currentUrl} />
         ))}
+
+        {showAdvisorNav && (
+          <>
+            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Account
+            </p>
+            {advisorNavItems.map((item) => (
+              <NavLink key={item.href} href={item.href} label={item.label} currentUrl={currentUrl} />
+            ))}
+          </>
+        )}
 
         {showAdminNav && (
           <>

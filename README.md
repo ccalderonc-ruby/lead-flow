@@ -194,7 +194,22 @@ See [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) for step-by-step verificati
 | 6 | **Background jobs** (`MarkOverdueTasksJob` via Solid Queue), **Stripe** test checkout + webhook, Kamal deploy |
 | 7 | Test gaps, polish, **final course presentation** |
 
-**Course deliverables still planned:** Stripe subscription demo, Solid Queue recurring job, production deployment, and final presentation demo.
+**Course deliverables still planned:** gated CSV export (subscription), production deployment, and final presentation demo. Stripe test checkout + webhook are implemented (see `.env.example`).
+
+### Stripe (test mode)
+
+Set these in `.env` (loaded by `dotenv-rails` in development/test) or Rails credentials under `stripe:`:
+
+| Variable | Purpose |
+|----------|---------|
+| `STRIPE_SECRET_KEY` | Server Checkout Session create |
+| `STRIPE_PUBLISHABLE_KEY` | Optional; not required for server-only Checkout redirect |
+| `STRIPE_WEBHOOK_SECRET` | Signature verify (`stripe listen` prints `whsec_…`) |
+| `STRIPE_PRICE_ID` | LeadFlow Pro price id from Stripe Dashboard |
+
+```bash
+stripe listen --forward-to localhost:3000/webhooks/stripe
+```
 
 ## Data model
 
