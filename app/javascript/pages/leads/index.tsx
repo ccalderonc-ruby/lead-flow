@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { FormEvent, useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import { SelectField } from '@/components/ui/FormFields'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 export type LeadRow = {
@@ -16,8 +17,15 @@ export type LeadRow = {
   can_update: boolean
 }
 
+export type LeadFilterOption = {
+  id: number
+  name: string
+}
+
 export type LeadsMeta = {
   q: string
+  stage_id: number | null
+  user_id: number | null
   page: number
   per_page: number
   total_count: number
@@ -27,10 +35,47 @@ export type LeadsMeta = {
 type LeadsIndexProps = {
   leads: LeadRow[]
   meta: LeadsMeta
+  stages: LeadFilterOption[]
+  assignees: LeadFilterOption[]
+  can_filter_assignee: boolean
   can_create: boolean
 }
 
-export default function LeadsIndex({ leads, meta, can_create: canCreate }: LeadsIndexProps) {
+function leadsQueryParams(
+  meta: LeadsMeta,
+  overrides: Partial<{ q: string; stage_id: string; user_id: string; page: number }> = {},
+) {
+  const q = overrides.q !== undefined ? overrides.q : meta.q
+  const stageId =
+    overrides.stage_id !== undefined
+      ? overrides.stage_id
+      : meta.stage_id != null
+        ? String(meta.stage_id)
+        : ''
+  const userId =
+    overrides.user_id !== undefined
+      ? overrides.user_id
+      : meta.user_id != null
+        ? String(meta.user_id)
+        : ''
+  const page = overrides.page !== undefined ? overrides.page : meta.page
+
+  return {
+    q: q.trim() || undefined,
+    stage_id: stageId || undefined,
+    user_id: userId || undefined,
+    page: page > 1 ? page : undefined,
+  }
+}
+
+export default function LeadsIndex({
+  leads,
+  meta,
+  stages,
+  assignees,
+  can_filter_assignee: canFilterAssignee,
+  can_create: canCreate,
+}: LeadsIndexProps) {
   const [query, setQuery] = useState(meta.q)
 
   useEffect(() => {
@@ -39,20 +84,23 @@ export default function LeadsIndex({ leads, meta, can_create: canCreate }: Leads
 
   function submitSearch(event: FormEvent) {
     event.preventDefault()
-    const nextQuery = query.trim()
-    router.get(
-      '/leads',
-      { q: nextQuery || undefined, page: 1 },
-      { preserveState: true },
-    )
+    router.get('/leads', leadsQueryParams(meta, { q: query, page: 1 }), { preserveState: true })
+  }
+
+  function setStageFilter(stageId: string) {
+    router.get('/leads', leadsQueryParams(meta, { q: query, stage_id: stageId, page: 1 }), {
+      preserveState: true,
+    })
+  }
+
+  function setAssigneeFilter(userId: string) {
+    router.get('/leads', leadsQueryParams(meta, { q: query, user_id: userId, page: 1 }), {
+      preserveState: true,
+    })
   }
 
   function goToPage(page: number) {
-    router.get(
-      '/leads',
-      { q: meta.q || undefined, page },
-      { preserveState: true },
-    )
+    router.get('/leads', leadsQueryParams(meta, { q: query, page }), { preserveState: true })
   }
 
   return (
@@ -95,6 +143,38 @@ export default function LeadsIndex({ leads, meta, can_create: canCreate }: Leads
               </button>
             </form>
           </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <SelectField
+            id="leads-stage-filter"
+            label="Stage"
+            value={meta.stage_id != null ? String(meta.stage_id) : ''}
+            onChange={setStageFilter}
+          >
+            <option value="">All stages</option>
+            {stages.map((stage) => (
+              <option key={stage.id} value={String(stage.id)}>
+                {stage.name}
+              </option>
+            ))}
+          </SelectField>
+
+          {canFilterAssignee && (
+            <SelectField
+              id="leads-assignee-filter"
+              label="Assignee"
+              value={meta.user_id != null ? String(meta.user_id) : ''}
+              onChange={setAssigneeFilter}
+            >
+              <option value="">All assignees</option>
+              {assignees.map((assignee) => (
+                <option key={assignee.id} value={String(assignee.id)}>
+                  {assignee.name}
+                </option>
+              ))}
+            </SelectField>
+          )}
         </div>
 
         <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
