@@ -52,7 +52,7 @@
 # Week 7 → Epic 7
 
 generated: "2026-07-05"
-last_updated: "2026-07-22T19:25:00-06:00"
+last_updated: "2026-07-25T10:20:00-06:00"
 project: LeadFlow CRM
 project_key: NOKEY
 tracking_system: file-system
@@ -92,11 +92,11 @@ development_status:
   epic-4-retrospective: done
 
   # ── Week 5: Administer the Team ────────────────────────────────
-  epic-5: in-progress
+  epic-5: done
   5-1-demo-seed-users-for-role-testing: done
   5-2-admin-user-management: done
   5-3-role-management-page: done
-  5-4-advanced-lead-filters: backlog
+  5-4-advanced-lead-filters: done
   epic-5-retrospective: optional
 
   # ── Week 6: Ship as a SaaS ─────────────────────────────────────

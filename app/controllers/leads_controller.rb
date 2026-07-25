@@ -15,8 +15,16 @@ class LeadsController < InertiaController
     query = Array(params[:q]).first.to_s.strip.slice(0, MAX_QUERY_LENGTH)
     page = Integer(Array(params[:page]).first, exception: false) || 1
     page = [ page, 1 ].max
+    stage_id = parse_optional_id(params[:stage_id])
+    stage_id = nil unless stage_id && LeadStage.exists?(stage_id)
+
+    user_id = current_user.admin? ? parse_optional_id(params[:user_id]) : nil
+    user_id = nil unless user_id && assignable_users.exists?(id: user_id)
 
     scoped = policy_scope(Lead).search(query)
+    scoped = scoped.where(stage_id: stage_id) if stage_id
+    scoped = scoped.where(user_id: user_id) if user_id
+
     total_count = scoped.count
     total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
     page = page.clamp(1, total_pages)
@@ -31,11 +39,16 @@ class LeadsController < InertiaController
       leads: leads.map { |lead| serialize_lead(lead) },
       meta: {
         q: query,
+        stage_id: stage_id,
+        user_id: user_id,
         page: page,
         per_page: PER_PAGE,
         total_count: total_count,
         total_pages: total_pages
       },
+      stages: LeadStage.order(:position).map { |stage| { id: stage.id, name: stage.name } },
+      assignees: current_user.admin? ? assignable_users.map { |user| { id: user.id, name: user.name } } : [],
+      can_filter_assignee: current_user.admin?,
       can_create: policy(Lead).create?
     }
   end
@@ -296,6 +309,10 @@ class LeadsController < InertiaController
       .where(roles: { name: %w[admin advisor] })
       .where(status: [ "active", nil ])
       .order(:name)
+  end
+
+  def parse_optional_id(raw)
+    Integer(Array(raw).first, exception: false)
   end
 
   def assignable_user_ids(lead = nil)

@@ -114,6 +114,132 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, leads(:sarah).name
   end
 
+  test "admin can filter by stage" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { stage_id: lead_stages(:qualified).id }
+
+    assert_response :success
+    assert_includes response.body, leads(:sarah).name
+    refute_includes response.body, leads(:marcus).name
+    assert_includes response.body, "\"stage_id\":#{lead_stages(:qualified).id}"
+  end
+
+  test "admin can filter by assignee" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { user_id: users(:advisor).id }
+
+    assert_response :success
+    assert_includes response.body, leads(:sarah).name
+    assert_includes response.body, leads(:marcus).name
+    refute_includes response.body, leads(:admin_owned).name
+    assert_includes response.body, "\"user_id\":#{users(:advisor).id}"
+    assert_includes response.body, '"can_filter_assignee":true'
+  end
+
+  test "admin can combine stage and assignee filters" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: {
+      stage_id: lead_stages(:prospect).id,
+      user_id: users(:advisor).id
+    }
+
+    assert_response :success
+    assert_includes response.body, leads(:marcus).name
+    refute_includes response.body, leads(:sarah).name
+    refute_includes response.body, leads(:admin_owned).name
+  end
+
+  test "advisor stage filter stays within assigned leads" do
+    sign_in_as users(:advisor)
+
+    get leads_path, params: { stage_id: lead_stages(:prospect).id }
+
+    assert_response :success
+    assert_includes response.body, leads(:marcus).name
+    refute_includes response.body, leads(:sarah).name
+    refute_includes response.body, leads(:admin_owned).name
+    assert_includes response.body, '"can_filter_assignee":false'
+  end
+
+  test "advisor user_id param does not expand scope" do
+    sign_in_as users(:advisor)
+
+    get leads_path, params: { user_id: users(:admin).id }
+
+    assert_response :success
+    assert_includes response.body, leads(:sarah).name
+    refute_includes response.body, leads(:admin_owned).name
+    assert_includes response.body, '"user_id":null'
+  end
+
+  test "invalid stage_id is ignored" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { stage_id: "abc" }
+
+    assert_response :success
+    assert_includes response.body, '"stage_id":null'
+    assert_includes response.body, leads(:sarah).name
+  end
+
+  test "nonexistent stage_id is ignored" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { stage_id: 0 }
+
+    assert_response :success
+    assert_includes response.body, '"stage_id":null'
+    assert_includes response.body, leads(:sarah).name
+    assert_includes response.body, leads(:marcus).name
+  end
+
+  test "admin non-assignable user_id is ignored" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { user_id: users(:assistant).id }
+
+    assert_response :success
+    assert_includes response.body, '"user_id":null'
+    assert_includes response.body, leads(:sarah).name
+    assert_includes response.body, leads(:admin_owned).name
+  end
+
+  test "admin disabled assignee user_id is ignored" do
+    users(:advisor).update!(status: "disabled")
+    sign_in_as users(:admin)
+
+    get leads_path, params: { user_id: users(:advisor).id }
+
+    assert_response :success
+    assert_includes response.body, '"user_id":null'
+    assert_includes response.body, leads(:sarah).name
+    assert_includes response.body, leads(:admin_owned).name
+  end
+
+  test "assistant can filter by stage" do
+    sign_in_as users(:assistant)
+
+    get leads_path, params: { stage_id: lead_stages(:qualified).id }
+
+    assert_response :success
+    assert_includes response.body, leads(:sarah).name
+    refute_includes response.body, leads(:marcus).name
+    assert_includes response.body, '"can_filter_assignee":false'
+    assert_includes response.body, '"user_id":null'
+  end
+
+  test "array stage_id param does not crash" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { stage_id: [ lead_stages(:qualified).id ] }
+
+    assert_response :success
+    assert_includes response.body, leads(:sarah).name
+  end
+
   test "new lead form requires authentication" do
     get new_lead_path
 

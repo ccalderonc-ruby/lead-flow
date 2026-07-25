@@ -768,13 +768,34 @@ npm run check
 
 ---
 
+### Step 21 — Advanced lead filters (Story 5.4)
+
+**Goal:** Filter `/leads` by stage (all roles) and assigned advisor (admin only), composed with existing search + pagination.
+
+| Piece | Behavior |
+|-------|----------|
+| Params | `stage_id`, `user_id` (safe Integer parse; invalid ignored) |
+| Scope | Always `policy_scope` → search → filters |
+| Admin | Stage + assignee filters |
+| Advisor/Assistant | Stage only; forged `user_id` ignored |
+| UI | `SelectField` filters; retain `q` across navigation |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 21+ | Advanced lead filters (Story 5.4) / Epic 6+ |
+| 22+ | Epic 6 SaaS (jobs, Stripe, deploy) / Epic 5 retrospective |
 
 
 ---

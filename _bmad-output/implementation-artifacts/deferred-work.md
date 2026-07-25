@@ -16,3 +16,8 @@
 
 - Static `Admin::RolePermissions::MATRIX` strings can drift from Pundit policies over time — accepted for Story 5.3 read-only MVP (no DB-backed permissions).
 - Deeper Inertia prop parsing / full-cell matrix assertions beyond substring checks — residual coverage.
+
+## Deferred from: code review of 5-4-advanced-lead-filters.md (2026-07-25)
+
+- No frontend/Inertia unit tests for lead filter query preservation — residual; repo relies on controller/integration tests.
+- Full stages + assignable users serialized on every leads index request — acceptable at course scale.
