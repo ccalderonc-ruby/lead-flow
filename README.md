@@ -187,14 +187,49 @@ See [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) for step-by-step verificati
 
 ## Roadmap
 
-| Week | Focus |
-|------|-------|
-| 1 | Auth, roles, app shell, dashboard, README ✅ |
-| 2–5 | CRUD UI for leads, tasks, notes, meetings, opportunities; search; admin screens |
-| 6 | **Background jobs** (`MarkOverdueTasksJob` via Solid Queue), **Stripe** test checkout + webhook, Kamal deploy |
-| 7 | Test gaps, polish, **final course presentation** |
+| Week | Focus | Status |
+|------|-------|--------|
+| 1 | Auth, roles, app shell, dashboard, README | ✅ |
+| 2–5 | CRUD UI for leads, tasks, notes, meetings, opportunities; search; admin screens | ✅ |
+| 6 | Background jobs (`MarkOverdueTasksJob`), Stripe test checkout + webhook, gated CSV, Kamal scaffold | ✅ |
+| 7 | Controller + system tests, **final course presentation** docs | ✅ |
 
-**Course deliverables:** Stripe test checkout + webhook ✅ · gated CSV export ✅ · production deployment (**scaffold ready; live URL TBD**) · final presentation demo (Week 7).
+**Course deliverables:** Stripe test checkout + webhook ✅ · gated CSV export ✅ · production deployment (**scaffold ready; live URL TBD**) · presentation demo script ✅ (this README).
+
+### Presentation demo (Week 7)
+
+**Public deploy URL:** TBD — no production host provisioned yet (Story 6.4 Option B). When live, verify with `curl -fsS https://<host>/up`. Until then, demo on `http://localhost:3000` after `bin/setup` / `bin/rails db:seed` / `bin/dev`.
+
+#### Demo personas
+
+Password for all: `password`
+
+| Persona | Role | Email | Use in demo |
+|---------|------|-------|-------------|
+| Jordan | Admin | `admin@leadflow.local` | Users / roles; all CRM data |
+| Elena | Advisor | `advisor@leadflow.local` | **Primary demo** — UJ-1–UJ-3, Stripe/CSV |
+| Carlos | Assistant | `assistant@leadflow.local` | Notes/tasks only; show lead edit denial |
+
+#### Walkthrough — UJ-1 through UJ-3 (Advisor)
+
+Use **Elena** (`advisor@leadflow.local` / `password`).
+
+1. **UJ-1 — Sign in and see the day**
+   - Open `http://localhost:3000` → redirected to `/login`
+   - Sign in → **Dashboard** shows open leads, overdue tasks, upcoming meetings, pipeline value
+   - Point out sidebar: Dashboard, Leads, Tasks, Meetings, Opportunities (+ Subscription under ACCOUNT)
+
+2. **UJ-2 — Find a lead and add a note**
+   - Open **Leads** → search or filter (e.g. stage **Qualified**)
+   - Open a lead row → **Lead detail** (company, stage, assignee, related tasks/meetings/notes/opportunities)
+   - **Add note** on the timeline → confirm it appears without leaving the page
+
+3. **UJ-3 — Move a deal on the pipeline**
+   - Open **Opportunities** → kanban by stage
+   - Open a card → drawer: change stage to **Proposal**, set value (and close date if shown) → save
+   - Confirm flash and board/column update; optionally return to Dashboard for pipeline value
+
+**Optional extras (time permitting):** Tasks overdue filter; Subscription checkout (Stripe test); CSV export on Leads (subscribed advisor); Admin user create; Assistant denied lead edit.
 
 ### Stripe (test mode)
 
@@ -264,9 +299,11 @@ See [docs/DATA_MODEL.md](docs/DATA_MODEL.md) for the full entity relationship di
 
 ## Project status
 
-**Week 1 complete:** database schema, models, seeds, session auth, Pundit authorization, app layout, and dashboard metrics.
+**Course scope complete (Weeks 1–7):** schema and models, session auth + Pundit roles, CRM CRUD (leads, tasks, notes, meetings, opportunities), admin users/roles, Solid Queue overdue job, Stripe subscription + gated CSV, Docker/Kamal deploy scaffold, controller + system tests, and presentation demo docs.
 
-**In progress:** CRM CRUD pages (Epics 2–5).
+**Still optional:** live public URL when a host is provisioned (`GET /up` → 200). See [Deploy](#deploy-kamal--docker--story-64).
+
+Demo script: [Presentation demo (Week 7)](#presentation-demo-week-7). Step-by-step build log: [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
 
 ## Author
 

@@ -63,6 +63,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Core system test | ✅ | Login → create lead (Story 7.2) |
 | Stripe + gated CSV | ✅ | Checkout, webhook, Pro CSV export (6.2–6.3) |
 | Deploy scaffold | ✅ | Docker/Kamal + README; public URL TBD (6.4 Option B) |
+| Presentation docs | ✅ | README UJ-1–UJ-3 demo + IMPLEMENTATION Step 28 (Story 7.3) |
 
 **Dev login** (after `bin/rails db:seed`) — all use password `password`:
 
@@ -76,7 +77,6 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| Presentation / docs polish | Medium (Story 7.3) |
 | Live Kamal host | Optional until provisioned |
 | BMad planning artifacts (PRD, epics, sprint plan) | Optional but recommended |
 
