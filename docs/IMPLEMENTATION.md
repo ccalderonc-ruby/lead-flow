@@ -897,6 +897,25 @@ bin/rails test test/controllers/
 bin/rails test
 ```
 
+### Step 27 — System test for login → create lead (Story 7.2)
+
+**Goal:** One Capybara/Selenium journey covering session login and lead create through the Inertia UI.
+
+| Piece | Detail |
+|-------|--------|
+| Test | `test/system/login_create_lead_test.rb` |
+| Fixture user | `users(:advisor)` / password `password` |
+| Base | `ApplicationSystemTestCase` — headless Chrome; `Capybara.server_host` / `app_host` = `localhost` (Vite host redirect) |
+| React selects | Helper sets native `<select>` value + `change` event so Inertia `setData` runs |
+
+**Verify:**
+
+```bash
+RAILS_ENV=test bin/vite build --force
+bin/rails test test/system/login_create_lead_test.rb
+bin/rails test
+```
+
 ---
 
 ## What is NOT implemented yet
@@ -905,7 +924,7 @@ These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 27+ | System test login → create lead (7.2); presentation polish (7.3); live Kamal host when provisioned |
+| 28+ | Presentation / docs polish (7.3); live Kamal host when provisioned |
 
 
 ---
