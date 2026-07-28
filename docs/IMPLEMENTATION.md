@@ -916,35 +916,59 @@ bin/rails test test/system/login_create_lead_test.rb
 bin/rails test
 ```
 
+### Step 28 — Presentation and documentation polish (Story 7.3)
+
+**Goal:** Final README + IMPLEMENTATION ready for the Week 7 course demo.
+
+| Piece | Detail |
+|-------|--------|
+| Deploy URL | Honest **TBD** (6.4 Option B); `/up` health check documented |
+| Personas | Admin / Advisor / Assistant seed emails in README |
+| Demo script | UJ-1 → UJ-3 click path (login → leads/note → pipeline drawer) |
+| Narrative | Updated presentation blurb + professor sharing steps (`dev` branch) |
+
+**Verify:** Docs-only; `bin/rails test` still green on the presentation branch.
+
 ---
 
 ## What is NOT implemented yet
 
-These are planned next steps (not part of current local work):
+These are optional follow-ups (not required for the course demo script):
 
-| Step | Feature |
-|------|---------|
-| 28+ | Presentation / docs polish (7.3); live Kamal host when provisioned |
+| Item | Notes |
+|------|-------|
+| Live Kamal host | Provision VPS/Fly/Hetzner → fill `config/deploy.yml` → `bin/kamal deploy` → record public URL in README |
+| Epic 7 retrospective | Optional BMad ritual |
 
 
 ---
 
 ## Suggested narrative for a presentation
 
-> “Starting from the approved data model design, I implemented the full PostgreSQL schema with 15 tables and Rails migrations, including a fix for separate lead and opportunity stage foreign keys.
+> “LeadFlow is a MicroSaaS CRM for advisors: Rails 8 + Inertia React, PostgreSQL, and role-based access for Admin, Advisor, and Assistant.
 >
-> I built Active Record models with associations and validations, plus Company name normalization for deduplication. Seed data lets us log in locally as an admin user.
+> I started from an approved data model — 15 tables, associations, validations, and company-name deduplication — then built session auth, Pundit policies, and a sidebar app shell with a metrics dashboard.
 >
-> I added 40 automated model tests with realistic fixtures to verify validations and associations.
+> The CRM covers leads (search, filters, create/edit/detail), tasks and notes, meetings, and an opportunities kanban with a detail drawer. Admins manage users and roles; assistants can task and note but cannot edit leads.
 >
-> For authentication, I implemented session-based login and logout using a Rails concern, a SessionsController, and an Inertia React login page. Protected routes redirect unauthenticated users to `/login`, and the current user is shared with all React pages. Six integration tests cover the auth flow, and the full suite of 46 tests passes.”
+> For course SaaS requirements I added a Solid Queue job that marks overdue tasks, Stripe Checkout plus a signed webhook for Advisor subscriptions, and CSV export gated behind an active subscription. Deployment is Docker + Kamal; the image builds with Vite assets, and the public URL is ready once a host is provisioned.
+>
+> Quality gates include model tests, controller coverage for CRM and authorization denials, a system test for login → create lead, and green CI. Today I’ll walk UJ-1 through UJ-3 as Elena the advisor.”
 
 ---
 
 ## Sharing with a professor
 
-1. Commit all local changes.
-2. Push branch: `git push -u origin cursor/implement-models`
-3. Open a GitHub PR with a link to this document.
-4. Include login credentials: `admin@leadflow.local` / `password`
-5. Remind them to use the **Rails port** (3000), not Vite (3036).
+1. Ensure latest work is on **`dev`** (or open a PR into `dev` / `main` as required by the course).
+2. Share the GitHub repo URL and point to [README.md](../README.md) **Presentation demo** plus this file.
+3. Local demo: `bin/setup` (or `bundle && npm ci && bin/rails db:prepare db:seed`) then `bin/dev` → `http://localhost:3000` (**Rails port 3000**, not Vite 3036).
+4. Login credentials (password `password` for all):
+
+| Role | Email |
+|------|-------|
+| Admin | `admin@leadflow.local` |
+| Advisor (primary demo) | `advisor@leadflow.local` |
+| Assistant | `assistant@leadflow.local` |
+
+5. Optional: Stripe test keys in `.env` + `stripe listen --forward-to localhost:3000/webhooks/stripe` for the subscription/export demo.
+6. Deploy URL: **TBD** until a host is provisioned; health check will be `GET /up`.
