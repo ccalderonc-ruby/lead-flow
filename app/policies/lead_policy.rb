@@ -26,6 +26,10 @@ class LeadPolicy < ApplicationPolicy
     update?
   end
 
+  def export?
+    advisor? && user.subscribed?
+  end
+
   class Scope < Scope
     def resolve
       return scope.none unless user

@@ -32,3 +32,10 @@
 - Unique indexes on `users.stripe_customer_id` / `users.stripe_subscription_id` — not required for checkout/webhook ACs; add when lookup-by-Stripe-id becomes hot.
 - Optional integration test that exercises real `Stripe::Webhook.construct_event` signature verification (current stubs satisfy story “no live network”).
 - Dedicated fixture user with `subscription_status: active` for Story 6.3 gated CSV — 6.2 uses `update!` in tests.
+
+## Deferred from: code review of 6-3-gated-csv-export (2026-07-27)
+
+- Unbounded in-memory CSV generation / no streaming — fine at course scale; stream or cap if lead volume grows.
+- Shared index/export query helper — duplication acceptable while export remains advisor-only (no assignee filter).
+- Dedicated `LeadsCsv` unit tests — residual; controller integration covers happy path.
+- `advisor_subscribed` fixture lacks assigned leads — residual footgun; tests currently `update!` the main advisor.

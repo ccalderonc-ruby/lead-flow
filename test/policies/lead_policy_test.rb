@@ -43,4 +43,17 @@ class LeadPolicyTest < ActiveSupport::TestCase
   test "assistant cannot update leads" do
     refute LeadPolicy.new(@assistant, @advisor_lead).update?
   end
+
+  test "subscribed advisor can export" do
+    assert LeadPolicy.new(users(:advisor_subscribed), Lead).export?
+  end
+
+  test "inactive advisor cannot export" do
+    refute LeadPolicy.new(@advisor, Lead).export?
+  end
+
+  test "admin and assistant cannot export" do
+    refute LeadPolicy.new(@admin, Lead).export?
+    refute LeadPolicy.new(@assistant, Lead).export?
+  end
 end

@@ -74,4 +74,7 @@ gem "pundit", "~> 2.4"
 
 gem "stripe", "~> 13.0"
 
+# CSV is leaving default gems in Ruby 3.4+; required for leads export
+gem "csv"
+
 gem "vite_rails", "~> 3.11"
