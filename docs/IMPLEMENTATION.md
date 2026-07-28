@@ -856,13 +856,35 @@ npm run check
 
 ---
 
+### Step 25 — Production deployment scaffold (Story 6.4)
+
+**Goal:** Document Kamal/Docker deploy path and verify (or document) image build. Live public URL remains **TBD** until a host is provisioned (Option B).
+
+| Piece | Behavior |
+|-------|----------|
+| URL | TBD — do not invent a host |
+| Image | `docker build -t lead_flow:6.4 .` (requires local Docker engine) |
+| Config | `Dockerfile`, `config/deploy.yml`, `.kamal/secrets` (placeholders until host exists) |
+| Health | Once live: `GET /up` → 200 |
+| Docs | README **Deploy** section: options, secrets checklist, demo credentials |
+
+**Verify:**
+
+```bash
+docker build -t lead_flow:6.4 .
+# After a real deploy:
+# curl -fsS https://<host>/up
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 24+ | Production deploy (6.4) |
+| 25+ | Live Kamal deploy to a real host (when provisioned); Week 7 presentation polish |
 
 
 ---
