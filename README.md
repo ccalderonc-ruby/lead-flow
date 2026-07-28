@@ -133,8 +133,8 @@ npm run check   # TypeScript type check
 | Database | PostgreSQL |
 | Authorization | Pundit |
 | Background jobs | Solid Queue |
-| Payments | Stripe (test mode, planned) |
-| Deploy | Docker, Kamal |
+| Payments | Stripe (test mode) |
+| Deploy | Docker, Kamal (scaffold; public URL TBD) |
 
 ## Installation
 
@@ -194,7 +194,7 @@ See [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) for step-by-step verificati
 | 6 | **Background jobs** (`MarkOverdueTasksJob` via Solid Queue), **Stripe** test checkout + webhook, Kamal deploy |
 | 7 | Test gaps, polish, **final course presentation** |
 
-**Course deliverables still planned:** gated CSV export (subscription), production deployment, and final presentation demo. Stripe test checkout + webhook are implemented (see `.env.example`).
+**Course deliverables:** Stripe test checkout + webhook ✅ · gated CSV export ✅ · production deployment (**scaffold ready; live URL TBD**) · final presentation demo (Week 7).
 
 ### Stripe (test mode)
 
@@ -210,6 +210,53 @@ Set these in `.env` (loaded by `dotenv-rails` in development/test) or Rails cred
 ```bash
 stripe listen --forward-to localhost:3000/webhooks/stripe
 ```
+
+### Deploy (Kamal / Docker) — Story 6.4
+
+**Public URL:** TBD (no production host provisioned yet). Health check path once live: `GET /up` → expect `200`.
+
+The repo includes a production **Dockerfile** and **Kamal** config (`config/deploy.yml`, `.kamal/secrets`). Hosts and registry are still placeholders (`192.168.0.1`, `localhost:5555`).
+
+#### Verify the image builds locally
+
+Requires Docker Desktop, Colima, or another Docker-compatible engine:
+
+```bash
+docker build -t lead_flow:6.4 .
+```
+
+The image installs **Node.js in the build stage** so Vite can compile assets during `rails assets:precompile`. Runtime image does not need Node.
+
+#### When you have a host
+
+1. Choose a target: existing VPS (SSH), [Fly.io](https://fly.io), [Hetzner](https://www.hetzner.com), or similar.
+2. Edit `config/deploy.yml`:
+   - `servers.web` → real IP or hostname
+   - `registry` → GHCR / Docker Hub / etc. (not `localhost:5555`)
+   - Uncomment `proxy` + `ssl` + `host` when terminating TLS with Kamal (also enable `config.assume_ssl` / `config.force_ssl` / `config.hosts` in `config/environments/production.rb`)
+3. Provide **PostgreSQL** (Kamal DB accessory or managed DB). Set `DATABASE_URL` / `LEAD_FLOW_DATABASE_PASSWORD` via Kamal secrets — the app is **not** SQLite; the deploy volume is for Active Storage only.
+4. Extend `.kamal/secrets` for Stripe test keys (`STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`) in addition to `RAILS_MASTER_KEY`. Never commit raw secrets.
+5. Deploy with Kamal (`bin/kamal setup` / `bin/kamal deploy`), then:
+
+```bash
+curl -fsS https://<your-host>/up
+```
+
+6. Point Stripe test webhooks at `https://<your-host>/webhooks/stripe` for the subscription demo.
+
+`SOLID_QUEUE_IN_PUMA: true` is already set so background jobs (e.g. overdue tasks) can run inside the web container once the queue DB is prepared.
+
+#### Demo credentials (after `bin/rails db:seed`)
+
+Password for all: `password`
+
+| Role | Email |
+|------|-------|
+| Admin | `admin@leadflow.local` |
+| Advisor | `advisor@leadflow.local` |
+| Assistant | `assistant@leadflow.local` |
+
+Fixtures/tests also use `@example.com` variants; seeds use the `.local` addresses above for local and demo logins.
 
 ## Data model
 

@@ -4,7 +4,11 @@ service: lead_flow
 # Name of the container image (use your-user/app-name on external registries).
 image: lead_flow
 
-# Deploy to these servers.
+# Fill before first real deploy (see README “Deploy” section):
+# - servers.web: real SSH host IP/hostname (not this placeholder)
+# - registry.server: GHCR / Docker Hub / etc.
+# - proxy.ssl + proxy.host when using Kamal Let’s Encrypt
+# - DB_HOST or DATABASE_URL via secrets (PostgreSQL required)
 servers:
   web:
     - 192.168.0.1

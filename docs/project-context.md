@@ -74,7 +74,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 |------|----------|
 | Controller CRUD + integration tests (remaining) | High |
 | Stripe integration | Required by course | Checkout + webhook ✅; gated CSV export ✅ |
-| Production deploy (Kamal/Docker scaffold exists) | Required by course |
+| Production deploy (Kamal/Docker scaffold + README; live URL TBD) | Required by course | Scaffold ✅ |
 | BMad planning artifacts (PRD, epics, sprint plan) | Optional but recommended |
 
 ---
@@ -93,7 +93,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | CSS | Tailwind CSS | ^4.3.0 via `@tailwindcss/vite` |
 | Language | TypeScript | ^6.0.3 — run `npm run check` in CI locally |
 | Jobs | Solid Queue | `MarkOverdueTasksJob` + recurring daily schedule |
-| Deploy | Kamal + Docker | Scaffold present, not deployed |
+| Deploy | Kamal + Docker | Scaffold + README (Option B); public URL TBD |
 | Tests | Minitest + Capybara | Model + controller tests; system test scaffold |
 
 ---
