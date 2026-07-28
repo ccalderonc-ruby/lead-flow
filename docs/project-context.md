@@ -59,6 +59,9 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Opportunities pipeline | ✅ | Kanban by OpportunityStage (Story 4.2); detail drawer update (Story 4.3) |
 | CI | ✅ | Brakeman, bundler-audit, RuboCop, Rails test + system test jobs |
 | Docs | ✅ | DATA_MODEL (Tier 1+2), IMPLEMENTATION guide |
+| Controller integration tests | ✅ | Leads/tasks/admin + role denials (Story 7.1) |
+| Stripe + gated CSV | ✅ | Checkout, webhook, Pro CSV export (6.2–6.3) |
+| Deploy scaffold | ✅ | Docker/Kamal + README; public URL TBD (6.4 Option B) |
 
 **Dev login** (after `bin/rails db:seed`) — all use password `password`:
 
@@ -72,9 +75,9 @@ _This file contains critical rules, current project state, and patterns that AI 
 
 | Area | Priority |
 |------|----------|
-| Controller CRUD + integration tests (remaining) | High |
-| Stripe integration | Required by course | Checkout + webhook ✅; gated CSV export ✅ |
-| Production deploy (Kamal/Docker scaffold + README; live URL TBD) | Required by course | Scaffold ✅ |
+| System test login → create lead | Medium (Story 7.2) |
+| Presentation / docs polish | Medium (Story 7.3) |
+| Live Kamal host | Optional until provisioned |
 | BMad planning artifacts (PRD, epics, sprint plan) | Optional but recommended |
 
 ---

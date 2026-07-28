@@ -878,13 +878,34 @@ docker build -t lead_flow:6.4 .
 
 ---
 
+### Step 26 — Controller tests for CRM and authorization (Story 7.1)
+
+**Goal:** Confirm (and gap-fill) integration tests for leads index/create/update, task create, admin user create, and role denials.
+
+| Area | Coverage |
+|------|----------|
+| Leads | index / create / update (`test/controllers/leads_controller_test.rb`) |
+| Tasks | create (`test/controllers/tasks_controller_test.rb`) |
+| Admin users create | create + advisor/assistant POST denials (`admin/users_controller_test.rb`) |
+| Admin users index denials | advisor/assistant GET denials (`admin_access_test.rb`) |
+| Denials | Redirect + flash via `user_not_authorized` (not HTTP 403) |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/
+bin/rails test
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 25+ | Live Kamal deploy to a real host (when provisioned); Week 7 presentation polish |
+| 27+ | System test login → create lead (7.2); presentation polish (7.3); live Kamal host when provisioned |
 
 
 ---

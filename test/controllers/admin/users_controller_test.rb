@@ -19,6 +19,7 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
     sign_in_as @advisor
     get admin_users_path
     assert_redirected_to root_path
+    assert_equal "You are not authorized to perform this action.", flash[:alert]
   end
 
   test "admin can create user" do
@@ -151,5 +152,25 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to root_path
+    assert_equal "You are not authorized to perform this action.", flash[:alert]
+  end
+
+  test "advisor cannot create users" do
+    sign_in_as @advisor
+
+    assert_no_difference "User.count" do
+      post admin_users_path, params: {
+        name: "Nope Advisor",
+        email: "nope.advisor@example.com",
+        role_id: roles(:advisor).id,
+        team_id: teams(:enterprise).id,
+        country_id: countries(:us).id,
+        status: "active",
+        password: "password1"
+      }
+    end
+
+    assert_redirected_to root_path
+    assert_equal "You are not authorized to perform this action.", flash[:alert]
   end
 end
