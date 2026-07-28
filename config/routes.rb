@@ -10,7 +10,11 @@ Rails.application.routes.draw do
 
   root "dashboard#index"
 
-  resources :leads, only: %i[index show new create edit update]
+  resources :leads, only: %i[index show new create edit update] do
+    collection do
+      get :export
+    end
+  end
   resources :tasks, only: %i[index create update]
   resources :notes, only: :create
   resources :meetings, only: %i[index create]

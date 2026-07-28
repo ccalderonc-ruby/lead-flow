@@ -39,6 +39,8 @@ type LeadsIndexProps = {
   assignees: LeadFilterOption[]
   can_filter_assignee: boolean
   can_create: boolean
+  can_export: boolean
+  show_subscribe_for_export: boolean
 }
 
 function leadsQueryParams(
@@ -68,6 +70,15 @@ function leadsQueryParams(
   }
 }
 
+function exportHref(meta: LeadsMeta) {
+  const params = new URLSearchParams()
+  const q = meta.q.trim()
+  if (q) params.set('q', q)
+  if (meta.stage_id != null) params.set('stage_id', String(meta.stage_id))
+  const qs = params.toString()
+  return qs ? `/leads/export?${qs}` : '/leads/export'
+}
+
 export default function LeadsIndex({
   leads,
   meta,
@@ -75,6 +86,8 @@ export default function LeadsIndex({
   assignees,
   can_filter_assignee: canFilterAssignee,
   can_create: canCreate,
+  can_export: canExport,
+  show_subscribe_for_export: showSubscribeForExport,
 }: LeadsIndexProps) {
   const [query, setQuery] = useState(meta.q)
 
@@ -115,6 +128,22 @@ export default function LeadsIndex({
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            {canExport && (
+              <a
+                href={exportHref(meta)}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Export CSV
+              </a>
+            )}
+            {showSubscribeForExport && (
+              <Link
+                href="/settings/subscription"
+                className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
+              >
+                Export CSV — Subscribe
+              </Link>
+            )}
             {canCreate && (
               <Link
                 href="/leads/new"
@@ -144,6 +173,12 @@ export default function LeadsIndex({
             </form>
           </div>
         </div>
+
+        {showSubscribeForExport && (
+          <p className="mt-3 text-sm text-amber-800">
+            Subscribe to LeadFlow Pro to export your leads as CSV.
+          </p>
+        )}
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <SelectField

@@ -836,13 +836,33 @@ npm run check
 
 ---
 
+### Step 24 — Gated CSV export (Story 6.3)
+
+**Goal:** Subscribed Advisors download a CSV of their policy-scoped leads; unsubscribed Advisors are prompted to subscribe.
+
+| Piece | Behavior |
+|-------|----------|
+| Gate | `LeadPolicy#export?` → Advisor + `subscribed?` |
+| Endpoint | `GET /leads/export` → `text/csv` attachment |
+| Scope | `policy_scope(Lead)` (+ optional `q` / `stage_id` filters) |
+| UI | Leads index Export CSV / “Subscribe” CTA |
+
+**Verify:**
+
+```bash
+bin/rails test test/controllers/leads_controller_test.rb test/policies/lead_policy_test.rb
+npm run check
+```
+
+---
+
 ## What is NOT implemented yet
 
 These are planned next steps (not part of current local work):
 
 | Step | Feature |
 |------|---------|
-| 23+ | Gated CSV export (6.3), production deploy (6.4) |
+| 24+ | Production deploy (6.4) |
 
 
 ---

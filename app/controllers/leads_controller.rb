@@ -6,6 +6,9 @@ class LeadsController < InertiaController
   EMAIL_TAKEN = "already belongs to another lead"
   PREVIEW_LIMIT = 5
   NOTES_TIMELINE_LIMIT = 50
+  UTF8_BOM = "\uFEFF"
+
+  rescue_from Pundit::NotAuthorizedError, with: :leads_not_authorized
 
   before_action :set_lead, only: %i[show edit update]
 
@@ -49,8 +52,29 @@ class LeadsController < InertiaController
       stages: LeadStage.order(:position).map { |stage| { id: stage.id, name: stage.name } },
       assignees: current_user.admin? ? assignable_users.map { |user| { id: user.id, name: user.name } } : [],
       can_filter_assignee: current_user.admin?,
-      can_create: policy(Lead).create?
+      can_create: policy(Lead).create?,
+      can_export: policy(Lead).export?,
+      show_subscribe_for_export: current_user.advisor? && !current_user.subscribed?
     }
+  end
+
+  def export
+    authorize Lead, :export?
+
+    query = Array(params[:q]).first.to_s.strip.slice(0, MAX_QUERY_LENGTH)
+    stage_id = parse_optional_id(params[:stage_id])
+    stage_id = nil unless stage_id && LeadStage.exists?(stage_id)
+
+    scoped = policy_scope(Lead).search(query)
+    scoped = scoped.where(stage_id: stage_id) if stage_id
+    scoped = scoped
+      .includes(:company, :stage, :user)
+      .order(Arel.sql("COALESCE(leads.last_activity_at, leads.updated_at) DESC"))
+
+    send_data UTF8_BOM + LeadsCsv.generate(scoped),
+      filename: "leads-#{Date.current}.csv",
+      type: "text/csv; charset=utf-8",
+      disposition: "attachment"
   end
 
   def new
@@ -453,6 +477,15 @@ class LeadsController < InertiaController
       { "company_name" => [ "already exists" ] }
     else
       { "email" => [ EMAIL_TAKEN ] }
+    end
+  end
+
+  def leads_not_authorized
+    if action_name == "export" && current_user&.advisor? && !current_user.subscribed?
+      redirect_to settings_subscription_path,
+        alert: "Subscribe to LeadFlow Pro to export your leads as CSV."
+    else
+      user_not_authorized
     end
   end
 end

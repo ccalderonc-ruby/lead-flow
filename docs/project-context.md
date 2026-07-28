@@ -73,7 +73,7 @@ _This file contains critical rules, current project state, and patterns that AI 
 | Area | Priority |
 |------|----------|
 | Controller CRUD + integration tests (remaining) | High |
-| Stripe integration | Required by course | Checkout + webhook ✅ (CSV gate = 6.3) |
+| Stripe integration | Required by course | Checkout + webhook ✅; gated CSV export ✅ |
 | Production deploy (Kamal/Docker scaffold exists) | Required by course |
 | BMad planning artifacts (PRD, epics, sprint plan) | Optional but recommended |
 

@@ -15,6 +15,17 @@ advisor:
   team: enterprise
   country: cr
   status: active
+  subscription_status: inactive
+
+advisor_subscribed:
+  name: Sam Subscribed
+  email: advisor.pro@example.com
+  password_digest: <%= BCrypt::Password.create("password") %>
+  role: advisor
+  team: enterprise
+  country: cr
+  status: active
+  subscription_status: active
 
 assistant:
   name: Casey Assistant

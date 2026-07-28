@@ -28,7 +28,7 @@ export default function SubscriptionSettings({
       <div className="max-w-xl">
         <h1 className="text-2xl font-semibold text-slate-900">Subscription</h1>
         <p className="mt-1 text-slate-600">
-          LeadFlow Pro unlocks premium features such as CSV export (coming next).
+          LeadFlow Pro unlocks CSV export of your leads from the Leads page.
         </p>
 
         <div className="mt-8 space-y-4">

@@ -718,6 +718,81 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"can_update":true'
   end
 
+  test "subscribed advisor can export csv of scoped leads" do
+    advisor = users(:advisor)
+    advisor.update!(subscription_status: "active")
+    sign_in_as advisor
+
+    get export_leads_path
+
+    assert_response :success
+    assert_match(/text\/csv/, response.media_type)
+    assert_match(/attachment;.*filename="leads-#{Date.current}\.csv"/, response.headers["Content-Disposition"])
+    body = response.body.delete_prefix("\uFEFF")
+    assert_includes body, "name,email,company,stage,advisor,last_activity_at,estimated_value"
+    assert_includes body, leads(:sarah).name
+    assert_includes body, leads(:sarah).email
+    refute_includes body, leads(:admin_owned).email
+  end
+
+  test "subscribed advisor export applies search and stage filters" do
+    advisor = users(:advisor)
+    advisor.update!(subscription_status: "active")
+    sign_in_as advisor
+
+    get export_leads_path, params: { q: "Sarah", stage_id: lead_stages(:qualified).id }
+
+    assert_response :success
+    body = response.body.delete_prefix("\uFEFF")
+    assert_includes body, leads(:sarah).email
+    refute_includes body, leads(:marcus).email
+  end
+
+  test "inactive advisor cannot export csv" do
+    sign_in_as users(:advisor)
+
+    get export_leads_path
+
+    assert_redirected_to settings_subscription_path
+    assert_equal "Subscribe to LeadFlow Pro to export your leads as CSV.", flash[:alert]
+  end
+
+  test "assistant cannot export csv" do
+    sign_in_as users(:assistant)
+
+    get export_leads_path
+
+    assert_redirected_to root_path
+  end
+
+  test "guest cannot export csv" do
+    get export_leads_path
+
+    assert_redirected_to login_path
+  end
+
+  test "leads index prompts subscribe export for inactive advisor" do
+    sign_in_as users(:advisor)
+
+    get leads_path
+
+    assert_response :success
+    assert_includes response.body, '"can_export":false'
+    assert_includes response.body, '"show_subscribe_for_export":true'
+  end
+
+  test "leads index enables export for subscribed advisor" do
+    advisor = users(:advisor)
+    advisor.update!(subscription_status: "active")
+    sign_in_as advisor
+
+    get leads_path
+
+    assert_response :success
+    assert_includes response.body, '"can_export":true'
+    assert_includes response.body, '"show_subscribe_for_export":false'
+  end
+
   private
 
   def valid_lead_params
