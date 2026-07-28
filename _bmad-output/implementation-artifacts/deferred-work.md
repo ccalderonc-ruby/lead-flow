@@ -39,3 +39,8 @@
 - Shared index/export query helper — duplication acceptable while export remains advisor-only (no assignee filter).
 - Dedicated `LeadsCsv` unit tests — residual; controller integration covers happy path.
 - `advisor_subscribed` fixture lacks assigned leads — residual footgun; tests currently `update!` the main advisor.
+
+## Deferred from: code review of 7-1-controller-tests-for-crm-and-authorization (2026-07-28)
+
+- Strengthen flash asserts on every CRM denial test (e.g. assistant cannot create/update lead) — AC2 already covered by admin_access + advisor create denial.
+- `redirect_back` vs hardcoded `root_path` assert — matches fallback when no Referer in integration tests.

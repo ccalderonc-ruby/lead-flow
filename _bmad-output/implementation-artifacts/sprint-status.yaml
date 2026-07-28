@@ -52,7 +52,7 @@
 # Week 7 → Epic 7
 
 generated: "2026-07-05"
-last_updated: "2026-07-27T22:50:00-06:00"
+last_updated: "2026-07-27T23:10:00-06:00"
 project: LeadFlow CRM
 project_key: NOKEY
 tracking_system: file-system
@@ -100,16 +100,16 @@ development_status:
   epic-5-retrospective: done
 
   # ── Week 6: Ship as a SaaS ─────────────────────────────────────
-  epic-6: in-progress
+  epic-6: done
   6-1-mark-overdue-tasks-job: done
   6-2-stripe-checkout-and-webhook: done
   6-3-gated-csv-export: done
-  6-4-production-deployment: review
+  6-4-production-deployment: done
   epic-6-retrospective: optional
 
   # ── Week 7: Launch Ready ───────────────────────────────────────
-  epic-7: backlog
-  7-1-controller-tests-for-crm-and-authorization: backlog
+  epic-7: in-progress
+  7-1-controller-tests-for-crm-and-authorization: done
   7-2-system-test-for-core-journey: backlog
   7-3-presentation-and-documentation-polish: backlog
   epic-7-retrospective: optional
