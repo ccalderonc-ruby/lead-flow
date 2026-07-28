@@ -52,7 +52,7 @@
 # Week 7 → Epic 7
 
 generated: "2026-07-05"
-last_updated: "2026-07-27T23:10:00-06:00"
+last_updated: "2026-07-28T09:15:00-06:00"
 project: LeadFlow CRM
 project_key: NOKEY
 tracking_system: file-system
@@ -110,7 +110,7 @@ development_status:
   # ── Week 7: Launch Ready ───────────────────────────────────────
   epic-7: in-progress
   7-1-controller-tests-for-crm-and-authorization: done
-  7-2-system-test-for-core-journey: backlog
+  7-2-system-test-for-core-journey: review
   7-3-presentation-and-documentation-polish: backlog
   epic-7-retrospective: optional
 
