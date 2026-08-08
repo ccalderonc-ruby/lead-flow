@@ -26,6 +26,20 @@ export type LeadFormValues = {
   user_id: string
 }
 
+/** Prefer current DOM select values so submit works even if React state lagged. */
+export function leadFormPayloadFromDom(root: HTMLFormElement, data: LeadFormValues): LeadFormValues {
+  const valueOf = (id: string) =>
+    (root.querySelector(`#${id}`) as HTMLInputElement | HTMLSelectElement | null)?.value
+
+  return {
+    ...data,
+    company_country_id: valueOf('company_country_id') || data.company_country_id,
+    country_id: valueOf('country_id') || data.country_id,
+    stage_id: valueOf('stage_id') || data.stage_id,
+    user_id: valueOf('user_id') || data.user_id,
+  }
+}
+
 type LeadFormProps = {
   // Inertia useForm return — kept loose to avoid version-specific Form generics.
   form: {
