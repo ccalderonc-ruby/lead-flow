@@ -8,7 +8,7 @@ import TaskFormModal, {
   type TaskFormOption,
 } from '@/components/tasks/TaskFormModal'
 import { hasTaskCreateErrors } from '@/components/tasks/taskFormErrors'
-import { formatDate } from '@/lib/format'
+import { formatDate, formatDateTime, isPastDueDate } from '@/lib/format'
 
 export type TaskRow = {
   id: number
@@ -18,14 +18,26 @@ export type TaskRow = {
   lead_id: number | null
   due_date: string | null
   status: string | null
+  past_due?: boolean
+  completed_at?: string | null
   assignee: string | null
   user_id?: number | null
   can_edit: boolean
   can_revert: boolean
 }
 
+function formatTaskStatus(status: string | null): string {
+  if (!status) return '—'
+  if (status === 'in_progress') return 'In progress'
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
+function taskIsPastDue(task: Pick<TaskRow, 'due_date' | 'status'>): boolean {
+  return task.status !== 'completed' && isPastDueDate(task.due_date)
+}
+
 export type TasksMeta = {
-  filter: 'all' | 'mine' | 'overdue'
+  filter: 'all' | 'mine' | 'pending' | 'completed' | 'overdue'
   page: number
   per_page: number
   total_count: number
@@ -45,6 +57,8 @@ type TasksIndexProps = {
 const FILTERS = [
   { value: 'all', label: 'All' },
   { value: 'mine', label: 'Mine' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'completed', label: 'Completed' },
   { value: 'overdue', label: 'Overdue' },
 ] as const
 
@@ -166,7 +180,7 @@ export default function TasksIndex({
               </button>
             )}
             <div
-              className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1"
+              className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1"
               role="group"
               aria-label="Task filters"
             >
@@ -227,8 +241,23 @@ export default function TasksIndex({
                         task.lead || '—'
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{formatDate(task.due_date)}</td>
-                    <td className="px-4 py-3 text-slate-700">{task.status || '—'}</td>
+                    <td
+                      className={
+                        taskIsPastDue(task)
+                          ? 'px-4 py-3 font-medium text-red-600'
+                          : 'px-4 py-3 text-slate-700'
+                      }
+                    >
+                      {formatDate(task.due_date)}
+                    </td>
+                    <td className="px-4 py-3 text-slate-700">
+                      <div>{formatTaskStatus(task.status)}</div>
+                      {task.status === 'completed' && task.completed_at ? (
+                        <div className="mt-0.5 text-xs text-slate-500">
+                          Completed {formatDateTime(task.completed_at)}
+                        </div>
+                      ) : null}
+                    </td>
                     <td className="px-4 py-3 text-slate-700">{task.assignee || '—'}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-3">

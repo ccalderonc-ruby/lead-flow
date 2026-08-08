@@ -7,14 +7,14 @@ class MarkOverdueTasksJobTest < ActiveJob::TestCase
     travel_to Date.new(2026, 7, 25)
   end
 
-  test "marks pending past-due tasks overdue" do
+  test "does not mutate pending past-due task status" do
     past = tasks(:follow_up)
     assert_equal "pending", past.status
     assert past.due_date < Date.current
 
     MarkOverdueTasksJob.perform_now
 
-    assert_equal "overdue", past.reload.status
+    assert_equal "pending", past.reload.status
   end
 
   test "leaves future pending and completed tasks unchanged" do
@@ -27,18 +27,7 @@ class MarkOverdueTasksJobTest < ActiveJob::TestCase
     assert_equal "completed", completed.reload.status
   end
 
-  test "second run is idempotent" do
-    past = tasks(:follow_up)
-
-    MarkOverdueTasksJob.perform_now
-    assert_equal "overdue", past.reload.status
-
-    assert_nothing_raised { MarkOverdueTasksJob.perform_now }
-    assert_equal "overdue", past.reload.status
-    assert_equal 1, Task.where(id: past.id, status: :overdue).count
-  end
-
-  test "does not mark already overdue tasks as an error" do
+  test "runs without error when tasks already have legacy overdue status" do
     task = tasks(:follow_up)
     task.update!(status: :overdue)
 

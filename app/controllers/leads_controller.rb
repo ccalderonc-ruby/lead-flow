@@ -228,7 +228,9 @@ class LeadsController < InertiaController
             title: task.title,
             description: task.description,
             due_date: task.due_date&.iso8601,
-            status: task.status,
+            status: task.status == Task.statuses[:overdue] ? Task.statuses[:pending] : task.status,
+            past_due: !task.completed? && task.due_date.present? && task.due_date < Date.current,
+            completed_at: task.completed_at&.iso8601,
             user_id: task.user_id,
             can_edit: policy(task).update?,
             can_revert: task.completed? && policy(task).revert?

@@ -15,7 +15,7 @@ import TaskFormModal, {
   type TaskFormOption,
 } from '@/components/tasks/TaskFormModal'
 import { hasTaskCreateErrors } from '@/components/tasks/taskFormErrors'
-import { formatCurrency, formatDate, formatDateTime } from '@/lib/format'
+import { formatCurrency, formatDate, formatDateTime, isPastDueDate } from '@/lib/format'
 
 type LeadDetail = {
   id: number
@@ -37,9 +37,21 @@ type TaskPreview = {
   description?: string | null
   due_date: string | null
   status: string | null
+  past_due?: boolean
+  completed_at?: string | null
   user_id?: number | null
   can_edit: boolean
   can_revert: boolean
+}
+
+function formatTaskStatus(status: string | null): string {
+  if (!status) return '—'
+  if (status === 'in_progress') return 'In progress'
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
+function taskIsPastDue(task: Pick<TaskPreview, 'due_date' | 'status'>): boolean {
+  return task.status !== 'completed' && isPastDueDate(task.due_date)
 }
 
 type MeetingPreview = {
@@ -317,7 +329,14 @@ export default function LeadsShow({
                 <div>
                   <div className="font-medium text-slate-900">{task.title}</div>
                   <div className="mt-1 text-xs text-slate-500">
-                    Due {formatDate(task.due_date)} · {task.status || '—'}
+                    Due{' '}
+                    <span className={taskIsPastDue(task) ? 'font-medium text-red-600' : undefined}>
+                      {formatDate(task.due_date)}
+                    </span>{' '}
+                    · {formatTaskStatus(task.status)}
+                    {task.status === 'completed' && task.completed_at
+                      ? ` · Completed ${formatDateTime(task.completed_at)}`
+                      : null}
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">

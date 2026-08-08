@@ -73,8 +73,11 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, tasks(:follow_up).title
-    assert_includes response.body, '"status":"overdue"'
+    # Legacy overdue status is surfaced as pending + past_due for UI
+    assert_includes response.body, '"status":"pending"'
+    assert_includes response.body, '"past_due":true'
     assert_includes response.body, '"can_edit":true'
+    refute_includes response.body, '"status":"overdue"'
   end
 
   test "admin all filter includes org tasks" do
@@ -211,11 +214,15 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     sign_in_as users(:advisor)
     task = tasks(:follow_up)
 
-    patch task_path(task), params: { status: "completed", return_to: tasks_path }
+    freeze_time do
+      patch task_path(task), params: { status: "completed", return_to: tasks_path }
 
-    assert_redirected_to tasks_path
-    assert_equal "Task completed.", flash[:notice]
-    assert_equal "completed", task.reload.status
+      assert_redirected_to tasks_path
+      assert_equal "Task completed.", flash[:notice]
+      task.reload
+      assert_equal "completed", task.status
+      assert_equal Time.current, task.completed_at
+    end
   end
 
   test "advisor completes overdue task" do
@@ -299,7 +306,9 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to tasks_path
     assert_equal "Task reopened.", flash[:notice]
-    assert_equal "pending", task.reload.status
+    task.reload
+    assert_equal "pending", task.status
+    assert_nil task.completed_at
   end
 
   test "assistant cannot reopen completed task they do not own" do
@@ -359,5 +368,61 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, '"can_edit":true'
     assert_includes response.body, '"can_revert":true'
+  end
+
+  test "pending filter excludes completed tasks" do
+    sign_in_as users(:advisor)
+
+    get tasks_path, params: { filter: "pending" }
+
+    assert_response :success
+    assert_includes response.body, '"filter":"pending"'
+    assert_includes response.body, tasks(:follow_up).title
+    assert_includes response.body, tasks(:future_follow_up).title
+    refute_includes response.body, tasks(:completed_follow_up).title
+  end
+
+  test "completed filter only includes completed tasks" do
+    sign_in_as users(:advisor)
+
+    get tasks_path, params: { filter: "completed" }
+
+    assert_response :success
+    assert_includes response.body, '"filter":"completed"'
+    assert_includes response.body, tasks(:completed_follow_up).title
+    assert_includes response.body, '"completed_at"'
+    refute_includes response.body, tasks(:follow_up).title
+  end
+
+  test "admin cannot edit task completed more than 24 hours ago" do
+    sign_in_as users(:admin)
+    task = tasks(:completed_follow_up)
+    task.update_columns(completed_at: 25.hours.ago)
+
+    patch task_path(task), params: {
+      title: "Should not change",
+      due_date: task.due_date.iso8601,
+      status: "pending",
+      return_to: tasks_path
+    }
+
+    assert_redirected_to root_path
+    assert_equal "You are not authorized to perform this action.", flash[:alert]
+    task.reload
+    assert_equal "completed", task.status
+    assert_equal "Send welcome packet", task.title
+  end
+
+  test "locked completed task exposes no edit or reopen actions" do
+    sign_in_as users(:advisor)
+    task = tasks(:completed_follow_up)
+    task.update_columns(completed_at: 25.hours.ago)
+
+    get tasks_path, params: { filter: "completed" }
+
+    assert_response :success
+    assert_includes response.body, task.title
+    assert_includes response.body, '"can_edit":false'
+    assert_includes response.body, '"can_revert":false'
   end
 end

@@ -50,8 +50,12 @@ const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
   { value: 'in_progress', label: 'In progress' },
   { value: 'completed', label: 'Completed' },
-  { value: 'overdue', label: 'Overdue' },
 ] as const
+
+function editableStatus(status: string | null | undefined): string {
+  if (!status || status === 'overdue') return 'pending'
+  return status
+}
 
 function fieldError(errors: Record<string, string | string[] | undefined>, key: string): string | null {
   const value = errors[key]
@@ -90,7 +94,7 @@ export default function TaskFormModal({
         : defaults.user_id != null
           ? String(defaults.user_id)
           : '',
-    status: task?.status ?? 'pending',
+    status: editableStatus(task?.status),
     return_to: returnTo,
   })
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -107,7 +111,7 @@ export default function TaskFormModal({
           : defaults.user_id != null
             ? String(defaults.user_id)
             : '',
-      status: task?.status ?? 'pending',
+      status: editableStatus(task?.status),
       return_to: returnTo,
     })
     form.clearErrors()

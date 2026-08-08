@@ -2,7 +2,7 @@
 
 class TasksController < InertiaController
   PER_PAGE = 25
-  FILTERS = %w[all mine overdue].freeze
+  FILTERS = %w[all mine pending completed overdue].freeze
 
   before_action :set_task, only: :update
 
@@ -92,6 +92,10 @@ class TasksController < InertiaController
     case filter
     when "mine"
       scoped.where(user_id: current_user.id)
+    when "pending"
+      scoped.merge(Task.open_status)
+    when "completed"
+      scoped.merge(Task.completed_status)
     when "overdue"
       scoped.merge(Task.overdue)
     else
@@ -107,12 +111,25 @@ class TasksController < InertiaController
       lead: task.lead&.name,
       lead_id: task.lead_id,
       due_date: task.due_date&.iso8601,
-      status: task.status,
+      status: display_status(task),
+      past_due: past_due?(task),
+      completed_at: task.completed_at&.iso8601,
       assignee: task.user&.name,
       user_id: task.user_id,
       can_edit: policy(task).update?,
       can_revert: can_revert?(task)
     }
+  end
+
+  # Overdue is date-derived in the UI; do not expose it as a workflow status.
+  def display_status(task)
+    task.status == Task.statuses[:overdue] ? Task.statuses[:pending] : task.status
+  end
+
+  def past_due?(task)
+    return false if task.completed? || task.due_date.blank?
+
+    task.due_date < Date.current
   end
 
   def can_revert?(task)
@@ -154,7 +171,8 @@ class TasksController < InertiaController
       return
     end
 
-    if requested_status.present? && Task.statuses.values.exclude?(requested_status)
+    editable_statuses = Task.statuses.values - [ Task.statuses[:overdue] ]
+    if requested_status.present? && editable_statuses.exclude?(requested_status)
       flash[:alert] = "Could not update task."
       redirect_to safe_return_path, inertia: {
         errors: { status: [ "is invalid" ] }

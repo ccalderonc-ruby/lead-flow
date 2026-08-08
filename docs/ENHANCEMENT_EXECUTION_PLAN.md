@@ -27,8 +27,8 @@ You currently have **uncommitted local work** on `dev` (demo enrich + docs). Lan
 - [x] Widen `update` to allow title, description, due_date, status (not only `completed`)
 - [x] Allow revert: `completed` → `pending` / `in_progress` **only** for task owner + Admin (policy)
 - [x] UI: Edit task modal (reuse `TaskFormModal` / `FormFields`)
-- [ ] Tests: controller + policy (owner can revert, assistant/other cannot)
-- [ ] `bin/rails test` green → PR into `dev` → merge
+- [x] Tests: controller + policy (owner can revert, assistant/other cannot)
+- [x] `bin/rails test` green → PR into `dev` ([#42](https://github.com/ccalderonc-ruby/lead-flow/pull/42)) → merge when ready
 
 **Done when:** you can open a task, change fields, complete it, and (as owner/admin) un-complete it.
 

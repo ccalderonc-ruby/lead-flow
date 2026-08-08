@@ -57,7 +57,7 @@ class TaskPolicyTest < ActiveSupport::TestCase
     assert TaskPolicy.new(@admin, @admin_task).update?
   end
 
-  test "task owner and admin can revert completed tasks" do
+  test "task owner and admin can revert completed tasks within 24 hours" do
     completed = tasks(:completed_follow_up)
 
     assert TaskPolicy.new(@advisor, completed).revert?
@@ -72,5 +72,16 @@ class TaskPolicyTest < ActiveSupport::TestCase
     assert TaskPolicy.new(@assistant, owned).update?
     assert TaskPolicy.new(@assistant, owned).revert?
     refute TaskPolicy.new(@assistant, tasks(:completed_follow_up)).revert?
+  end
+
+  test "nobody can update or revert a task completed more than 24 hours ago" do
+    locked = tasks(:completed_follow_up)
+    locked.update_columns(completed_at: 25.hours.ago)
+
+    refute TaskPolicy.new(@advisor, locked).update?
+    refute TaskPolicy.new(@admin, locked).update?
+    refute TaskPolicy.new(@assistant, locked).update?
+    refute TaskPolicy.new(@advisor, locked).revert?
+    refute TaskPolicy.new(@admin, locked).revert?
   end
 end
