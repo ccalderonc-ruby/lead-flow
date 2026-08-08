@@ -201,5 +201,168 @@ class MeetingsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, '"can_create_meeting":true'
     assert_includes response.body, '"meeting_form"'
+    assert_includes response.body, '"can_edit":true'
+  end
+
+  test "index exposes edit flags for advisor" do
+    sign_in_as users(:advisor)
+
+    get meetings_path
+
+    assert_response :success
+    assert_includes response.body, '"can_edit":true'
+    assert_includes response.body, '"can_revert":false'
+  end
+
+  test "advisor updates meeting fields" do
+    sign_in_as users(:advisor)
+    meeting = meetings(:review)
+
+    patch meeting_path(meeting), params: {
+      title: "Updated review",
+      scheduled_on: (Date.current + 5.days).iso8601,
+      start_time: "16:15",
+      location: "Conference room",
+      virtual_link: "",
+      status: "scheduled",
+      return_to: meetings_path
+    }
+
+    assert_redirected_to meetings_path
+    assert_equal "Meeting updated.", flash[:notice]
+    meeting.reload
+    assert_equal "Updated review", meeting.title
+    assert_equal Date.current + 5.days, meeting.scheduled_on
+    assert_equal "Conference room", meeting.location
+    refute meeting.virtual_meeting
+  end
+
+  test "advisor completes meeting via status" do
+    sign_in_as users(:advisor)
+    meeting = meetings(:review)
+
+    patch meeting_path(meeting), params: {
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: "14:00",
+      virtual_link: meeting.virtual_link,
+      status: "completed",
+      return_to: meetings_path
+    }
+
+    assert_redirected_to meetings_path
+    assert_equal "Meeting completed.", flash[:notice]
+    assert_equal "completed", meeting.reload.status
+  end
+
+  test "advisor host can reopen completed meeting" do
+    sign_in_as users(:advisor)
+    meeting = meetings(:review)
+    meeting.update!(status: :completed)
+
+    patch meeting_path(meeting), params: {
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: "14:00",
+      virtual_link: meeting.virtual_link,
+      status: "scheduled",
+      return_to: meetings_path
+    }
+
+    assert_redirected_to meetings_path
+    assert_equal "Meeting reopened.", flash[:notice]
+    assert_equal "scheduled", meeting.reload.status
+  end
+
+  test "admin can reopen any completed meeting" do
+    sign_in_as users(:admin)
+    meeting = meetings(:review)
+    meeting.update!(status: :completed)
+
+    patch meeting_path(meeting), params: {
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: "14:00",
+      virtual_link: meeting.virtual_link,
+      status: "scheduled",
+      return_to: meetings_path
+    }
+
+    assert_redirected_to meetings_path
+    assert_equal "Meeting reopened.", flash[:notice]
+    assert_equal "scheduled", meeting.reload.status
+  end
+
+  test "advisor who is not host cannot reopen completed meeting" do
+    sign_in_as users(:advisor)
+    meeting = meetings(:review)
+    meeting.update!(user: users(:admin), status: :completed)
+
+    patch meeting_path(meeting), params: {
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: "14:00",
+      virtual_link: meeting.virtual_link,
+      status: "scheduled",
+      return_to: meetings_path
+    }
+
+    assert_redirected_to meetings_path
+    assert_equal "You are not authorized to reopen this meeting.", flash[:alert]
+    assert_equal "completed", meeting.reload.status
+  end
+
+  test "assistant cannot update meetings" do
+    sign_in_as users(:assistant)
+    meeting = meetings(:review)
+
+    patch meeting_path(meeting), params: {
+      title: "Nope",
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: "14:00",
+      virtual_link: meeting.virtual_link,
+      status: "completed",
+      return_to: meetings_path
+    }
+
+    assert_redirected_to root_path
+    assert_equal "You are not authorized to perform this action.", flash[:alert]
+    assert_equal "Proposal Review", meeting.reload.title
+  end
+
+  test "update with invalid status rejects" do
+    sign_in_as users(:advisor)
+    meeting = meetings(:review)
+
+    patch meeting_path(meeting), params: {
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: "14:00",
+      virtual_link: meeting.virtual_link,
+      status: "not-a-status",
+      return_to: meetings_path
+    }
+
+    assert_redirected_to meetings_path
+    assert_equal "Could not update meeting.", flash[:alert]
+    assert_equal "scheduled", meeting.reload.status
+  end
+
+  test "update preserves return_to lead path" do
+    sign_in_as users(:advisor)
+    meeting = meetings(:review)
+    lead = leads(:sarah)
+
+    patch meeting_path(meeting), params: {
+      title: "Back to lead",
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: "14:00",
+      virtual_link: meeting.virtual_link,
+      status: "scheduled",
+      return_to: lead_path(lead)
+    }
+
+    assert_redirected_to lead_path(lead)
+    assert_equal "Back to lead", meeting.reload.title
   end
 end

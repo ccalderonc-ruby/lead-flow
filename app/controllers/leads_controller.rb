@@ -249,12 +249,19 @@ class LeadsController < InertiaController
       },
       meetings: {
         count: lead.meetings.count,
-        items: lead.meetings.order(Arel.sql("scheduled_on DESC NULLS LAST"), created_at: :desc).limit(PREVIEW_LIMIT).map do |meeting|
+        items: lead.meetings.includes(:user).order(Arel.sql("scheduled_on DESC NULLS LAST"), created_at: :desc).limit(PREVIEW_LIMIT).map do |meeting|
           {
             id: meeting.id,
             title: meeting.title,
             scheduled_on: meeting.scheduled_on&.iso8601,
-            status: meeting.status
+            start_time: meeting.start_time&.strftime("%H:%M"),
+            location: meeting.location,
+            virtual_link: meeting.virtual_link,
+            virtual_meeting: meeting.virtual_meeting,
+            status: meeting.status,
+            user_id: meeting.user_id,
+            can_edit: policy(meeting).update?,
+            can_revert: %w[completed cancelled].include?(meeting.status) && policy(meeting).revert?
           }
         end
       },

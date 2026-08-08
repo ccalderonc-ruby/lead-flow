@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import MeetingFormModal, {
+  type EditableMeeting,
   type MeetingFormDefaults,
   type MeetingFormOption,
 } from '@/components/meetings/MeetingFormModal'
@@ -58,7 +59,14 @@ type MeetingPreview = {
   id: number
   title: string
   scheduled_on: string | null
+  start_time?: string | null
+  location?: string | null
+  virtual_link?: string | null
+  virtual_meeting?: boolean | null
   status: string | null
+  user_id?: number | null
+  can_edit: boolean
+  can_revert: boolean
 }
 
 type NotePreview = {
@@ -192,6 +200,7 @@ export default function LeadsShow({
   const [editingTask, setEditingTask] = useState<EditableTask | null>(null)
   const [noteManualOpen, setNoteManualOpen] = useState(false)
   const [meetingManualOpen, setMeetingManualOpen] = useState(false)
+  const [editingMeeting, setEditingMeeting] = useState<EditableMeeting | null>(null)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [dismissedNoteErrorKey, setDismissedNoteErrorKey] = useState<string | null>(null)
   const [dismissedMeetingErrorKey, setDismissedMeetingErrorKey] = useState<string | null>(null)
@@ -203,7 +212,8 @@ export default function LeadsShow({
   const noteModalOpen =
     noteManualOpen || (noteErrorKey != null && dismissedNoteErrorKey !== noteErrorKey)
   const meetingModalOpen =
-    meetingManualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey)
+    editingMeeting == null &&
+    (meetingManualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey))
 
   function openTaskModal() {
     setEditingTask(null)
@@ -242,12 +252,31 @@ export default function LeadsShow({
   }
 
   function openMeetingModal() {
+    setEditingMeeting(null)
     setDismissedMeetingErrorKey(null)
     setMeetingManualOpen(true)
   }
 
+  function openEditMeetingModal(meeting: MeetingPreview) {
+    setMeetingManualOpen(false)
+    setEditingMeeting({
+      id: meeting.id,
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on,
+      start_time: meeting.start_time ?? null,
+      lead_id: lead.id,
+      user_id: meeting.user_id ?? null,
+      location: meeting.location ?? null,
+      virtual_link: meeting.virtual_link ?? null,
+      virtual_meeting: meeting.virtual_meeting ?? null,
+      status: meeting.status,
+      can_revert: meeting.can_revert,
+    })
+  }
+
   function closeMeetingModal() {
     setMeetingManualOpen(false)
+    setEditingMeeting(null)
     if (meetingErrorKey != null) setDismissedMeetingErrorKey(meetingErrorKey)
   }
 
@@ -381,11 +410,23 @@ export default function LeadsShow({
             }
           >
             {meetings.items.map((meeting) => (
-              <li key={meeting.id} className="px-4 py-3">
-                <div className="font-medium text-slate-900">{meeting.title}</div>
-                <div className="mt-1 text-xs text-slate-500">
-                  {formatDate(meeting.scheduled_on)} · {meeting.status || '—'}
+              <li key={meeting.id} className="flex items-start justify-between gap-3 px-4 py-3">
+                <div>
+                  <div className="font-medium text-slate-900">{meeting.title}</div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {formatDate(meeting.scheduled_on)}
+                    {meeting.start_time ? ` · ${meeting.start_time}` : ''} · {meeting.status || '—'}
+                  </div>
                 </div>
+                {meeting.can_edit && (
+                  <button
+                    type="button"
+                    onClick={() => openEditMeetingModal(meeting)}
+                    className="shrink-0 text-sm font-medium text-slate-700 hover:text-slate-900"
+                  >
+                    Edit
+                  </button>
+                )}
               </li>
             ))}
           </Section>
@@ -465,6 +506,7 @@ export default function LeadsShow({
 
       {canCreateMeeting && (
         <MeetingFormModal
+          key="lead-meeting-create"
           open={meetingModalOpen}
           onClose={closeMeetingModal}
           leads={meetingForm.leads}
@@ -472,6 +514,20 @@ export default function LeadsShow({
           defaults={meetingForm.defaults}
           returnTo={meetingForm.return_to}
           lockedLeadId={lead.id}
+        />
+      )}
+
+      {editingMeeting && (
+        <MeetingFormModal
+          key={`lead-meeting-edit-${editingMeeting.id}`}
+          open
+          onClose={closeMeetingModal}
+          leads={meetingForm.leads}
+          hosts={meetingForm.hosts}
+          defaults={meetingForm.defaults}
+          returnTo={meetingForm.return_to}
+          lockedLeadId={lead.id}
+          meeting={editingMeeting}
         />
       )}
 

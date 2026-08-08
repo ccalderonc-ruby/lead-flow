@@ -36,10 +36,10 @@ You currently have **uncommitted local work** on `dev` (demo enrich + docs). Lan
 
 ### Day 2–3 · B3 — Meeting edit
 
-- [ ] Branch: `feature/b3-meeting-edit` from updated `origin/dev`
-- [ ] Copy B2 patterns: `MeetingsController#update`, `MeetingPolicy`, edit modal
-- [ ] Editable: title, date, time, location / virtual link, status
-- [ ] Same permission idea as tasks (owner + admin for sensitive changes)
+- [x] Branch: `feature/b3-meeting-edit` from updated `origin/dev`
+- [x] Copy B2 patterns: `MeetingsController#update`, `MeetingPolicy`, edit modal
+- [x] Editable: title, date, time, location / virtual link, status
+- [x] Same permission idea as tasks (owner + admin for sensitive changes)
 - [ ] Tests + PR + merge
 
 **Done when:** scheduled meetings can be updated after create.

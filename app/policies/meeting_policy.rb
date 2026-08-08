@@ -22,6 +22,14 @@ class MeetingPolicy < ApplicationPolicy
     create?
   end
 
+  # Leave completed/cancelled → scheduled/draft: meeting host or admin only.
+  def revert?
+    return false unless user
+    return true if admin?
+
+    record.respond_to?(:user_id) && record.user_id == user.id
+  end
+
   def destroy?
     create?
   end

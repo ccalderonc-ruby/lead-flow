@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import MeetingFormModal, {
+  type EditableMeeting,
   type MeetingFormDefaults,
   type MeetingFormOption,
 } from '@/components/meetings/MeetingFormModal'
@@ -21,6 +22,9 @@ export type MeetingRow = {
   virtual_meeting: boolean | null
   status: string | null
   host: string | null
+  user_id?: number | null
+  can_edit: boolean
+  can_revert: boolean
 }
 
 export type MeetingsMeta = {
@@ -47,6 +51,11 @@ function placeSummary(meeting: MeetingRow): string {
   return '—'
 }
 
+function formatMeetingStatus(status: string | null): string {
+  if (!status) return '—'
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
 function buildMeetingsReturnTo(meta: MeetingsMeta): string {
   if (meta.page > 1) return `/meetings?page=${meta.page}`
   return '/meetings'
@@ -66,18 +75,39 @@ export default function MeetingsIndex({
   const meetingErrorsPresent = hasMeetingCreateErrors(pageErrors)
   const meetingErrorKey = meetingErrorsPresent ? JSON.stringify(pageErrors) : null
   const [manualOpen, setManualOpen] = useState(false)
+  const [editingMeeting, setEditingMeeting] = useState<EditableMeeting | null>(null)
   const [dismissedMeetingErrorKey, setDismissedMeetingErrorKey] = useState<string | null>(null)
 
-  const modalOpen =
-    manualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey)
+  const createModalOpen =
+    editingMeeting == null &&
+    (manualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey))
 
-  function openModal() {
+  function openCreateModal() {
+    setEditingMeeting(null)
     setDismissedMeetingErrorKey(null)
     setManualOpen(true)
   }
 
+  function openEditModal(meeting: MeetingRow) {
+    setManualOpen(false)
+    setEditingMeeting({
+      id: meeting.id,
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on,
+      start_time: meeting.start_time,
+      lead_id: meeting.lead_id,
+      user_id: meeting.user_id,
+      location: meeting.location,
+      virtual_link: meeting.virtual_link,
+      virtual_meeting: meeting.virtual_meeting,
+      status: meeting.status,
+      can_revert: meeting.can_revert,
+    })
+  }
+
   function closeModal() {
     setManualOpen(false)
+    setEditingMeeting(null)
     if (meetingErrorKey != null) setDismissedMeetingErrorKey(meetingErrorKey)
   }
 
@@ -101,7 +131,7 @@ export default function MeetingsIndex({
           {canCreate && (
             <button
               type="button"
-              onClick={openModal}
+              onClick={openCreateModal}
               className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
             >
               Schedule meeting
@@ -120,12 +150,13 @@ export default function MeetingsIndex({
                 <th className="px-4 py-3">Place</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Host</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {meetings.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
                     No meetings found.
                   </td>
                 </tr>
@@ -148,8 +179,21 @@ export default function MeetingsIndex({
                     <td className="px-4 py-3 text-slate-700">{formatDate(meeting.scheduled_on)}</td>
                     <td className="px-4 py-3 text-slate-700">{meeting.start_time || '—'}</td>
                     <td className="max-w-xs truncate px-4 py-3 text-slate-700">{placeSummary(meeting)}</td>
-                    <td className="px-4 py-3 text-slate-700">{meeting.status || '—'}</td>
+                    <td className="px-4 py-3 text-slate-700">{formatMeetingStatus(meeting.status)}</td>
                     <td className="px-4 py-3 text-slate-700">{meeting.host || '—'}</td>
+                    <td className="px-4 py-3 text-right">
+                      {meeting.can_edit ? (
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(meeting)}
+                          className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                        >
+                          Edit
+                        </button>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
@@ -186,12 +230,27 @@ export default function MeetingsIndex({
 
       {canCreate && (
         <MeetingFormModal
-          open={modalOpen}
+          key="meeting-create"
+          open={createModalOpen}
           onClose={closeModal}
           leads={leads}
           hosts={hosts}
           defaults={defaults}
           returnTo={createReturnTo}
+        />
+      )}
+
+      {editingMeeting && (
+        <MeetingFormModal
+          key={`meeting-edit-${editingMeeting.id}`}
+          open
+          onClose={closeModal}
+          leads={leads}
+          hosts={hosts}
+          defaults={defaults}
+          returnTo={createReturnTo}
+          lockedLeadId={editingMeeting.lead_id}
+          meeting={editingMeeting}
         />
       )}
     </AuthenticatedPage>

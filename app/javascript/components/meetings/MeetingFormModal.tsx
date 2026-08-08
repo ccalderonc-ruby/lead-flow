@@ -23,7 +23,22 @@ export type MeetingFormValues = {
   location: string
   virtual_link: string
   virtual_meeting: boolean
+  status: string
   return_to: string
+}
+
+export type EditableMeeting = {
+  id: number
+  title: string
+  scheduled_on: string | null
+  start_time: string | null
+  lead_id: number | null
+  user_id?: number | null
+  location?: string | null
+  virtual_link?: string | null
+  virtual_meeting?: boolean | null
+  status: string | null
+  can_revert?: boolean
 }
 
 type MeetingFormModalProps = {
@@ -34,12 +49,25 @@ type MeetingFormModalProps = {
   defaults: MeetingFormDefaults
   returnTo: string
   lockedLeadId?: number | null
+  meeting?: EditableMeeting | null
 }
+
+const STATUS_OPTIONS = [
+  { value: 'scheduled', label: 'Scheduled' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+] as const
 
 function fieldError(errors: Record<string, string | string[] | undefined>, key: string): string | null {
   const value = errors[key]
   if (!value) return null
   return Array.isArray(value) ? value.join(', ') : value
+}
+
+function editableStatus(status: string | null | undefined): string {
+  if (!status) return 'scheduled'
+  return status
 }
 
 export default function MeetingFormModal({
@@ -50,37 +78,53 @@ export default function MeetingFormModal({
   defaults,
   returnTo,
   lockedLeadId = null,
+  meeting = null,
 }: MeetingFormModalProps) {
+  const editing = meeting != null
   const initialLeadId =
     lockedLeadId != null
       ? String(lockedLeadId)
-      : leads[0]
-        ? String(leads[0].id)
-        : ''
+      : meeting?.lead_id != null
+        ? String(meeting.lead_id)
+        : leads[0]
+          ? String(leads[0].id)
+          : ''
 
   const form = useForm<MeetingFormValues>({
-    title: '',
-    scheduled_on: '',
-    start_time: '',
+    title: meeting?.title ?? '',
+    scheduled_on: meeting?.scheduled_on ?? '',
+    start_time: meeting?.start_time ?? '',
     lead_id: initialLeadId,
-    user_id: defaults.user_id != null ? String(defaults.user_id) : '',
-    location: '',
-    virtual_link: '',
-    virtual_meeting: false,
+    user_id:
+      meeting?.user_id != null
+        ? String(meeting.user_id)
+        : defaults.user_id != null
+          ? String(defaults.user_id)
+          : '',
+    location: meeting?.location ?? '',
+    virtual_link: meeting?.virtual_link ?? '',
+    virtual_meeting: Boolean(meeting?.virtual_meeting || meeting?.virtual_link),
+    status: editableStatus(meeting?.status),
     return_to: returnTo,
   })
   const dialogRef = useRef<HTMLDivElement>(null)
 
   function resetForm() {
     form.setData({
-      title: '',
-      scheduled_on: '',
-      start_time: '',
+      title: meeting?.title ?? '',
+      scheduled_on: meeting?.scheduled_on ?? '',
+      start_time: meeting?.start_time ?? '',
       lead_id: initialLeadId,
-      user_id: defaults.user_id != null ? String(defaults.user_id) : '',
-      location: '',
-      virtual_link: '',
-      virtual_meeting: false,
+      user_id:
+        meeting?.user_id != null
+          ? String(meeting.user_id)
+          : defaults.user_id != null
+            ? String(defaults.user_id)
+            : '',
+      location: meeting?.location ?? '',
+      virtual_link: meeting?.virtual_link ?? '',
+      virtual_meeting: Boolean(meeting?.virtual_meeting || meeting?.virtual_link),
+      status: editableStatus(meeting?.status),
       return_to: returnTo,
     })
     form.clearErrors()
@@ -96,6 +140,12 @@ export default function MeetingFormModal({
 
   if (!open) return null
 
+  const terminalLocked =
+    (meeting?.status === 'completed' || meeting?.status === 'cancelled') && !meeting.can_revert
+  const statusOptions = terminalLocked
+    ? STATUS_OPTIONS.filter((option) => option.value === meeting.status)
+    : STATUS_OPTIONS
+
   function submit(event: FormEvent) {
     event.preventDefault()
     form.transform((data) => ({
@@ -104,6 +154,18 @@ export default function MeetingFormModal({
       lead_id: lockedLeadId != null ? String(lockedLeadId) : data.lead_id,
       virtual_meeting: data.virtual_meeting || data.virtual_link.trim().length > 0,
     }))
+
+    if (editing && meeting) {
+      form.patch(`/meetings/${meeting.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+          resetForm()
+          onClose()
+        },
+      })
+      return
+    }
+
     form.post('/meetings', {
       preserveScroll: true,
       onSuccess: () => {
@@ -118,15 +180,17 @@ export default function MeetingFormModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="schedule-meeting-title"
+        aria-labelledby="meeting-form-title"
         className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-lg"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="schedule-meeting-title" className="text-lg font-semibold text-slate-900">
-              Schedule meeting
+            <h2 id="meeting-form-title" className="text-lg font-semibold text-slate-900">
+              {editing ? 'Edit meeting' : 'Schedule meeting'}
             </h2>
-            <p className="mt-1 text-sm text-slate-600">Book time with a lead.</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {editing ? 'Update schedule details or status.' : 'Book time with a lead.'}
+            </p>
           </div>
           <button
             type="button"
@@ -175,13 +239,13 @@ export default function MeetingFormModal({
             />
           </div>
 
-          {lockedLeadId != null ? (
+          {lockedLeadId != null || editing ? (
             <div>
               <p className="block text-sm font-medium text-slate-700">
                 Lead <span className="text-red-600">*</span>
               </p>
               <p className="mt-1 text-sm text-slate-900">
-                {leads.find((lead) => lead.id === lockedLeadId)?.name || 'Selected lead'}
+                {leads.find((lead) => lead.id === Number(form.data.lead_id))?.name || 'Selected lead'}
               </p>
               <FieldError error={fieldError(form.errors, 'lead_id') || fieldError(form.errors, 'lead')} />
             </div>
@@ -230,6 +294,23 @@ export default function MeetingFormModal({
             </SelectField>
           )}
 
+          {editing && (
+            <SelectField
+              id="meeting-status"
+              label="Status"
+              required
+              value={form.data.status}
+              onChange={(value) => form.setData('status', value)}
+              error={fieldError(form.errors, 'status')}
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </SelectField>
+          )}
+
           <TextField
             id="meeting-location"
             label="Location"
@@ -266,7 +347,13 @@ export default function MeetingFormModal({
               disabled={form.processing}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
             >
-              {form.processing ? 'Scheduling…' : 'Schedule meeting'}
+              {form.processing
+                ? editing
+                  ? 'Saving…'
+                  : 'Scheduling…'
+                : editing
+                  ? 'Save changes'
+                  : 'Schedule meeting'}
             </button>
           </div>
         </form>
