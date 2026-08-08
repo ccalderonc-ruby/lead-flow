@@ -2,6 +2,9 @@
 
 class MeetingsController < InertiaController
   PER_PAGE = 25
+  EDITABLE_STATUSES = Meeting.statuses.values.freeze
+
+  before_action :set_meeting, only: :update
 
   def index
     authorize Meeting
@@ -51,8 +54,8 @@ class MeetingsController < InertiaController
       start_time: meeting_create_params[:start_time],
       location: meeting_create_params[:location],
       virtual_link: meeting_create_params[:virtual_link],
-      virtual_meeting: virtual_meeting_flag,
-      user_id: assigned_user_id(lead),
+      virtual_meeting: virtual_meeting_flag(meeting_create_params),
+      user_id: assigned_user_id(lead, meeting_create_params[:user_id]),
       status: :scheduled
     )
 
@@ -64,7 +67,16 @@ class MeetingsController < InertiaController
     end
   end
 
+  def update
+    authorize @meeting
+    update_meeting_fields!
+  end
+
   private
+
+  def set_meeting
+    @meeting = policy_scope(Meeting).includes(:lead).find(params[:id])
+  end
 
   def serialize_meeting(meeting)
     {
@@ -78,7 +90,10 @@ class MeetingsController < InertiaController
       virtual_link: meeting.virtual_link,
       virtual_meeting: meeting.virtual_meeting,
       status: meeting.status,
-      host: meeting.user&.name
+      host: meeting.user&.name,
+      user_id: meeting.user_id,
+      can_edit: policy(meeting).update?,
+      can_revert: can_revert?(meeting)
     }
   end
 
@@ -86,6 +101,95 @@ class MeetingsController < InertiaController
     return if value.blank?
 
     value.strftime("%H:%M")
+  end
+
+  def can_revert?(meeting)
+    terminal_status?(meeting.status) && policy(meeting).revert?
+  end
+
+  def terminal_status?(status)
+    status.to_s.in?([ Meeting.statuses[:completed], Meeting.statuses[:cancelled] ])
+  end
+
+  def update_meeting_fields!
+    attrs = meeting_field_attributes
+    requested_status = attrs[:status].to_s.presence
+    reopening = status_leaving_terminal?(requested_status)
+    completing = requested_status == Meeting.statuses[:completed] && !@meeting.completed?
+
+    if reopening && !policy(@meeting).revert?
+      flash[:alert] = "You are not authorized to reopen this meeting."
+      redirect_to safe_return_path
+      return
+    end
+
+    if requested_status.present? && EDITABLE_STATUSES.exclude?(requested_status)
+      flash[:alert] = "Could not update meeting."
+      redirect_to safe_return_path, inertia: {
+        errors: { status: [ "is invalid" ], form: [ "meeting" ] }
+      }
+      return
+    end
+
+    apply_host_on_update!(attrs)
+    attrs[:virtual_meeting] = virtual_meeting_flag(attrs) if attrs.key?(:virtual_link) || attrs.key?(:virtual_meeting)
+
+    if @meeting.update(attrs)
+      flash[:notice] = if reopening
+        "Meeting reopened."
+      elsif completing
+        "Meeting completed."
+      else
+        "Meeting updated."
+      end
+      redirect_to safe_return_path
+    else
+      flash[:alert] = "Could not update meeting."
+      redirect_to safe_return_path, inertia: { errors: validation_errors(@meeting) }
+    end
+  end
+
+  def meeting_field_attributes
+    raw = params.permit(
+      :title,
+      :scheduled_on,
+      :start_time,
+      :location,
+      :virtual_link,
+      :virtual_meeting,
+      :status,
+      :user_id
+    )
+    attrs = {}
+    attrs[:title] = raw[:title] if raw.key?(:title)
+    attrs[:scheduled_on] = raw[:scheduled_on] if raw.key?(:scheduled_on)
+    attrs[:start_time] = raw[:start_time] if raw.key?(:start_time)
+    attrs[:location] = raw[:location] if raw.key?(:location)
+    attrs[:virtual_link] = raw[:virtual_link] if raw.key?(:virtual_link)
+    attrs[:virtual_meeting] = raw[:virtual_meeting] if raw.key?(:virtual_meeting)
+    attrs[:status] = raw[:status] if raw.key?(:status)
+    attrs[:user_id] = raw[:user_id] if raw.key?(:user_id)
+    attrs
+  end
+
+  def status_leaving_terminal?(requested_status)
+    terminal_status?(@meeting.status) &&
+      requested_status.present? &&
+      !terminal_status?(requested_status)
+  end
+
+  def apply_host_on_update!(attrs)
+    if current_user.advisor?
+      attrs.delete(:user_id)
+      return
+    end
+
+    requested = Integer(attrs[:user_id], exception: false)
+    if requested && assignable_user_ids.include?(requested)
+      attrs[:user_id] = requested
+    else
+      attrs.delete(:user_id)
+    end
   end
 
   def can_create_meetings?
@@ -123,10 +227,10 @@ class MeetingsController < InertiaController
     @assignable_user_ids ||= assignable_users.pluck(:id)
   end
 
-  def assigned_user_id(lead)
+  def assigned_user_id(lead, requested_user_id = nil)
     return current_user.id if current_user.advisor?
 
-    requested = Integer(meeting_create_params[:user_id], exception: false)
+    requested = Integer(requested_user_id, exception: false)
     return requested if requested && assignable_user_ids.include?(requested)
 
     return lead.user_id if lead.user_id && assignable_user_ids.include?(lead.user_id)
@@ -140,10 +244,10 @@ class MeetingsController < InertiaController
     assignable_user_ids.first
   end
 
-  def virtual_meeting_flag
-    flag = ActiveModel::Type::Boolean.new.cast(meeting_create_params[:virtual_meeting])
+  def virtual_meeting_flag(source)
+    flag = ActiveModel::Type::Boolean.new.cast(source[:virtual_meeting])
     return true if flag
-    return true if meeting_create_params[:virtual_link].to_s.strip.present?
+    return true if source[:virtual_link].to_s.strip.present?
 
     false
   end
@@ -158,6 +262,20 @@ class MeetingsController < InertiaController
       :location,
       :virtual_link,
       :virtual_meeting,
+      :return_to
+    )
+  end
+
+  def meeting_update_params
+    params.permit(
+      :title,
+      :scheduled_on,
+      :start_time,
+      :location,
+      :virtual_link,
+      :virtual_meeting,
+      :status,
+      :user_id,
       :return_to
     )
   end
@@ -181,7 +299,11 @@ class MeetingsController < InertiaController
   end
 
   def safe_return_path
-    raw = (params[:return_to].presence || meeting_create_params[:return_to]).to_s
+    raw = (
+      params[:return_to].presence ||
+      meeting_create_params[:return_to].presence ||
+      meeting_update_params[:return_to]
+    ).to_s
     return meetings_path if raw.blank?
 
     uri = URI.parse(raw)

@@ -58,4 +58,18 @@ class MeetingPolicyTest < ActiveSupport::TestCase
 
     assert MeetingPolicy.new(@admin, meeting).create?
   end
+
+  test "meeting host and admin can revert completed meetings" do
+    completed = @advisor_meeting
+    completed.update!(status: :completed)
+
+    assert MeetingPolicy.new(@advisor, completed).revert?
+    assert MeetingPolicy.new(@admin, completed).revert?
+    refute MeetingPolicy.new(@assistant, completed).revert?
+  end
+
+  test "advisor can update meetings on assigned leads" do
+    assert MeetingPolicy.new(@advisor, @advisor_meeting).update?
+    refute MeetingPolicy.new(@advisor, Meeting.new(lead: leads(:admin_owned))).update?
+  end
 end

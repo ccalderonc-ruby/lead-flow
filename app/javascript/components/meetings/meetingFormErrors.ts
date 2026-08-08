@@ -9,6 +9,7 @@ export const MEETING_CREATE_ERROR_KEYS = [
   'location',
   'virtual_link',
   'virtual_meeting',
+  'status',
   'base',
   'form',
 ] as const

@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   end
   resources :tasks, only: %i[index create update]
   resources :notes, only: :create
-  resources :meetings, only: %i[index create]
+  resources :meetings, only: %i[index create update]
   resources :opportunities, only: %i[index update]
 
   namespace :admin do
