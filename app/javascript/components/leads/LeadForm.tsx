@@ -26,14 +26,22 @@ export type LeadFormValues = {
   user_id: string
 }
 
-/** Prefer current DOM select values so submit works even if React state lagged. */
+/** Prefer current DOM values so submit works even if React controlled state lagged. */
 export function leadFormPayloadFromDom(root: HTMLFormElement, data: LeadFormValues): LeadFormValues {
   const valueOf = (id: string) =>
     (root.querySelector(`#${id}`) as HTMLInputElement | HTMLSelectElement | null)?.value
 
+  const checkbox = root.querySelector('#update_existing_company_country') as HTMLInputElement | null
+
   return {
     ...data,
+    name: valueOf('name') || data.name,
+    email: valueOf('email') || data.email,
+    phone: valueOf('phone') ?? data.phone,
+    estimated_value: valueOf('estimated_value') ?? data.estimated_value,
+    company_name: valueOf('company_name') || data.company_name,
     company_country_id: valueOf('company_country_id') || data.company_country_id,
+    update_existing_company_country: checkbox ? checkbox.checked : data.update_existing_company_country,
     country_id: valueOf('country_id') || data.country_id,
     stage_id: valueOf('stage_id') || data.stage_id,
     user_id: valueOf('user_id') || data.user_id,
