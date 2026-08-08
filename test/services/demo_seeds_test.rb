@@ -50,13 +50,48 @@ class DemoSeedsTest < ActiveSupport::TestCase
     DemoSeeds.ensure_demo_users!(team: @team)
     advisor.reload
 
-    assert_equal "Alex Advisor", advisor.name
+    assert_equal "Elena Vargas", advisor.name
     assert_equal "advisor", advisor.role.name
     assert_equal "active", advisor.status
+    assert_equal "active", advisor.subscription_status
     assert_equal @team.id, advisor.team_id
     assert_equal countries(:cr).id, advisor.country_id
     assert advisor.authenticate(DemoSeeds::DEMO_PASSWORD)
     refute advisor.authenticate("not-the-demo-password")
+  end
+
+  test "enrich_presentation_catalog creates demo leads with related records" do
+    advisor = users(:advisor)
+    admin = users(:admin)
+    # Fixture users may not match seed emails; ensure assistant exists for note authors.
+    DemoSeeds.ensure_demo_users!(team: @team)
+    advisor = User.find_by!(email: "advisor@leadflow.local")
+    admin = User.find_by!(email: "admin@leadflow.local")
+
+    DemoSeeds.enrich_presentation_catalog!(
+      team: @team,
+      us: @us,
+      cr: @cr,
+      advisor: advisor,
+      admin: admin
+    )
+
+    assert Lead.exists?(email: "priya.shah@demo.leadflow.local")
+    priya = Lead.find_by!(email: "priya.shah@demo.leadflow.local")
+    assert priya.tasks.exists?
+    assert priya.notes.exists?
+    assert priya.meetings.exists?
+    assert priya.opportunities.exists?
+
+    assert_no_difference "Lead.where(\"email LIKE '%@demo.leadflow.local'\").count" do
+      DemoSeeds.enrich_presentation_catalog!(
+        team: @team,
+        us: @us,
+        cr: @cr,
+        advisor: advisor,
+        admin: admin
+      )
+    end
   end
 
   test "seed_dashboard_sample_data assigns leads to advisor on empty CRM" do
