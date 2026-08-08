@@ -123,12 +123,11 @@ export default function TaskFormModal({
 
   if (!open) return null
 
+  // Completed tasks: only owner/admin can leave completed (can_revert). Others stay locked on completed.
   const statusOptions =
     task?.status === 'completed' && !task.can_revert
       ? STATUS_OPTIONS.filter((option) => option.value === 'completed')
-      : task?.can_revert
-        ? STATUS_OPTIONS.filter((option) => option.value !== 'overdue')
-        : STATUS_OPTIONS.filter((option) => option.value !== 'completed' || editing)
+      : STATUS_OPTIONS
 
   function submit(event: FormEvent) {
     event.preventDefault()

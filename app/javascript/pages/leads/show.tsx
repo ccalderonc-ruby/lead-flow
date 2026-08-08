@@ -38,7 +38,6 @@ type TaskPreview = {
   due_date: string | null
   status: string | null
   user_id?: number | null
-  can_complete: boolean
   can_edit: boolean
   can_revert: boolean
 }
@@ -184,7 +183,6 @@ export default function LeadsShow({
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [dismissedNoteErrorKey, setDismissedNoteErrorKey] = useState<string | null>(null)
   const [dismissedMeetingErrorKey, setDismissedMeetingErrorKey] = useState<string | null>(null)
-  const [completingId, setCompletingId] = useState<number | null>(null)
   const [revertingId, setRevertingId] = useState<number | null>(null)
 
   const taskModalOpen =
@@ -241,22 +239,8 @@ export default function LeadsShow({
     if (meetingErrorKey != null) setDismissedMeetingErrorKey(meetingErrorKey)
   }
 
-  function completeTask(taskId: number) {
-    if (completingId != null || revertingId != null) return
-
-    setCompletingId(taskId)
-    router.patch(
-      `/tasks/${taskId}`,
-      { status: 'completed', return_to: taskForm.return_to },
-      {
-        preserveScroll: true,
-        onFinish: () => setCompletingId(null),
-      },
-    )
-  }
-
   function revertTask(task: TaskPreview) {
-    if (completingId != null || revertingId != null) return
+    if (revertingId != null) return
 
     setRevertingId(task.id)
     router.patch(
@@ -346,20 +330,10 @@ export default function LeadsShow({
                       Edit
                     </button>
                   )}
-                  {task.can_complete && (
-                    <button
-                      type="button"
-                      disabled={completingId != null || revertingId != null}
-                      onClick={() => completeTask(task.id)}
-                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {completingId === task.id ? 'Completing…' : 'Complete'}
-                    </button>
-                  )}
                   {task.can_revert && (
                     <button
                       type="button"
-                      disabled={completingId != null || revertingId != null}
+                      disabled={revertingId != null}
                       onClick={() => revertTask(task)}
                       className="text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                     >

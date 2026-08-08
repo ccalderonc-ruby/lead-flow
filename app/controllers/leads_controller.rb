@@ -230,7 +230,6 @@ class LeadsController < InertiaController
             due_date: task.due_date&.iso8601,
             status: task.status,
             user_id: task.user_id,
-            can_complete: (task.pending? || task.overdue?) && policy(task).update?,
             can_edit: policy(task).update?,
             can_revert: task.completed? && policy(task).revert?
           }

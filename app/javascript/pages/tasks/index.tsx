@@ -20,7 +20,6 @@ export type TaskRow = {
   status: string | null
   assignee: string | null
   user_id?: number | null
-  can_complete: boolean
   can_edit: boolean
   can_revert: boolean
 }
@@ -73,7 +72,6 @@ export default function TasksIndex({
   const [manualOpen, setManualOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<EditableTask | null>(null)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
-  const [completingId, setCompletingId] = useState<number | null>(null)
   const [revertingId, setRevertingId] = useState<number | null>(null)
 
   const createModalOpen =
@@ -126,22 +124,8 @@ export default function TasksIndex({
     )
   }
 
-  function completeTask(taskId: number) {
-    if (completingId != null || revertingId != null) return
-
-    setCompletingId(taskId)
-    router.patch(
-      `/tasks/${taskId}`,
-      { status: 'completed', return_to: createReturnTo },
-      {
-        preserveScroll: true,
-        onFinish: () => setCompletingId(null),
-      },
-    )
-  }
-
   function revertTask(task: TaskRow) {
-    if (completingId != null || revertingId != null) return
+    if (revertingId != null) return
 
     setRevertingId(task.id)
     router.patch(
@@ -257,27 +241,17 @@ export default function TasksIndex({
                             Edit
                           </button>
                         )}
-                        {task.can_complete ? (
-                          <button
-                            type="button"
-                            disabled={completingId != null || revertingId != null}
-                            onClick={() => completeTask(task.id)}
-                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {completingId === task.id ? 'Completing…' : 'Complete'}
-                          </button>
-                        ) : null}
                         {task.can_revert ? (
                           <button
                             type="button"
-                            disabled={completingId != null || revertingId != null}
+                            disabled={revertingId != null}
                             onClick={() => revertTask(task)}
                             className="text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {revertingId === task.id ? 'Reopening…' : 'Reopen'}
                           </button>
                         ) : null}
-                        {!task.can_edit && !task.can_complete && !task.can_revert ? (
+                        {!task.can_edit && !task.can_revert ? (
                           <span className="text-slate-300">—</span>
                         ) : null}
                       </div>

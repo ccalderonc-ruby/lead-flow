@@ -110,14 +110,9 @@ class TasksController < InertiaController
       status: task.status,
       assignee: task.user&.name,
       user_id: task.user_id,
-      can_complete: can_complete?(task),
       can_edit: policy(task).update?,
       can_revert: can_revert?(task)
     }
-  end
-
-  def can_complete?(task)
-    (task.pending? || task.overdue?) && policy(task).update?
   end
 
   def can_revert?(task)
@@ -130,10 +125,10 @@ class TasksController < InertiaController
   end
 
   def complete_task!
-    unless @task.pending? || @task.overdue?
+    if @task.completed?
       flash[:alert] = "Could not complete task."
       redirect_to safe_return_path, inertia: {
-        errors: { status: [ "can only complete pending or overdue tasks" ] }
+        errors: { status: [ "task is already completed" ] }
       }
       return
     end
@@ -156,14 +151,6 @@ class TasksController < InertiaController
     if reopening && !policy(@task).revert?
       flash[:alert] = "You are not authorized to reopen this task."
       redirect_to safe_return_path
-      return
-    end
-
-    if completing && !(@task.pending? || @task.overdue?)
-      flash[:alert] = "Could not update task."
-      redirect_to safe_return_path, inertia: {
-        errors: { status: [ "can only complete pending or overdue tasks" ] }
-      }
       return
     end
 

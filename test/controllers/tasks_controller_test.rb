@@ -33,7 +33,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, task.due_date.iso8601
     assert_includes response.body, '"status":"pending"'
     assert_includes response.body, task.user.name
-    assert_includes response.body, '"can_complete":true'
+    assert_includes response.body, '"can_edit":true'
     assert_includes response.body, tasks(:future_follow_up).title
     assert_includes response.body, tasks(:assistant_owned_task).title
     refute_includes response.body, tasks(:admin_task).title
@@ -74,7 +74,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, tasks(:follow_up).title
     assert_includes response.body, '"status":"overdue"'
-    assert_includes response.body, '"can_complete":true'
+    assert_includes response.body, '"can_edit":true'
   end
 
   test "admin all filter includes org tasks" do
