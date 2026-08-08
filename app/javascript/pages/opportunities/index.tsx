@@ -6,7 +6,12 @@ import OpportunityDrawer, {
   type OpportunityDrawerRecord,
   type OpportunityStageOption,
 } from '@/components/opportunities/OpportunityDrawer'
+import OpportunityFormModal, {
+  type OpportunityFormDefaults,
+  type OpportunityFormOption,
+} from '@/components/opportunities/OpportunityFormModal'
 import {
+  hasOpportunityCreateErrors,
   hasOpportunityUpdateErrors,
   opportunityIdFromErrors,
 } from '@/components/opportunities/opportunityFormErrors'
@@ -24,6 +29,10 @@ type PipelineStage = {
 type OpportunitiesIndexProps = {
   stages: PipelineStage[]
   stage_options: OpportunityStageOption[]
+  can_create: boolean
+  leads: OpportunityFormOption[]
+  defaults: OpportunityFormDefaults
+  return_to: string
 }
 
 function findOpportunity(stages: PipelineStage[], id: number | null): OpportunityCard | null {
@@ -38,29 +47,50 @@ function findOpportunity(stages: PipelineStage[], id: number | null): Opportunit
 export default function OpportunitiesIndex({
   stages = [],
   stage_options: stageOptions = [],
+  can_create: canCreate = false,
+  leads = [],
+  defaults = { stage_id: null },
+  return_to: returnTo = '/opportunities',
 }: OpportunitiesIndexProps) {
   const page = usePage()
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
   const updateErrorsPresent = hasOpportunityUpdateErrors(pageErrors)
+  const createErrorsPresent = hasOpportunityCreateErrors(pageErrors)
   const errorOpportunityId = opportunityIdFromErrors(pageErrors)
-  const errorKey = updateErrorsPresent ? JSON.stringify(pageErrors) : null
+  const updateErrorKey = updateErrorsPresent ? JSON.stringify(pageErrors) : null
+  const createErrorKey = createErrorsPresent ? JSON.stringify(pageErrors) : null
 
   const [manualId, setManualId] = useState<number | null>(null)
-  const [dismissedErrorKey, setDismissedErrorKey] = useState<string | null>(null)
+  const [dismissedUpdateErrorKey, setDismissedUpdateErrorKey] = useState<string | null>(null)
+  const [createManualOpen, setCreateManualOpen] = useState(false)
+  const [dismissedCreateErrorKey, setDismissedCreateErrorKey] = useState<string | null>(null)
 
-  const errorStillOpen = errorKey != null && dismissedErrorKey !== errorKey
-  const selectedId = manualId ?? (errorStillOpen ? errorOpportunityId : null)
+  const updateErrorStillOpen = updateErrorKey != null && dismissedUpdateErrorKey !== updateErrorKey
+  const selectedId = manualId ?? (updateErrorStillOpen ? errorOpportunityId : null)
   const selected = findOpportunity(stages, selectedId)
   const drawerOpen = selected != null
 
+  const createModalOpen =
+    createManualOpen || (createErrorKey != null && dismissedCreateErrorKey !== createErrorKey)
+
   function openDrawer(opportunity: OpportunityCard) {
-    setDismissedErrorKey(null)
+    setDismissedUpdateErrorKey(null)
     setManualId(opportunity.id)
   }
 
   function closeDrawer() {
     setManualId(null)
-    if (errorKey != null) setDismissedErrorKey(errorKey)
+    if (updateErrorKey != null) setDismissedUpdateErrorKey(updateErrorKey)
+  }
+
+  function openCreateModal() {
+    setDismissedCreateErrorKey(null)
+    setCreateManualOpen(true)
+  }
+
+  function closeCreateModal() {
+    setCreateManualOpen(false)
+    if (createErrorKey != null) setDismissedCreateErrorKey(createErrorKey)
   }
 
   return (
@@ -68,9 +98,21 @@ export default function OpportunitiesIndex({
       <Head title="Opportunities" />
 
       <div>
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Opportunities</h1>
-          <p className="mt-1 text-slate-600">Pipeline by stage across your scoped leads.</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Opportunities</h1>
+            <p className="mt-1 text-slate-600">Pipeline by stage across your scoped leads.</p>
+          </div>
+
+          {canCreate && (
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+            >
+              New opportunity
+            </button>
+          )}
         </div>
 
         <div className="mt-8 flex gap-4 overflow-x-auto pb-4">
@@ -136,6 +178,17 @@ export default function OpportunitiesIndex({
         stageOptions={stageOptions}
         onClose={closeDrawer}
       />
+
+      {canCreate && (
+        <OpportunityFormModal
+          open={createModalOpen}
+          onClose={closeCreateModal}
+          leads={leads}
+          stages={stageOptions}
+          defaults={defaults}
+          returnTo={returnTo}
+        />
+      )}
     </AuthenticatedPage>
   )
 }

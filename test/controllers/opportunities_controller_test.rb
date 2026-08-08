@@ -103,6 +103,9 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"stage_options"'
     assert_includes response.body, "\"description\":\"#{opportunity.description}\""
     assert_includes response.body, '"can_update":true'
+    assert_includes response.body, '"can_create":true'
+    assert_includes response.body, '"leads"'
+    assert_includes response.body, '"defaults"'
   end
 
   test "assistant index marks opportunities can_update false" do
@@ -113,6 +116,7 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, '"can_update":false'
     refute_includes response.body, '"can_update":true'
+    assert_includes response.body, '"can_create":false'
   end
 
   test "advisor updates stage on assigned opportunity" do
@@ -253,5 +257,119 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes response.body, "stage_id"
     assert_equal opportunity_stages(:proposal).id, opportunity.reload.stage_id
+  end
+
+  test "advisor creates opportunity on assigned lead" do
+    sign_in_as users(:advisor)
+    stage = opportunity_stages(:prospect)
+
+    assert_difference "Opportunity.count", 1 do
+      post opportunities_path, params: {
+        title: "New pipeline deal",
+        value: "15000",
+        stage_id: stage.id,
+        close_date: (Date.current + 30.days).iso8601,
+        description: "From board",
+        lead_id: leads(:sarah).id,
+        return_to: opportunities_path
+      }
+    end
+
+    opportunity = Opportunity.order(:id).last
+    assert_equal "New pipeline deal", opportunity.title
+    assert_equal stage.id, opportunity.stage_id
+    assert_equal users(:advisor).id, opportunity.user_id
+    assert_equal leads(:sarah).id, opportunity.lead_id
+    assert_equal 15000, opportunity.value
+    assert_redirected_to opportunities_path
+    assert_equal "Opportunity created.", flash[:notice]
+  end
+
+  test "advisor creates opportunity defaults to first stage when omitted" do
+    sign_in_as users(:advisor)
+    default_stage = OpportunityStage.order(:position).first
+
+    assert_difference "Opportunity.count", 1 do
+      post opportunities_path, params: {
+        title: "Default stage deal",
+        lead_id: leads(:sarah).id,
+        return_to: opportunities_path
+      }
+    end
+
+    assert_equal default_stage.id, Opportunity.order(:id).last.stage_id
+  end
+
+  test "advisor cannot create opportunity on unassigned lead" do
+    sign_in_as users(:advisor)
+
+    assert_no_difference "Opportunity.count" do
+      post opportunities_path, params: {
+        title: "Blocked",
+        lead_id: leads(:admin_owned).id,
+        return_to: opportunities_path
+      }
+    end
+
+    assert_redirected_to opportunities_path
+    follow_redirect!
+    assert_includes response.body, "lead_id"
+  end
+
+  test "assistant cannot create opportunity" do
+    sign_in_as users(:assistant)
+
+    assert_no_difference "Opportunity.count" do
+      post opportunities_path, params: {
+        title: "Nope",
+        lead_id: leads(:sarah).id,
+        return_to: opportunities_path
+      }
+    end
+
+    assert_redirected_to root_path
+    assert_equal "You are not authorized to perform this action.", flash[:alert]
+  end
+
+  test "create validation errors return inertia errors without opportunity_id" do
+    sign_in_as users(:advisor)
+
+    assert_no_difference "Opportunity.count" do
+      post opportunities_path, params: {
+        title: "",
+        lead_id: leads(:sarah).id,
+        return_to: opportunities_path
+      }
+    end
+
+    assert_redirected_to opportunities_path
+    follow_redirect!
+    assert_includes response.body, "title"
+    assert_includes response.body, '"form":["opportunity"]'
+    refute_includes response.body, '"opportunity_id"'
+  end
+
+  test "create return_to lead path is honored when in scope" do
+    sign_in_as users(:advisor)
+    lead = leads(:sarah)
+
+    post opportunities_path, params: {
+      title: "Lead deal",
+      lead_id: lead.id,
+      return_to: lead_path(lead)
+    }
+
+    assert_redirected_to lead_path(lead)
+    assert_equal "Opportunity created.", flash[:notice]
+  end
+
+  test "lead show includes opportunity form props for advisor" do
+    sign_in_as users(:advisor)
+
+    get lead_path(leads(:sarah))
+
+    assert_response :success
+    assert_includes response.body, '"can_create_opportunity":true'
+    assert_includes response.body, '"opportunity_form"'
   end
 end

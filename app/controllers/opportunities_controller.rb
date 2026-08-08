@@ -21,8 +21,47 @@ class OpportunitiesController < InertiaController
           opportunities: Array(grouped[stage.id]).map { |opportunity| serialize_opportunity(opportunity) }
         }
       },
-      stage_options: stages.map { |stage| { id: stage.id, name: stage.name } }
+      stage_options: stages.map { |stage| { id: stage.id, name: stage.name } },
+      **form_options,
+      can_create: can_create_opportunities?,
+      return_to: opportunities_path
     }
+  end
+
+  def create
+    lead = policy_scope(Lead).find_by(id: opportunity_create_params[:lead_id])
+    unless lead
+      skip_authorization
+      redirect_to safe_return_path, inertia: { errors: lead_missing_errors.merge(form: [ "opportunity" ]) }
+      return
+    end
+
+    opportunity = Opportunity.new(lead: lead)
+    authorize opportunity
+
+    stage_id = normalize_stage_id(opportunity_create_params[:stage_id]) || default_stage_id
+    unless stage_id
+      redirect_to safe_return_path, inertia: {
+        errors: { stage_id: [ "is invalid" ], form: [ "opportunity" ] }
+      }
+      return
+    end
+
+    opportunity.assign_attributes(
+      title: opportunity_create_params[:title],
+      value: normalize_value(opportunity_create_params[:value]),
+      stage_id: stage_id,
+      close_date: opportunity_create_params[:close_date].to_s.strip.presence,
+      description: opportunity_create_params[:description].to_s.presence,
+      user_id: assigned_user_id(lead)
+    )
+
+    if opportunity.save
+      flash[:notice] = "Opportunity created."
+      redirect_to safe_return_path
+    else
+      redirect_to safe_return_path, inertia: { errors: create_validation_errors(opportunity) }
+    end
   end
 
   def update
@@ -71,6 +110,38 @@ class OpportunitiesController < InertiaController
     }
   end
 
+  def can_create_opportunities?
+    return true if current_user.admin?
+    return false if current_user.assistant?
+
+    current_user.advisor? && policy_scope(Lead).exists?
+  end
+
+  def form_options
+    {
+      leads: policy_scope(Lead).order(:name).map { |lead| { id: lead.id, name: lead.name } },
+      defaults: {
+        stage_id: default_stage_id
+      }
+    }
+  end
+
+  def default_stage_id
+    @default_stage_id ||= OpportunityStage.order(:position).limit(1).pick(:id)
+  end
+
+  def assigned_user_id(lead)
+    return current_user.id if current_user.advisor?
+
+    return lead.user_id if lead.user_id
+
+    current_user.id
+  end
+
+  def opportunity_create_params
+    params.permit(:title, :value, :stage_id, :close_date, :description, :lead_id, :return_to)
+  end
+
   def opportunity_update_params
     params.permit(:title, :value, :stage_id, :close_date, :description)
   end
@@ -99,5 +170,40 @@ class OpportunitiesController < InertiaController
       form: [ "opportunity" ],
       opportunity_id: [ opportunity.id ]
     )
+  end
+
+  def create_validation_errors(opportunity)
+    opportunity.errors.to_hash.transform_values { |messages| Array(messages) }.merge(form: [ "opportunity" ])
+  end
+
+  def lead_missing_errors
+    if opportunity_create_params[:lead_id].blank?
+      { lead_id: [ "can't be blank" ] }
+    else
+      { lead_id: [ "is invalid or inaccessible" ] }
+    end
+  end
+
+  def safe_return_path
+    raw = (params[:return_to].presence || opportunity_create_params[:return_to]).to_s
+    return opportunities_path if raw.blank?
+
+    uri = URI.parse(raw)
+    return opportunities_path if uri.scheme.present? || uri.host.present?
+
+    case uri.path
+    when opportunities_path, "/opportunities"
+      opportunities_path
+    else
+      match = uri.path.to_s.match(%r{\A/leads/(\d+)\z})
+      if match
+        lead = policy_scope(Lead).find_by(id: match[1])
+        return lead_path(lead) if lead
+      end
+
+      opportunities_path
+    end
+  rescue URI::InvalidURIError
+    opportunities_path
   end
 end
