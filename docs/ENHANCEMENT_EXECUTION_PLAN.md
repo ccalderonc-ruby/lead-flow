@@ -22,11 +22,11 @@ You currently have **uncommitted local work** on `dev` (demo enrich + docs). Lan
 
 ### Day 1–2 · B2 — Task edit + revert completed
 
-- [ ] Branch: `feature/b2-task-edit-and-revert` from `origin/dev`
-- [ ] Read current: `TasksController#update`, `TaskPolicy`, `TaskFormModal`, tasks index + lead show complete button
-- [ ] Widen `update` to allow title, description, due_date, status (not only `completed`)
-- [ ] Allow revert: `completed` → `pending` / `in_progress` **only** for task owner + Admin (policy)
-- [ ] UI: Edit task modal (reuse `TaskFormModal` / `FormFields`)
+- [x] Branch: `feature/b2-task-edit-and-revert` from `origin/dev`
+- [x] Read current: `TasksController#update`, `TaskPolicy`, `TaskFormModal`, tasks index + lead show complete button
+- [x] Widen `update` to allow title, description, due_date, status (not only `completed`)
+- [x] Allow revert: `completed` → `pending` / `in_progress` **only** for task owner + Admin (policy)
+- [x] UI: Edit task modal (reuse `TaskFormModal` / `FormFields`)
 - [ ] Tests: controller + policy (owner can revert, assistant/other cannot)
 - [ ] `bin/rails test` green → PR into `dev` → merge
 

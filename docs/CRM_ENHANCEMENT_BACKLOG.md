@@ -57,7 +57,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | Area | Today |
 |------|--------|
 | Dashboard | Single role-scoped metrics page (`DashboardController`) — not “pick an advisor,” no admin toggle |
-| Tasks | Create + **complete only** (`update` rejects anything except `completed`) |
+| Tasks | Create + complete + **edit/reopen** (B2 on `feature/b2-task-edit-and-revert`) |
 | Meetings | Index + create only — **no update route** |
 | Opportunities | Index + update drawer — **no create** |
 | Notes | Create on lead detail only — **no index / edit / delete** |

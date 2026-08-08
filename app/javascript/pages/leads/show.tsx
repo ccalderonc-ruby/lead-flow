@@ -10,6 +10,7 @@ import { hasMeetingCreateErrors } from '@/components/meetings/meetingFormErrors'
 import NoteFormModal from '@/components/notes/NoteFormModal'
 import { hasNoteCreateErrors } from '@/components/notes/noteFormErrors'
 import TaskFormModal, {
+  type EditableTask,
   type TaskFormDefaults,
   type TaskFormOption,
 } from '@/components/tasks/TaskFormModal'
@@ -33,9 +34,13 @@ type LeadDetail = {
 type TaskPreview = {
   id: number
   title: string
+  description?: string | null
   due_date: string | null
   status: string | null
+  user_id?: number | null
   can_complete: boolean
+  can_edit: boolean
+  can_revert: boolean
 }
 
 type MeetingPreview = {
@@ -173,27 +178,46 @@ export default function LeadsShow({
   const noteErrorKey = noteErrorsPresent ? JSON.stringify(pageErrors) : null
   const meetingErrorKey = meetingErrorsPresent ? JSON.stringify(pageErrors) : null
   const [taskManualOpen, setTaskManualOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<EditableTask | null>(null)
   const [noteManualOpen, setNoteManualOpen] = useState(false)
   const [meetingManualOpen, setMeetingManualOpen] = useState(false)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [dismissedNoteErrorKey, setDismissedNoteErrorKey] = useState<string | null>(null)
   const [dismissedMeetingErrorKey, setDismissedMeetingErrorKey] = useState<string | null>(null)
   const [completingId, setCompletingId] = useState<number | null>(null)
+  const [revertingId, setRevertingId] = useState<number | null>(null)
 
   const taskModalOpen =
-    taskManualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey)
+    editingTask == null &&
+    (taskManualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey))
   const noteModalOpen =
     noteManualOpen || (noteErrorKey != null && dismissedNoteErrorKey !== noteErrorKey)
   const meetingModalOpen =
     meetingManualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey)
 
   function openTaskModal() {
+    setEditingTask(null)
     setDismissedTaskErrorKey(null)
     setTaskManualOpen(true)
   }
 
+  function openEditTaskModal(task: TaskPreview) {
+    setTaskManualOpen(false)
+    setEditingTask({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      due_date: task.due_date,
+      lead_id: lead.id,
+      user_id: task.user_id,
+      status: task.status,
+      can_revert: task.can_revert,
+    })
+  }
+
   function closeTaskModal() {
     setTaskManualOpen(false)
+    setEditingTask(null)
     if (taskErrorKey != null) setDismissedTaskErrorKey(taskErrorKey)
   }
 
@@ -218,7 +242,7 @@ export default function LeadsShow({
   }
 
   function completeTask(taskId: number) {
-    if (completingId != null) return
+    if (completingId != null || revertingId != null) return
 
     setCompletingId(taskId)
     router.patch(
@@ -227,6 +251,26 @@ export default function LeadsShow({
       {
         preserveScroll: true,
         onFinish: () => setCompletingId(null),
+      },
+    )
+  }
+
+  function revertTask(task: TaskPreview) {
+    if (completingId != null || revertingId != null) return
+
+    setRevertingId(task.id)
+    router.patch(
+      `/tasks/${task.id}`,
+      {
+        title: task.title,
+        description: task.description ?? '',
+        due_date: task.due_date,
+        status: 'pending',
+        return_to: taskForm.return_to,
+      },
+      {
+        preserveScroll: true,
+        onFinish: () => setRevertingId(null),
       },
     )
   }
@@ -292,16 +336,37 @@ export default function LeadsShow({
                     Due {formatDate(task.due_date)} · {task.status || '—'}
                   </div>
                 </div>
-                {task.can_complete && (
-                  <button
-                    type="button"
-                    disabled={completingId != null}
-                    onClick={() => completeTask(task.id)}
-                    className="shrink-0 text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {completingId === task.id ? 'Completing…' : 'Complete'}
-                  </button>
-                )}
+                <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+                  {task.can_edit && (
+                    <button
+                      type="button"
+                      onClick={() => openEditTaskModal(task)}
+                      className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {task.can_complete && (
+                    <button
+                      type="button"
+                      disabled={completingId != null || revertingId != null}
+                      onClick={() => completeTask(task.id)}
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {completingId === task.id ? 'Completing…' : 'Complete'}
+                    </button>
+                  )}
+                  {task.can_revert && (
+                    <button
+                      type="button"
+                      disabled={completingId != null || revertingId != null}
+                      onClick={() => revertTask(task)}
+                      className="text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {revertingId === task.id ? 'Reopening…' : 'Reopen'}
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </Section>
@@ -380,6 +445,7 @@ export default function LeadsShow({
 
       {canCreateTask && (
         <TaskFormModal
+          key="lead-task-create"
           open={taskModalOpen}
           onClose={closeTaskModal}
           leads={taskForm.leads}
@@ -387,6 +453,20 @@ export default function LeadsShow({
           defaults={taskForm.defaults}
           returnTo={taskForm.return_to}
           lockedLeadId={lead.id}
+        />
+      )}
+
+      {editingTask && (
+        <TaskFormModal
+          key={`lead-task-edit-${editingTask.id}`}
+          open
+          onClose={closeTaskModal}
+          leads={taskForm.leads}
+          assignees={taskForm.assignees}
+          defaults={taskForm.defaults}
+          returnTo={taskForm.return_to}
+          lockedLeadId={lead.id}
+          task={editingTask}
         />
       )}
 

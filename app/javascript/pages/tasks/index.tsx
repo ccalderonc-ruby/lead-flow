@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import TaskFormModal, {
+  type EditableTask,
   type TaskFormDefaults,
   type TaskFormOption,
 } from '@/components/tasks/TaskFormModal'
@@ -12,12 +13,16 @@ import { formatDate } from '@/lib/format'
 export type TaskRow = {
   id: number
   title: string
+  description?: string | null
   lead: string | null
   lead_id: number | null
   due_date: string | null
   status: string | null
   assignee: string | null
+  user_id?: number | null
   can_complete: boolean
+  can_edit: boolean
+  can_revert: boolean
 }
 
 export type TasksMeta = {
@@ -66,18 +71,37 @@ export default function TasksIndex({
   const taskErrorsPresent = hasTaskCreateErrors(pageErrors)
   const taskErrorKey = taskErrorsPresent ? JSON.stringify(pageErrors) : null
   const [manualOpen, setManualOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<EditableTask | null>(null)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [completingId, setCompletingId] = useState<number | null>(null)
+  const [revertingId, setRevertingId] = useState<number | null>(null)
 
-  const modalOpen = manualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey)
+  const createModalOpen =
+    editingTask == null && (manualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey))
 
-  function openModal() {
+  function openCreateModal() {
+    setEditingTask(null)
     setDismissedTaskErrorKey(null)
     setManualOpen(true)
   }
 
+  function openEditModal(task: TaskRow) {
+    setManualOpen(false)
+    setEditingTask({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      due_date: task.due_date,
+      lead_id: task.lead_id,
+      user_id: task.user_id,
+      status: task.status,
+      can_revert: task.can_revert,
+    })
+  }
+
   function closeModal() {
     setManualOpen(false)
+    setEditingTask(null)
     if (taskErrorKey != null) setDismissedTaskErrorKey(taskErrorKey)
   }
 
@@ -103,7 +127,7 @@ export default function TasksIndex({
   }
 
   function completeTask(taskId: number) {
-    if (completingId != null) return
+    if (completingId != null || revertingId != null) return
 
     setCompletingId(taskId)
     router.patch(
@@ -112,6 +136,26 @@ export default function TasksIndex({
       {
         preserveScroll: true,
         onFinish: () => setCompletingId(null),
+      },
+    )
+  }
+
+  function revertTask(task: TaskRow) {
+    if (completingId != null || revertingId != null) return
+
+    setRevertingId(task.id)
+    router.patch(
+      `/tasks/${task.id}`,
+      {
+        title: task.title,
+        description: task.description ?? '',
+        due_date: task.due_date,
+        status: 'pending',
+        return_to: createReturnTo,
+      },
+      {
+        preserveScroll: true,
+        onFinish: () => setRevertingId(null),
       },
     )
   }
@@ -131,7 +175,7 @@ export default function TasksIndex({
             {canCreate && (
               <button
                 type="button"
-                onClick={openModal}
+                onClick={openCreateModal}
                 className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
               >
                 New task
@@ -203,18 +247,40 @@ export default function TasksIndex({
                     <td className="px-4 py-3 text-slate-700">{task.status || '—'}</td>
                     <td className="px-4 py-3 text-slate-700">{task.assignee || '—'}</td>
                     <td className="px-4 py-3 text-right">
-                      {task.can_complete ? (
-                        <button
-                          type="button"
-                          disabled={completingId != null}
-                          onClick={() => completeTask(task.id)}
-                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {completingId === task.id ? 'Completing…' : 'Complete'}
-                        </button>
-                      ) : (
-                        <span className="text-slate-300">—</span>
-                      )}
+                      <div className="flex justify-end gap-3">
+                        {task.can_edit && (
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(task)}
+                            className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {task.can_complete ? (
+                          <button
+                            type="button"
+                            disabled={completingId != null || revertingId != null}
+                            onClick={() => completeTask(task.id)}
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {completingId === task.id ? 'Completing…' : 'Complete'}
+                          </button>
+                        ) : null}
+                        {task.can_revert ? (
+                          <button
+                            type="button"
+                            disabled={completingId != null || revertingId != null}
+                            onClick={() => revertTask(task)}
+                            className="text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {revertingId === task.id ? 'Reopening…' : 'Reopen'}
+                          </button>
+                        ) : null}
+                        {!task.can_edit && !task.can_complete && !task.can_revert ? (
+                          <span className="text-slate-300">—</span>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -252,12 +318,27 @@ export default function TasksIndex({
 
       {canCreate && (
         <TaskFormModal
-          open={modalOpen}
+          key="task-create"
+          open={createModalOpen}
           onClose={closeModal}
           leads={leads}
           assignees={assignees}
           defaults={defaults}
           returnTo={createReturnTo}
+        />
+      )}
+
+      {editingTask && (
+        <TaskFormModal
+          key={`task-edit-${editingTask.id}`}
+          open
+          onClose={closeModal}
+          leads={leads}
+          assignees={assignees}
+          defaults={defaults}
+          returnTo={createReturnTo}
+          lockedLeadId={editingTask.lead_id}
+          task={editingTask}
         />
       )}
     </AuthenticatedPage>

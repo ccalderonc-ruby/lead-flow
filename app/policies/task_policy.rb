@@ -23,6 +23,14 @@ class TaskPolicy < ApplicationPolicy
     create?
   end
 
+  # Revert completed → pending/in_progress: task owner or admin only.
+  def revert?
+    return false unless user
+    return true if admin?
+
+    record.respond_to?(:user_id) && record.user_id == user.id
+  end
+
   def destroy?
     admin? || (advisor? && lead_assigned_to_user?)
   end

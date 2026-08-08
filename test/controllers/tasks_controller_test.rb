@@ -243,18 +243,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "completed", task.reload.status
   end
 
-  test "complete with invalid status sets alert" do
-    sign_in_as users(:advisor)
-    task = tasks(:follow_up)
-
-    patch task_path(task), params: { status: "pending", return_to: tasks_path }
-
-    assert_redirected_to tasks_path
-    assert_equal "Could not complete task.", flash[:alert]
-    assert_equal "pending", task.reload.status
-  end
-
-  test "complete rejects already completed task" do
+  test "complete-only rejects already completed task" do
     sign_in_as users(:advisor)
     task = tasks(:completed_follow_up)
 
@@ -273,5 +262,102 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
     assert_equal "pending", task.reload.status
+  end
+
+  test "advisor updates task fields" do
+    sign_in_as users(:advisor)
+    task = tasks(:follow_up)
+
+    patch task_path(task), params: {
+      title: "Updated follow-up",
+      description: "New notes",
+      due_date: "2026-08-01",
+      status: "in_progress",
+      return_to: tasks_path
+    }
+
+    assert_redirected_to tasks_path
+    assert_equal "Task updated.", flash[:notice]
+    task.reload
+    assert_equal "Updated follow-up", task.title
+    assert_equal "New notes", task.description
+    assert_equal Date.new(2026, 8, 1), task.due_date
+    assert_equal "in_progress", task.status
+  end
+
+  test "advisor reopens completed task they own" do
+    sign_in_as users(:advisor)
+    task = tasks(:completed_follow_up)
+
+    patch task_path(task), params: {
+      title: task.title,
+      description: task.description,
+      due_date: task.due_date.iso8601,
+      status: "pending",
+      return_to: tasks_path
+    }
+
+    assert_redirected_to tasks_path
+    assert_equal "Task reopened.", flash[:notice]
+    assert_equal "pending", task.reload.status
+  end
+
+  test "assistant cannot reopen completed task they do not own" do
+    sign_in_as users(:assistant)
+    task = tasks(:completed_follow_up)
+    assert_equal users(:advisor).id, task.user_id
+
+    patch task_path(task), params: {
+      title: task.title,
+      due_date: task.due_date.iso8601,
+      status: "pending",
+      return_to: tasks_path
+    }
+
+    assert_redirected_to tasks_path
+    assert_equal "You are not authorized to reopen this task.", flash[:alert]
+    assert_equal "completed", task.reload.status
+  end
+
+  test "admin can reopen any completed task" do
+    sign_in_as users(:admin)
+    task = tasks(:completed_follow_up)
+
+    patch task_path(task), params: {
+      title: task.title,
+      due_date: task.due_date.iso8601,
+      status: "pending",
+      return_to: tasks_path
+    }
+
+    assert_redirected_to tasks_path
+    assert_equal "Task reopened.", flash[:notice]
+    assert_equal "pending", task.reload.status
+  end
+
+  test "update with invalid status rejects" do
+    sign_in_as users(:advisor)
+    task = tasks(:follow_up)
+
+    patch task_path(task), params: {
+      title: task.title,
+      due_date: task.due_date.iso8601,
+      status: "not-a-status",
+      return_to: tasks_path
+    }
+
+    assert_redirected_to tasks_path
+    assert_equal "Could not update task.", flash[:alert]
+    assert_equal "pending", task.reload.status
+  end
+
+  test "index exposes edit and revert flags" do
+    sign_in_as users(:advisor)
+
+    get tasks_path
+
+    assert_response :success
+    assert_includes response.body, '"can_edit":true'
+    assert_includes response.body, '"can_revert":true'
   end
 end
