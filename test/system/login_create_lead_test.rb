@@ -14,31 +14,38 @@ class LoginCreateLeadTest < ApplicationSystemTestCase
 
     visit new_lead_path
     assert_text "New lead"
+    assert_selector "form"
 
-    fill_in "name", with: "System Test Lead"
-    fill_in "email", with: "system.test.lead@example.com"
-    fill_in "company_name", with: "System Test Co"
-    # React controlled <select>s: Capybara's select() updates the DOM but may not
-    # fire React onChange; set value + dispatch change so Inertia setData runs.
-    select_react "company_country_id", countries(:us).id
-    select_react "country_id", countries(:us).id
-    select_react "stage_id", lead_stages(:prospect).id
+    email = "system.test.lead.#{SecureRandom.hex(4)}@example.com"
 
-    click_button "Create lead"
+    # Set controlled React fields + submit in one browser script so CI Chrome
+    # does not lose values between Capybara fill_in and the Inertia POST.
+    page.execute_script(<<~JS, email, countries(:us).id.to_s, lead_stages(:prospect).id.to_s)
+      const setField = (id, value) => {
+        const el = document.getElementById(id);
+        const proto = el.tagName === "SELECT" ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
+        const setter = Object.getOwnPropertyDescriptor(proto, "value").set;
+        const tracker = el._valueTracker;
+        if (tracker) tracker.setValue("");
+        setter.call(el, value);
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      };
 
-    assert_text "Lead created."
+      setField("name", "System Test Lead");
+      setField("email", arguments[0]);
+      setField("company_name", "System Test Co");
+      setField("company_country_id", arguments[1]);
+      setField("country_id", arguments[1]);
+      setField("stage_id", arguments[2]);
+
+      const form = document.querySelector("form");
+      form.noValidate = true;
+      form.requestSubmit();
+    JS
+
+    assert_text "Lead created.", wait: 10
     assert_text "System Test Lead"
     assert_current_path %r{/leads/\d+}
-  end
-
-  private
-
-  def select_react(element_id, value)
-    page.execute_script(<<~JS, element_id, value.to_s)
-      const el = document.getElementById(arguments[0]);
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value").set;
-      setter.call(el, arguments[1]);
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-    JS
   end
 end

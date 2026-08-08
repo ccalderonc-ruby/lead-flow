@@ -20,10 +20,23 @@ class TaskPolicy < ApplicationPolicy
   end
 
   def update?
+    return false if completion_locked?
+
     create?
   end
 
+  # Revert completed → pending/in_progress: task owner or admin only, within 24h of completion.
+  def revert?
+    return false if completion_locked?
+    return false unless user
+    return true if admin?
+
+    record.respond_to?(:user_id) && record.user_id == user.id
+  end
+
   def destroy?
+    return false if completion_locked?
+
     admin? || (advisor? && lead_assigned_to_user?)
   end
 
@@ -41,5 +54,11 @@ class TaskPolicy < ApplicationPolicy
         scope.none
       end
     end
+  end
+
+  private
+
+  def completion_locked?
+    record.respond_to?(:completion_locked?) && record.completion_locked?
   end
 end

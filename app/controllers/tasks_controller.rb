@@ -2,7 +2,7 @@
 
 class TasksController < InertiaController
   PER_PAGE = 25
-  FILTERS = %w[all mine overdue].freeze
+  FILTERS = %w[all mine pending completed overdue].freeze
 
   before_action :set_task, only: :update
 
@@ -75,29 +75,10 @@ class TasksController < InertiaController
   def update
     authorize @task
 
-    requested = task_update_params[:status].to_s
-    unless requested == Task.statuses[:completed]
-      flash[:alert] = "Could not complete task."
-      redirect_to safe_return_path, inertia: {
-        errors: { status: [ "can only be set to completed" ] }
-      }
-      return
-    end
-
-    unless @task.pending? || @task.overdue?
-      flash[:alert] = "Could not complete task."
-      redirect_to safe_return_path, inertia: {
-        errors: { status: [ "can only complete pending or overdue tasks" ] }
-      }
-      return
-    end
-
-    if @task.update(status: :completed)
-      flash[:notice] = "Task completed."
-      redirect_to safe_return_path
+    if complete_only_request?
+      complete_task!
     else
-      flash[:alert] = "Could not complete task."
-      redirect_to safe_return_path, inertia: { errors: validation_errors(@task) }
+      update_task_fields!
     end
   end
 
@@ -111,6 +92,10 @@ class TasksController < InertiaController
     case filter
     when "mine"
       scoped.where(user_id: current_user.id)
+    when "pending"
+      scoped.merge(Task.open_status)
+    when "completed"
+      scoped.merge(Task.completed_status)
     when "overdue"
       scoped.merge(Task.overdue)
     else
@@ -122,17 +107,123 @@ class TasksController < InertiaController
     {
       id: task.id,
       title: task.title,
+      description: task.description,
       lead: task.lead&.name,
       lead_id: task.lead_id,
       due_date: task.due_date&.iso8601,
-      status: task.status,
+      status: display_status(task),
+      past_due: past_due?(task),
+      completed_at: task.completed_at&.iso8601,
       assignee: task.user&.name,
-      can_complete: can_complete?(task)
+      user_id: task.user_id,
+      can_edit: policy(task).update?,
+      can_revert: can_revert?(task)
     }
   end
 
-  def can_complete?(task)
-    (task.pending? || task.overdue?) && policy(task).update?
+  # Overdue is date-derived in the UI; do not expose it as a workflow status.
+  def display_status(task)
+    task.status == Task.statuses[:overdue] ? Task.statuses[:pending] : task.status
+  end
+
+  def past_due?(task)
+    return false if task.completed? || task.due_date.blank?
+
+    task.due_date < Date.current
+  end
+
+  def can_revert?(task)
+    task.completed? && policy(task).revert?
+  end
+
+  def complete_only_request?
+    attrs = task_update_params.except(:return_to)
+    attrs.keys.map(&:to_s) == [ "status" ] && attrs[:status].to_s == Task.statuses[:completed]
+  end
+
+  def complete_task!
+    if @task.completed?
+      flash[:alert] = "Could not complete task."
+      redirect_to safe_return_path, inertia: {
+        errors: { status: [ "task is already completed" ] }
+      }
+      return
+    end
+
+    if @task.update(status: :completed)
+      flash[:notice] = "Task completed."
+      redirect_to safe_return_path
+    else
+      flash[:alert] = "Could not complete task."
+      redirect_to safe_return_path, inertia: { errors: validation_errors(@task) }
+    end
+  end
+
+  def update_task_fields!
+    attrs = task_field_attributes
+    requested_status = attrs[:status].to_s.presence
+    reopening = status_leaving_completed?(requested_status)
+    completing = requested_status == Task.statuses[:completed] && !@task.completed?
+
+    if reopening && !policy(@task).revert?
+      flash[:alert] = "You are not authorized to reopen this task."
+      redirect_to safe_return_path
+      return
+    end
+
+    editable_statuses = Task.statuses.values - [ Task.statuses[:overdue] ]
+    if requested_status.present? && editable_statuses.exclude?(requested_status)
+      flash[:alert] = "Could not update task."
+      redirect_to safe_return_path, inertia: {
+        errors: { status: [ "is invalid" ] }
+      }
+      return
+    end
+
+    apply_assignee_on_update!(attrs)
+
+    if @task.update(attrs)
+      flash[:notice] = if reopening
+        "Task reopened."
+      elsif completing
+        "Task completed."
+      else
+        "Task updated."
+      end
+      redirect_to safe_return_path
+    else
+      flash[:alert] = "Could not update task."
+      redirect_to safe_return_path, inertia: { errors: validation_errors(@task) }
+    end
+  end
+
+  def task_field_attributes
+    raw = params.permit(:title, :description, :due_date, :status, :user_id)
+    attrs = {}
+    attrs[:title] = raw[:title] if raw.key?(:title)
+    attrs[:description] = raw[:description] if raw.key?(:description)
+    attrs[:due_date] = raw[:due_date] if raw.key?(:due_date)
+    attrs[:status] = raw[:status] if raw.key?(:status)
+    attrs[:user_id] = raw[:user_id] if raw.key?(:user_id)
+    attrs
+  end
+
+  def status_leaving_completed?(requested_status)
+    @task.completed? && requested_status.present? && requested_status != Task.statuses[:completed]
+  end
+
+  def apply_assignee_on_update!(attrs)
+    if current_user.advisor?
+      attrs.delete(:user_id)
+      return
+    end
+
+    requested = Integer(attrs[:user_id], exception: false)
+    if requested && assignable_user_ids.include?(requested)
+      attrs[:user_id] = requested
+    else
+      attrs.delete(:user_id)
+    end
   end
 
   def can_create_tasks?
@@ -191,7 +282,7 @@ class TasksController < InertiaController
   end
 
   def task_update_params
-    params.permit(:status, :return_to)
+    params.permit(:title, :description, :due_date, :status, :user_id, :return_to)
   end
 
   def validation_errors(task)

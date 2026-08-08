@@ -31,6 +31,7 @@ completed_follow_up:
   due_date: 2026-06-15
   priority: medium
   status: completed
+  completed_at: <%= 1.hour.ago.iso8601 %>
   lead: sarah
   user: advisor
 

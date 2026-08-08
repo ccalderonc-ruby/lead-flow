@@ -681,7 +681,7 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"showing":1'
     assert_includes response.body, '"count":1'
     assert_includes response.body, tasks(:follow_up).title
-    assert_includes response.body, '"can_complete":true'
+    assert_includes response.body, '"can_edit":true'
     assert_includes response.body, meetings(:review).title
     assert_includes response.body, "Successful discovery call"
     assert_includes response.body, '"content":'

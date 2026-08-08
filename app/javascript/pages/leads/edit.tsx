@@ -2,6 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react'
 import { FormEvent } from 'react'
 
 import LeadForm, {
+  leadFormPayloadFromDom,
   type LeadFormDefaults,
   type LeadFormOption,
   type LeadFormValues,
@@ -45,7 +46,13 @@ function LeadEditForm({ lead, countries, stages, assignees, defaults }: LeadsEdi
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    form.put(`/leads/${lead.id}`)
+    const root = event.currentTarget as HTMLFormElement
+    form.transform((data) => leadFormPayloadFromDom(root, data))
+    form.put(`/leads/${lead.id}`, {
+      onFinish: () => {
+        form.transform((data) => data)
+      },
+    })
   }
 
   return (

@@ -57,7 +57,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | Area | Today |
 |------|--------|
 | Dashboard | Single role-scoped metrics page (`DashboardController`) — not “pick an advisor,” no admin toggle |
-| Tasks | Create + **complete only** (`update` rejects anything except `completed`) |
+| Tasks | Create + complete + **edit/reopen** (B2 on `feature/b2-task-edit-and-revert`) |
 | Meetings | Index + create only — **no update route** |
 | Opportunities | Index + update drawer — **no create** |
 | Notes | Create on lead detail only — **no index / edit / delete** |
@@ -159,15 +159,17 @@ Build **permission foundations** before dashboards that depend on “whose data.
 - **Admin:** org subscription, all CRUD, all advisor dashboards, overrides
 - **Advisor:** own/assigned records; assign Assistants; control assistant access to their records
 - **Assistant:** only data for Advisor(s) they are assigned to (inherited scope)
+- **Tasks (follow-on in this PR):** Advisors/Assistants only see tasks for their leads and/or tasks assigned to them; remove the **Mine** filter for those roles (redundant once the default list is already scoped). Admin may keep org-wide + Mine.
 
-**Today:** role flags + Pundit scopes; assistants are not tied to specific advisors
+**Today:** role flags + Pundit scopes; assistants are not tied to specific advisors; Assistants currently see all org tasks
 
 **Work (typical)**
 1. Join table e.g. `advisor_assistants` (advisor_id, assistant_id)
 2. Advisor UI to add/remove assistants
 3. Rewrite `policy_scope` for Lead/Task/Meeting/Note/Opportunity
-4. Tests for every role path  
-5. Seed/demo data for Elena ↔ Carlos
+4. Tasks index: hide **Mine** for Advisor/Assistant once scopes are assignee/lead-limited
+5. Tests for every role path  
+6. Seed/demo data for Elena ↔ Carlos
 
 **This is the largest structural change** and unlocks correct dashboards (B1) and truthful assistant demos.
 

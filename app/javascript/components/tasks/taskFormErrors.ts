@@ -1,6 +1,8 @@
 export const TASK_CREATE_ERROR_KEYS = [
   'title',
+  'description',
   'due_date',
+  'status',
   'lead_id',
   'lead',
   'user_id',

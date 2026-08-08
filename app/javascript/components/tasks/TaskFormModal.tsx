@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react'
 import { FormEvent, useRef } from 'react'
 
-import { FieldError, SelectField, TextField } from '@/components/ui/FormFields'
+import { FieldError, SelectField, TextAreaField, TextField } from '@/components/ui/FormFields'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 
 export type TaskFormOption = {
@@ -16,10 +16,23 @@ export type TaskFormDefaults = {
 
 export type TaskFormValues = {
   title: string
+  description: string
   due_date: string
   lead_id: string
   user_id: string
+  status: string
   return_to: string
+}
+
+export type EditableTask = {
+  id: number
+  title: string
+  description?: string | null
+  due_date: string | null
+  lead_id: number | null
+  user_id?: number | null
+  status: string | null
+  can_revert?: boolean
 }
 
 type TaskFormModalProps = {
@@ -30,6 +43,18 @@ type TaskFormModalProps = {
   defaults: TaskFormDefaults
   returnTo: string
   lockedLeadId?: number | null
+  task?: EditableTask | null
+}
+
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'completed', label: 'Completed' },
+] as const
+
+function editableStatus(status: string | null | undefined): string {
+  if (!status || status === 'overdue') return 'pending'
+  return status
 }
 
 function fieldError(errors: Record<string, string | string[] | undefined>, key: string): string | null {
@@ -46,29 +71,47 @@ export default function TaskFormModal({
   defaults,
   returnTo,
   lockedLeadId = null,
+  task = null,
 }: TaskFormModalProps) {
+  const editing = task != null
   const initialLeadId =
     lockedLeadId != null
       ? String(lockedLeadId)
-      : leads[0]
-        ? String(leads[0].id)
-        : ''
+      : task?.lead_id != null
+        ? String(task.lead_id)
+        : leads[0]
+          ? String(leads[0].id)
+          : ''
 
   const form = useForm<TaskFormValues>({
-    title: '',
-    due_date: '',
+    title: task?.title ?? '',
+    description: task?.description ?? '',
+    due_date: task?.due_date ?? '',
     lead_id: initialLeadId,
-    user_id: defaults.user_id != null ? String(defaults.user_id) : '',
+    user_id:
+      task?.user_id != null
+        ? String(task.user_id)
+        : defaults.user_id != null
+          ? String(defaults.user_id)
+          : '',
+    status: editableStatus(task?.status),
     return_to: returnTo,
   })
   const dialogRef = useRef<HTMLDivElement>(null)
 
   function resetForm() {
     form.setData({
-      title: '',
-      due_date: '',
+      title: task?.title ?? '',
+      description: task?.description ?? '',
+      due_date: task?.due_date ?? '',
       lead_id: initialLeadId,
-      user_id: defaults.user_id != null ? String(defaults.user_id) : '',
+      user_id:
+        task?.user_id != null
+          ? String(task.user_id)
+          : defaults.user_id != null
+            ? String(defaults.user_id)
+            : '',
+      status: editableStatus(task?.status),
       return_to: returnTo,
     })
     form.clearErrors()
@@ -84,6 +127,12 @@ export default function TaskFormModal({
 
   if (!open) return null
 
+  // Completed tasks: only owner/admin can leave completed (can_revert). Others stay locked on completed.
+  const statusOptions =
+    task?.status === 'completed' && !task.can_revert
+      ? STATUS_OPTIONS.filter((option) => option.value === 'completed')
+      : STATUS_OPTIONS
+
   function submit(event: FormEvent) {
     event.preventDefault()
     form.transform((data) => ({
@@ -91,6 +140,18 @@ export default function TaskFormModal({
       return_to: returnTo,
       lead_id: lockedLeadId != null ? String(lockedLeadId) : data.lead_id,
     }))
+
+    if (editing && task) {
+      form.patch(`/tasks/${task.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+          resetForm()
+          onClose()
+        },
+      })
+      return
+    }
+
     form.post('/tasks', {
       preserveScroll: true,
       onSuccess: () => {
@@ -105,15 +166,17 @@ export default function TaskFormModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="new-task-title"
+        aria-labelledby="task-form-title"
         className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-lg"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="new-task-title" className="text-lg font-semibold text-slate-900">
-              New task
+            <h2 id="task-form-title" className="text-lg font-semibold text-slate-900">
+              {editing ? 'Edit task' : 'New task'}
             </h2>
-            <p className="mt-1 text-sm text-slate-600">Create a follow-up with a due date.</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {editing ? 'Update follow-up details or status.' : 'Create a follow-up with a due date.'}
+            </p>
           </div>
           <button
             type="button"
@@ -141,6 +204,15 @@ export default function TaskFormModal({
             error={fieldError(form.errors, 'title')}
           />
 
+          <TextAreaField
+            id="task-description"
+            label="Description"
+            rows={3}
+            value={form.data.description}
+            onChange={(value) => form.setData('description', value)}
+            error={fieldError(form.errors, 'description')}
+          />
+
           <TextField
             id="task-due-date"
             label="Due date"
@@ -151,13 +223,31 @@ export default function TaskFormModal({
             error={fieldError(form.errors, 'due_date')}
           />
 
-          {lockedLeadId != null ? (
+          {editing ? (
+            <SelectField
+              id="task-status"
+              label="Status"
+              required
+              value={form.data.status}
+              onChange={(value) => form.setData('status', value)}
+              error={fieldError(form.errors, 'status')}
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </SelectField>
+          ) : null}
+
+          {lockedLeadId != null || editing ? (
             <div>
               <p className="block text-sm font-medium text-slate-700">
                 Lead <span className="text-red-600">*</span>
               </p>
               <p className="mt-1 text-sm text-slate-900">
-                {leads.find((lead) => lead.id === lockedLeadId)?.name || 'Selected lead'}
+                {leads.find((lead) => lead.id === (lockedLeadId ?? task?.lead_id))?.name ||
+                  'Selected lead'}
               </p>
               <FieldError error={fieldError(form.errors, 'lead_id') || fieldError(form.errors, 'lead')} />
             </div>
@@ -220,7 +310,7 @@ export default function TaskFormModal({
               disabled={form.processing}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
             >
-              {form.processing ? 'Creating…' : 'Create task'}
+              {form.processing ? (editing ? 'Saving…' : 'Creating…') : editing ? 'Save changes' : 'Create task'}
             </button>
           </div>
         </form>
