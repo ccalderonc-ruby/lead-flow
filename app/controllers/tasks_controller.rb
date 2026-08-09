@@ -251,7 +251,7 @@ class TasksController < InertiaController
 
   def assignable_users
     User.joins(:role)
-      .where(roles: { name: %w[admin advisor] })
+      .where(roles: { name: %w[billing_admin admin advisor] })
       .where(status: [ "active", nil ])
       .order(:name)
   end

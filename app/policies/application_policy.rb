@@ -57,6 +57,10 @@ class ApplicationPolicy
     user&.admin?
   end
 
+  def billing_admin?
+    user&.billing_admin?
+  end
+
   def advisor?
     user&.advisor?
   end

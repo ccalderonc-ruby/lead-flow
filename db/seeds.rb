@@ -10,7 +10,7 @@
   Country.find_or_create_by!(iso_code: attrs[:iso_code]) { |country| country.assign_attributes(attrs) }
 end
 
-%w[admin advisor assistant].each do |name|
+%w[billing_admin admin advisor assistant].each do |name|
   Role.find_or_create_by!(name:)
 end
 

@@ -53,7 +53,11 @@ class DemoSeedsTest < ActiveSupport::TestCase
     assert_equal "Elena Vargas", advisor.name
     assert_equal "advisor", advisor.role.name
     assert_equal "active", advisor.status
-    assert_equal "active", advisor.subscription_status
+    assert_equal "inactive", advisor.subscription_status
+    assert advisor.pro_access?
+    billing_admin = User.find_by!(email: "admin@leadflow.local")
+    assert_equal "billing_admin", billing_admin.role.name
+    assert_equal "active", billing_admin.subscription_status
     assert_equal @team.id, advisor.team_id
     assert_equal countries(:cr).id, advisor.country_id
     assert advisor.authenticate(DemoSeeds::DEMO_PASSWORD)

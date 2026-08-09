@@ -2,7 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import {
-  adminNavItems,
+  adminNavItemsFor,
   adminNavVisible,
   advisorNavItems,
   advisorNavVisible,
@@ -41,6 +41,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const user = auth.user
   const showAdminNav = adminNavVisible(user?.role)
   const showAdvisorNav = advisorNavVisible(user?.role)
+  const adminItems = adminNavItemsFor(user?.role)
 
   function signOut() {
     router.delete('/logout')
@@ -63,7 +64,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <NavLink key={item.href} href={item.href} label={item.label} currentUrl={currentUrl} />
         ))}
 
-        {showAdvisorNav && (
+        {showAdvisorNav && advisorNavItems.length > 0 && (
           <>
             <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
               Account
@@ -79,7 +80,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
               Admin
             </p>
-            {adminNavItems.map((item) => (
+            {adminItems.map((item) => (
               <NavLink key={item.href} href={item.href} label={item.label} currentUrl={currentUrl} />
             ))}
           </>

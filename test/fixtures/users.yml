@@ -1,3 +1,14 @@
+billing_admin:
+  name: Billing Admin
+  email: billing@example.com
+  password_digest: <%= BCrypt::Password.create("password") %>
+  role: billing_admin
+  team: enterprise
+  country: us
+  status: active
+  subscription_status: inactive
+  pro_access: false
+
 admin:
   name: Admin User
   email: admin@example.com
@@ -6,6 +17,19 @@ admin:
   team: enterprise
   country: us
   status: active
+  subscription_status: inactive
+  pro_access: false
+
+admin_other:
+  name: Other Admin
+  email: admin2@example.com
+  password_digest: <%= BCrypt::Password.create("password") %>
+  role: admin
+  team: enterprise
+  country: us
+  status: active
+  subscription_status: inactive
+  pro_access: false
 
 advisor:
   name: Alex Advisor
@@ -16,6 +40,7 @@ advisor:
   country: cr
   status: active
   subscription_status: inactive
+  pro_access: false
 
 advisor_subscribed:
   name: Sam Subscribed
@@ -25,7 +50,8 @@ advisor_subscribed:
   team: enterprise
   country: cr
   status: active
-  subscription_status: active
+  subscription_status: inactive
+  pro_access: true
 
 assistant:
   name: Casey Assistant
@@ -35,3 +61,5 @@ assistant:
   team: enterprise
   country: us
   status: active
+  subscription_status: inactive
+  pro_access: false

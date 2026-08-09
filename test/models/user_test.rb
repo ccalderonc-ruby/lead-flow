@@ -49,12 +49,46 @@ class UserTest < ActiveSupport::TestCase
     assert_includes user.errors[:subscription_status], "is not included in the list"
   end
 
-  test "subscribed? reflects active subscription" do
-    user = users(:advisor)
-    assert_not user.subscribed?
+  test "billing_admin subscribed? follows billing status" do
+    billing_admin = users(:billing_admin)
+    assert_not billing_admin.subscribed?
 
-    user.update!(subscription_status: "active")
-    assert user.subscribed?
+    billing_admin.update!(subscription_status: "active")
+    assert billing_admin.subscribed?
+  end
+
+  test "regular admin is not entitled by own subscription_status" do
+    admin = users(:admin)
+    admin.update!(subscription_status: "active", pro_access: false)
+    assert_not admin.subscribed?
+
+    users(:billing_admin).update!(subscription_status: "active")
+    admin.update!(pro_access: true)
+    assert admin.reload.subscribed?
+  end
+
+  test "member subscribed? requires pro_access and team billing" do
+    advisor = users(:advisor)
+    assert_not advisor.subscribed?
+
+    advisor.update!(pro_access: true)
+    assert_not advisor.subscribed?
+
+    users(:billing_admin).update!(subscription_status: "active")
+    assert advisor.reload.subscribed?
+  end
+
+  test "subscription remains active while cancel_at_period_end is scheduled" do
+    billing_admin = users(:billing_admin)
+    billing_admin.update!(
+      subscription_status: "active",
+      subscription_cancel_at_period_end: true,
+      subscription_current_period_end: 1.week.from_now
+    )
+
+    assert billing_admin.billing_active?
+    assert billing_admin.subscription_canceling?
+    assert billing_admin.subscribed?
   end
 
   test "password must be at least 8 characters" do

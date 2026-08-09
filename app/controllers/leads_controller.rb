@@ -54,7 +54,8 @@ class LeadsController < InertiaController
       can_filter_assignee: current_user.admin?,
       can_create: policy(Lead).create?,
       can_export: policy(Lead).export?,
-      show_subscribe_for_export: current_user.advisor? && !current_user.subscribed?
+      show_subscribe_for_export: !policy(Lead).export? && (current_user.advisor? || current_user.admin?),
+      show_admin_subscribe_link: current_user.billing_admin? && !current_user.subscribed?
     }
   end
 
@@ -326,7 +327,7 @@ class LeadsController < InertiaController
     return [ { id: current_user.id, name: current_user.name } ] if current_user.advisor?
 
     User.joins(:role)
-      .where(roles: { name: %w[admin advisor] })
+      .where(roles: { name: %w[billing_admin admin advisor] })
       .where(status: [ "active", nil ])
       .order(:name)
       .map { |user| { id: user.id, name: user.name } }
@@ -354,7 +355,7 @@ class LeadsController < InertiaController
 
   def assignable_users
     User.joins(:role)
-      .where(roles: { name: %w[admin advisor] })
+      .where(roles: { name: %w[billing_admin admin advisor] })
       .where(status: [ "active", nil ])
       .order(:name)
   end
@@ -505,9 +506,13 @@ class LeadsController < InertiaController
   end
 
   def leads_not_authorized
-    if action_name == "export" && current_user&.advisor? && !current_user.subscribed?
-      redirect_to settings_subscription_path,
-        alert: "Subscribe to LeadFlow Pro to export your leads as CSV."
+    if action_name == "export" && current_user && !current_user.subscribed? && (current_user.advisor? || current_user.admin?)
+      alert = if current_user.billing_admin?
+        "Subscribe to LeadFlow Pro under Admin → Subscriptions to export leads as CSV."
+      else
+        "Ask a billing admin to grant you LeadFlow Pro access so you can export leads as CSV."
+      end
+      redirect_to leads_path, alert: alert
     else
       user_not_authorized
     end

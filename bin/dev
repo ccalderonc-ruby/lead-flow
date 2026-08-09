@@ -1,5 +1,16 @@
 #!/usr/bin/env sh
 
+cd "$(dirname "$0")/.." || exit 1
+
+# Load project .env into this process so empty placeholder STRIPE_* (or PORT)
+# vars from the parent environment cannot block dotenv-rails / Puma.
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
 export PORT="${PORT:-3000}"
 
 echo ""
@@ -9,7 +20,8 @@ echo ""
 
 if command -v overmind 1> /dev/null 2>&1
 then
-  overmind start -f Procfile.dev "$@"
+  # -N: don't reassign $PORT per process (otherwise web becomes base+100, e.g. 3100).
+  overmind start -f Procfile.dev -N "$@"
   exit $?
 fi
 

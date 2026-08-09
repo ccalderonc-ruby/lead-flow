@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_09_174002) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_09_190611) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -193,10 +193,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_174002) do
     t.datetime "last_login_at"
     t.string "name"
     t.string "password_digest"
+    t.boolean "pro_access", default: false, null: false
     t.bigint "role_id", null: false
     t.string "status"
     t.string "stripe_customer_id"
     t.string "stripe_subscription_id"
+    t.boolean "subscription_cancel_at_period_end", default: false, null: false
+    t.datetime "subscription_current_period_end"
     t.string "subscription_status", default: "inactive", null: false
     t.bigint "team_id", null: false
     t.datetime "updated_at", null: false

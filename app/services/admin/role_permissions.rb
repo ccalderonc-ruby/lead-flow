@@ -4,18 +4,28 @@
 # Labels mirror enforced Pundit behavior — do not invent DB-backed permissions.
 module Admin
   module RolePermissions
-    COLUMNS = %w[leads opportunities tasks meetings notes users].freeze
-    SEEDED_ROLES = %w[admin advisor assistant].freeze
+    COLUMNS = %w[leads opportunities tasks meetings notes users subscriptions].freeze
+    SEEDED_ROLES = %w[billing_admin admin advisor assistant].freeze
 
     # Compact labels aligned with app/policies/* (not a wishful DATA_MODEL copy).
     MATRIX = {
+      "billing_admin" => {
+        "leads" => "All",
+        "opportunities" => "All",
+        "tasks" => "All",
+        "meetings" => "All",
+        "notes" => "All",
+        "users" => "Manage + grant admin",
+        "subscriptions" => "Org billing + Pro grants"
+      },
       "admin" => {
         "leads" => "All",
         "opportunities" => "All",
         "tasks" => "All",
         "meetings" => "All",
         "notes" => "All",
-        "users" => "Manage (self protected)"
+        "users" => "Manage (no admin grant)",
+        "subscriptions" => "—"
       },
       "advisor" => {
         "leads" => "Create; manage assigned",
@@ -23,7 +33,8 @@ module Admin
         "tasks" => "On assigned leads",
         "meetings" => "On assigned leads",
         "notes" => "On assigned leads",
-        "users" => "—"
+        "users" => "—",
+        "subscriptions" => "—"
       },
       "assistant" => {
         "leads" => "Read only",
@@ -31,7 +42,8 @@ module Admin
         "tasks" => "Create, update, read",
         "meetings" => "Read only",
         "notes" => "Create, update, read",
-        "users" => "—"
+        "users" => "—",
+        "subscriptions" => "—"
       }
     }.freeze
 

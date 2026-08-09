@@ -27,7 +27,7 @@ class LeadPolicy < ApplicationPolicy
   end
 
   def export?
-    advisor? && user.subscribed?
+    (admin? || advisor?) && user.subscribed?
   end
 
   class Scope < Scope

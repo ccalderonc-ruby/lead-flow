@@ -44,16 +44,35 @@ class LeadPolicyTest < ActiveSupport::TestCase
     refute LeadPolicy.new(@assistant, @advisor_lead).update?
   end
 
-  test "subscribed advisor can export" do
+  test "subscribed advisor can export when org billing is active" do
+    users(:billing_admin).update!(subscription_status: "active")
     assert LeadPolicy.new(users(:advisor_subscribed), Lead).export?
   end
 
   test "inactive advisor cannot export" do
+    users(:billing_admin).update!(subscription_status: "active")
     refute LeadPolicy.new(@advisor, Lead).export?
   end
 
-  test "admin and assistant cannot export" do
+  test "billing admin can export without advisor role when subscribed" do
+    billing_admin = users(:billing_admin)
+    refute LeadPolicy.new(billing_admin, Lead).export?
+
+    billing_admin.update!(subscription_status: "active")
+    assert LeadPolicy.new(billing_admin, Lead).export?
+  end
+
+  test "regular admin can export when granted pro access" do
+    users(:billing_admin).update!(subscription_status: "active")
     refute LeadPolicy.new(@admin, Lead).export?
+
+    @admin.update!(pro_access: true)
+    assert LeadPolicy.new(@admin, Lead).export?
+  end
+
+  test "assistant cannot export" do
+    users(:billing_admin).update!(subscription_status: "active")
+    users(:assistant).update!(pro_access: true)
     refute LeadPolicy.new(@assistant, Lead).export?
   end
 end

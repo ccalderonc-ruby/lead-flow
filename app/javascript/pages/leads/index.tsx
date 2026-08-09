@@ -41,6 +41,7 @@ type LeadsIndexProps = {
   can_create: boolean
   can_export: boolean
   show_subscribe_for_export: boolean
+  show_admin_subscribe_link?: boolean
 }
 
 function leadsQueryParams(
@@ -88,6 +89,7 @@ export default function LeadsIndex({
   can_create: canCreate,
   can_export: canExport,
   show_subscribe_for_export: showSubscribeForExport,
+  show_admin_subscribe_link: showAdminSubscribeLink = false,
 }: LeadsIndexProps) {
   const [query, setQuery] = useState(meta.q)
 
@@ -136,14 +138,19 @@ export default function LeadsIndex({
                 Export CSV
               </a>
             )}
-            {showSubscribeForExport && (
-              <Link
-                href="/settings/subscription"
-                className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
-              >
-                Export CSV — Subscribe
-              </Link>
-            )}
+            {showSubscribeForExport &&
+              (showAdminSubscribeLink ? (
+                <Link
+                  href="/admin/subscriptions"
+                  className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
+                >
+                  Export CSV — subscribe to LeadFlow Pro
+                </Link>
+              ) : (
+                <span className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900">
+                  Export CSV — ask an admin for LeadFlow Pro
+                </span>
+              ))}
             {canCreate && (
               <Link
                 href="/leads/new"
@@ -176,7 +183,7 @@ export default function LeadsIndex({
 
         {showSubscribeForExport && (
           <p className="mt-3 text-sm text-amber-800">
-            Subscribe to LeadFlow Pro to export your leads as CSV.
+            Ask an admin to activate LeadFlow Pro so you can export leads as CSV.
           </p>
         )}
 
