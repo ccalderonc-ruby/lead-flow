@@ -105,6 +105,16 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"can_update":true'
   end
 
+  test "index accepts opportunity_id to open a deal from notes" do
+    sign_in_as users(:advisor)
+    opportunity = opportunities(:migration)
+
+    get opportunities_path(opportunity_id: opportunity.id)
+
+    assert_response :success
+    assert_includes response.body, "\"opportunity_id\":#{opportunity.id}"
+  end
+
   test "assistant index marks opportunities can_update false" do
     sign_in_as users(:assistant)
 

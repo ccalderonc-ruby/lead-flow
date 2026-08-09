@@ -194,9 +194,18 @@ export default function NotesIndex({
                           <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
                             Opportunity
                           </div>
-                          <div className="mt-0.5 font-medium text-slate-900">
-                            {note.opportunity || '—'}
-                          </div>
+                          {note.opportunity_id ? (
+                            <Link
+                              href={`/opportunities?opportunity_id=${note.opportunity_id}`}
+                              className="mt-0.5 inline-block font-medium text-indigo-600 hover:text-indigo-500"
+                            >
+                              {note.opportunity || '—'}
+                            </Link>
+                          ) : (
+                            <div className="mt-0.5 font-medium text-slate-900">
+                              {note.opportunity || '—'}
+                            </div>
+                          )}
                         </div>
                       ) : note.lead_id ? (
                         <div>

@@ -7,7 +7,9 @@ class OpportunitiesController < InertiaController
     authorize Opportunity
 
     stages = OpportunityStage.order(:position)
-    opportunities = policy_scope(Opportunity)
+    scoped = policy_scope(Opportunity)
+    selected_id = parse_opportunity_id(params[:opportunity_id], scoped)
+    opportunities = scoped
       .includes(:lead, notes: :user)
       .order(created_at: :desc, id: :asc)
     grouped = opportunities.group_by(&:stage_id)
@@ -22,7 +24,10 @@ class OpportunitiesController < InertiaController
         }
       },
       stage_options: stages.map { |stage| { id: stage.id, name: stage.name } },
-      return_to: opportunities_path
+      meta: {
+        opportunity_id: selected_id
+      },
+      return_to: opportunities_return_path(selected_id)
     }
   end
 
@@ -81,6 +86,20 @@ class OpportunitiesController < InertiaController
         }
       }
     }
+  end
+
+  def parse_opportunity_id(raw, scoped)
+    id = Integer(Array(raw).first, exception: false)
+    return unless id
+    return unless scoped.exists?(id)
+
+    id
+  end
+
+  def opportunities_return_path(opportunity_id = nil)
+    opts = {}
+    opts[:opportunity_id] = opportunity_id if opportunity_id
+    opportunities_path(opts)
   end
 
   def opportunity_update_params

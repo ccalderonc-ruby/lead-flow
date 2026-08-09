@@ -1,5 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react'
-import { useState } from 'react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
+import { useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import OpportunityDrawer, {
@@ -21,9 +21,14 @@ type PipelineStage = {
   opportunities: OpportunityCard[]
 }
 
+type OpportunitiesMeta = {
+  opportunity_id: number | null
+}
+
 type OpportunitiesIndexProps = {
   stages: PipelineStage[]
   stage_options: OpportunityStageOption[]
+  meta?: OpportunitiesMeta
   return_to?: string
 }
 
@@ -39,6 +44,7 @@ function findOpportunity(stages: PipelineStage[], id: number | null): Opportunit
 export default function OpportunitiesIndex({
   stages = [],
   stage_options: stageOptions = [],
+  meta = { opportunity_id: null },
   return_to: returnTo = '/opportunities',
 }: OpportunitiesIndexProps) {
   const page = usePage()
@@ -47,8 +53,12 @@ export default function OpportunitiesIndex({
   const errorOpportunityId = opportunityIdFromErrors(pageErrors)
   const errorKey = updateErrorsPresent ? JSON.stringify(pageErrors) : null
 
-  const [manualId, setManualId] = useState<number | null>(null)
+  const [manualId, setManualId] = useState<number | null>(meta.opportunity_id)
   const [dismissedErrorKey, setDismissedErrorKey] = useState<string | null>(null)
+
+  useEffect(() => {
+    setManualId(meta.opportunity_id)
+  }, [meta.opportunity_id])
 
   const errorStillOpen = errorKey != null && dismissedErrorKey !== errorKey
   const selectedId = manualId ?? (errorStillOpen ? errorOpportunityId : null)
@@ -63,6 +73,9 @@ export default function OpportunitiesIndex({
   function closeDrawer() {
     setManualId(null)
     if (errorKey != null) setDismissedErrorKey(errorKey)
+    if (meta.opportunity_id != null) {
+      router.get('/opportunities', {}, { preserveState: true, preserveScroll: true, replace: true })
+    }
   }
 
   return (
