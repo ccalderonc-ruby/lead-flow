@@ -121,7 +121,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </div>
         )}
 
-        <div className="flex min-h-screen flex-1 flex-col lg:pl-64">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-64">
           <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:px-8">
             <button
               type="button"
@@ -138,7 +138,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             )}
           </header>
 
-          <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
+          <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
             {flash?.notice && (
               <p className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
                 {flash.notice}

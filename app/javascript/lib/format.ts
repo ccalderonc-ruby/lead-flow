@@ -5,8 +5,37 @@ export function formatCurrency(amount: string | number | null | undefined): stri
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value)
+}
+
+/** Format a USD amount for text inputs with thousand separators (keeps up to 2 decimals while typing). */
+export function formatUsdInput(raw: string | number | null | undefined): string {
+  if (raw == null || raw === '') return ''
+
+  if (typeof raw === 'number') {
+    if (Number.isNaN(raw)) return ''
+    return formatUsdInput(raw.toFixed(2))
+  }
+
+  const cleaned = String(raw).replace(/[^\d.]/g, '')
+  if (cleaned === '') return ''
+
+  const hasDecimal = cleaned.includes('.')
+  const [intPart = '', ...fractionParts] = cleaned.split('.')
+  const fraction = fractionParts.join('').slice(0, 2)
+  const groupedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+  if (hasDecimal) return `${groupedInt}.${fraction}`
+  return groupedInt
+}
+
+/** Strip grouping commas from a USD input before submit. */
+export function parseUsdInput(formatted: string): string {
+  const cleaned = formatted.replace(/,/g, '').trim()
+  if (cleaned === '' || cleaned === '.') return ''
+  return cleaned
 }
 
 /** Date-only ISO (`YYYY-MM-DD`) or datetime ISO → short US date. */

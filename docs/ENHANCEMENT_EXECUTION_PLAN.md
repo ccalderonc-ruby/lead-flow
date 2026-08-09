@@ -48,10 +48,10 @@ You currently have **uncommitted local work** on `dev` (demo enrich + docs). Lan
 
 ### Day 3–5 · B4 — Create opportunity
 
-- [ ] Branch: `feature/b4-create-opportunity` from updated `origin/dev`
-- [ ] `OpportunitiesController#create` + policy
-- [ ] Shared form used from **Opportunities board** and **Lead detail**
-- [ ] Same validations / workflow both entry points
+- [x] Branch: `feature/b4-create-opportunity` from updated `origin/dev`
+- [x] `OpportunitiesController#create` + policy
+- [x] Shared form used from **Opportunities board** and **Lead detail**
+- [x] Same validations / workflow both entry points
 - [ ] Tests + PR + merge
 
 **Done when:** you can create a deal from the board and from a lead without duplicating logic.

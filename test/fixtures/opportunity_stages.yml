@@ -1,5 +1,5 @@
 prospect:
-  name: Prospect
+  name: Prospects
   position: 1
   default_probability: 20
 
@@ -8,12 +8,17 @@ proposal:
   position: 2
   default_probability: 60
 
+negotiation:
+  name: Negotiation
+  position: 3
+  default_probability: 80
+
 won:
   name: Won
-  position: 3
+  position: 4
   default_probability: 100
 
 lost:
   name: Lost
-  position: 4
+  position: 5
   default_probability: 0
