@@ -12,13 +12,12 @@ export const mainNavItems: NavItem[] = [
   { label: 'Opportunities', href: '/opportunities' },
 ]
 
-export const advisorNavItems: NavItem[] = [
-  { label: 'Subscription', href: '/settings/subscription' },
-]
+export const advisorNavItems: NavItem[] = []
 
 export const adminNavItems: NavItem[] = [
   { label: 'Users', href: '/admin/users' },
   { label: 'Roles', href: '/admin/roles' },
+  { label: 'Subscriptions', href: '/admin/subscriptions' },
 ]
 
 export function adminNavVisible(role: string | undefined): boolean {

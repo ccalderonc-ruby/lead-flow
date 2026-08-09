@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Settings::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
+class Admin::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @prev_secret = ENV["STRIPE_SECRET_KEY"]
     @prev_price = ENV["STRIPE_PRICE_ID"]
@@ -22,33 +22,42 @@ class Settings::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     Stripe.api_key = @prev_api_key
   end
 
-  test "guest cannot open subscription settings" do
-    get settings_subscription_path
+  test "guest cannot open admin subscriptions" do
+    get admin_subscriptions_path
 
     assert_redirected_to login_path
   end
 
-  test "advisor can open subscription settings" do
-    sign_in_as users(:advisor)
+  test "admin can open subscriptions index" do
+    sign_in_as users(:admin)
 
-    get settings_subscription_path
+    get admin_subscriptions_path
 
     assert_response :success
-    assert_includes response.body, '"component":"settings/subscription"'
+    assert_includes response.body, '"component":"admin/subscriptions/index"'
+    assert_includes response.body, users(:advisor).email
     assert_includes response.body, '"subscription_status":"inactive"'
   end
 
-  test "assistant cannot open subscription settings" do
-    sign_in_as users(:assistant)
+  test "advisor cannot open admin subscriptions" do
+    sign_in_as users(:advisor)
 
-    get settings_subscription_path
+    get admin_subscriptions_path
 
     assert_redirected_to root_path
     assert_equal "You are not authorized to perform this action.", flash[:alert]
   end
 
-  test "advisor checkout redirects to stripe with mapping attrs" do
-    sign_in_as users(:advisor)
+  test "assistant cannot open admin subscriptions" do
+    sign_in_as users(:assistant)
+
+    get admin_subscriptions_path
+
+    assert_redirected_to root_path
+  end
+
+  test "admin checkout for advisor redirects to stripe with mapping attrs" do
+    sign_in_as users(:admin)
     advisor = users(:advisor)
     captured = nil
     fake_session = Struct.new(:url).new("https://checkout.stripe.com/c/test_session")
@@ -57,7 +66,7 @@ class Settings::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
       captured = params
       fake_session
     }) do
-      post settings_subscription_path
+      post admin_subscriptions_path, params: { user_id: advisor.id }
     end
 
     assert_redirected_to "https://checkout.stripe.com/c/test_session"
@@ -66,29 +75,33 @@ class Settings::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal advisor.id.to_s, captured[:metadata][:user_id]
     assert_equal StripeConfig.price_id, captured[:line_items].first[:price]
     assert_equal advisor.email, captured[:customer_email]
+    assert_includes captured[:success_url], "user_id=#{advisor.id}"
   end
 
-  test "assistant cannot start checkout" do
-    sign_in_as users(:assistant)
+  test "advisor cannot start checkout" do
+    sign_in_as users(:advisor)
 
-    post settings_subscription_path
+    post admin_subscriptions_path, params: { user_id: users(:advisor).id }
 
     assert_redirected_to root_path
-    assert_equal "inactive", users(:assistant).reload.subscription_status
+    assert_equal "inactive", users(:advisor).reload.subscription_status
   end
 
-  test "guest cannot start checkout" do
-    post settings_subscription_path
+  test "legacy settings subscription path redirects to admin" do
+    sign_in_as users(:admin)
 
-    assert_redirected_to login_path
+    get "/settings/subscription"
+
+    assert_redirected_to admin_subscriptions_path
   end
 
   test "success return shows activation notice when still inactive" do
-    sign_in_as users(:advisor)
+    sign_in_as users(:admin)
+    advisor = users(:advisor)
 
-    get settings_subscription_path, params: { checkout: "success" }
+    get admin_subscriptions_path, params: { checkout: "success", user_id: advisor.id }
 
     assert_response :success
-    assert_match(/Activating your subscription/, flash[:notice])
+    assert_match(/Activating subscription/, flash[:notice])
   end
 end

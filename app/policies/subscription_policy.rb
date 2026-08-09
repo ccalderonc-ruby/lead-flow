@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
 class SubscriptionPolicy < ApplicationPolicy
+  def index?
+    admin?
+  end
+
   def show?
-    advisor?
+    admin?
   end
 
   def create?
-    advisor?
+    admin?
   end
 end

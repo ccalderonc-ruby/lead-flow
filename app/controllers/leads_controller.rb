@@ -506,8 +506,8 @@ class LeadsController < InertiaController
 
   def leads_not_authorized
     if action_name == "export" && current_user&.advisor? && !current_user.subscribed?
-      redirect_to settings_subscription_path,
-        alert: "Subscribe to LeadFlow Pro to export your leads as CSV."
+      redirect_to leads_path,
+        alert: "Ask an admin to activate LeadFlow Pro so you can export leads as CSV."
     else
       user_not_authorized
     end

@@ -23,11 +23,12 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :users, only: %i[index new create edit update]
     resources :roles, only: :index
+    resources :subscriptions, only: %i[index create]
   end
 
-  namespace :settings do
-    resource :subscription, only: %i[show create], controller: "subscriptions"
-  end
+  # Legacy advisor settings URL — subscription is admin-managed.
+  get "settings/subscription", to: redirect("/admin/subscriptions")
+  post "settings/subscription", to: "admin/subscriptions#create"
 
   post "webhooks/stripe", to: "webhooks/stripe#create"
 

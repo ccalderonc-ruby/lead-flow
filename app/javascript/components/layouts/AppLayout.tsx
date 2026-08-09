@@ -63,7 +63,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <NavLink key={item.href} href={item.href} label={item.label} currentUrl={currentUrl} />
         ))}
 
-        {showAdvisorNav && (
+        {showAdvisorNav && advisorNavItems.length > 0 && (
           <>
             <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
               Account

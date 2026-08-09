@@ -26,6 +26,8 @@ class User < ApplicationRecord
   validates :subscription_status, inclusion: { in: SUBSCRIPTION_STATUSES }
   validates :password, length: { minimum: 8 }, allow_nil: true
 
+  scope :advisors, -> { joins(:role).where(roles: { name: "advisor" }) }
+
   def admin?
     role.name == "admin"
   end

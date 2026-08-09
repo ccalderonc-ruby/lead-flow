@@ -753,8 +753,8 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
 
     get export_leads_path
 
-    assert_redirected_to settings_subscription_path
-    assert_equal "Subscribe to LeadFlow Pro to export your leads as CSV.", flash[:alert]
+    assert_redirected_to leads_path
+    assert_equal "Ask an admin to activate LeadFlow Pro so you can export leads as CSV.", flash[:alert]
   end
 
   test "assistant cannot export csv" do

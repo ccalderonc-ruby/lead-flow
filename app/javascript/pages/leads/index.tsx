@@ -137,12 +137,9 @@ export default function LeadsIndex({
               </a>
             )}
             {showSubscribeForExport && (
-              <Link
-                href="/settings/subscription"
-                className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
-              >
-                Export CSV — Subscribe
-              </Link>
+              <span className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900">
+                Export CSV — ask an admin for LeadFlow Pro
+              </span>
             )}
             {canCreate && (
               <Link
@@ -176,7 +173,7 @@ export default function LeadsIndex({
 
         {showSubscribeForExport && (
           <p className="mt-3 text-sm text-amber-800">
-            Subscribe to LeadFlow Pro to export your leads as CSV.
+            Ask an admin to activate LeadFlow Pro so you can export leads as CSV.
           </p>
         )}
 
