@@ -16,7 +16,7 @@ Rails.application.routes.draw do
     end
   end
   resources :tasks, only: %i[index create update]
-  resources :notes, only: :create
+  resources :notes, only: %i[index create update destroy]
   resources :meetings, only: %i[index create update]
   resources :opportunities, only: %i[index update]
 
