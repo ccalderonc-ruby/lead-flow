@@ -39,4 +39,24 @@ class NotePolicyTest < ActiveSupport::TestCase
     assert NotePolicy.new(@advisor, Note).index?
     assert NotePolicy.new(@assistant, Note).index?
   end
+
+  test "advisor can create note on assigned opportunity" do
+    note = Note.new(
+      opportunity: opportunities(:migration),
+      user: @advisor,
+      content: "Pricing follow-up"
+    )
+
+    assert NotePolicy.new(@advisor, note).create?
+  end
+
+  test "advisor cannot create note on unassigned opportunity" do
+    note = Note.new(
+      opportunity: opportunities(:won_deal),
+      user: @advisor,
+      content: "Should fail"
+    )
+
+    refute NotePolicy.new(@advisor, note).create?
+  end
 end

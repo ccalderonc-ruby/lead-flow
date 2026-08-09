@@ -8,7 +8,7 @@ class OpportunitiesController < InertiaController
 
     stages = OpportunityStage.order(:position)
     opportunities = policy_scope(Opportunity)
-      .includes(:lead)
+      .includes(:lead, notes: :user)
       .order(created_at: :desc, id: :asc)
     grouped = opportunities.group_by(&:stage_id)
 
@@ -21,7 +21,8 @@ class OpportunitiesController < InertiaController
           opportunities: Array(grouped[stage.id]).map { |opportunity| serialize_opportunity(opportunity) }
         }
       },
-      stage_options: stages.map { |stage| { id: stage.id, name: stage.name } }
+      stage_options: stages.map { |stage| { id: stage.id, name: stage.name } },
+      return_to: opportunities_path
     }
   end
 
@@ -67,7 +68,18 @@ class OpportunitiesController < InertiaController
       stage_id: opportunity.stage_id,
       close_date: opportunity.close_date&.iso8601,
       description: opportunity.description,
-      can_update: policy(opportunity).update?
+      can_update: policy(opportunity).update?,
+      can_create_note: policy(Note.new(opportunity: opportunity)).create?,
+      notes: opportunity.notes.sort_by { |note| [ -note.created_at.to_i, -note.id ] }.map { |note|
+        {
+          id: note.id,
+          content: note.content,
+          author: note.user&.name,
+          created_at: note.created_at&.iso8601,
+          can_update: policy(note).update?,
+          can_destroy: policy(note).destroy?
+        }
+      }
     }
   end
 

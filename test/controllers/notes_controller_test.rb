@@ -65,12 +65,47 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     assert_difference "Note.count", 1 do
       post notes_path, params: {
         content: "Board note",
+        link_type: "lead",
         lead_id: lead.id,
         return_to: notes_path
       }
     end
 
     assert_redirected_to notes_path
+  end
+
+  test "advisor creates opportunity-linked note" do
+    sign_in_as users(:advisor)
+    opportunity = opportunities(:migration)
+    lead = opportunity.lead
+    lead.update!(last_activity_at: 2.days.ago)
+
+    assert_difference "Note.count", 1 do
+      post notes_path, params: {
+        content: "Deal desk wants revised pricing",
+        link_type: "opportunity",
+        opportunity_id: opportunity.id,
+        return_to: opportunities_path
+      }
+    end
+
+    note = Note.order(:id).last
+    assert_equal opportunity.id, note.opportunity_id
+    assert_nil note.lead_id
+    assert_equal Time.current, lead.reload.last_activity_at
+    assert_redirected_to opportunities_path
+  end
+
+  test "notes index includes lead and opportunity notes" do
+    sign_in_as users(:advisor)
+
+    get notes_path
+
+    assert_response :success
+    assert_includes response.body, notes(:discovery).content
+    assert_includes response.body, notes(:deal_follow_up).content
+    assert_includes response.body, '"link_type":"opportunity"'
+    assert_includes response.body, '"opportunities"'
   end
 
   test "assistant creates note on any lead" do

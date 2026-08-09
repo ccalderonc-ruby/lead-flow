@@ -111,8 +111,8 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     get opportunities_path
 
     assert_response :success
-    assert_includes response.body, '"can_update":false'
-    refute_includes response.body, '"can_update":true'
+    assert_includes response.body, '"can_update":false,"can_create_note":true'
+    refute_includes response.body, '"can_update":true,"can_create_note"'
   end
 
   test "advisor updates stage on assigned opportunity" do

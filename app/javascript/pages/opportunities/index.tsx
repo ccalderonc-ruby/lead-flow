@@ -24,6 +24,7 @@ type PipelineStage = {
 type OpportunitiesIndexProps = {
   stages: PipelineStage[]
   stage_options: OpportunityStageOption[]
+  return_to?: string
 }
 
 function findOpportunity(stages: PipelineStage[], id: number | null): OpportunityCard | null {
@@ -38,6 +39,7 @@ function findOpportunity(stages: PipelineStage[], id: number | null): Opportunit
 export default function OpportunitiesIndex({
   stages = [],
   stage_options: stageOptions = [],
+  return_to: returnTo = '/opportunities',
 }: OpportunitiesIndexProps) {
   const page = usePage()
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
@@ -134,6 +136,7 @@ export default function OpportunitiesIndex({
         open={drawerOpen}
         opportunity={selected}
         stageOptions={stageOptions}
+        returnTo={returnTo}
         onClose={closeDrawer}
       />
     </AuthenticatedPage>

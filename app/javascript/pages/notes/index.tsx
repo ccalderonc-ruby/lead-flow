@@ -16,8 +16,11 @@ import { formatDateTime } from '@/lib/format'
 export type NoteRow = {
   id: number
   content: string
+  link_type: 'lead' | 'opportunity'
   lead: string | null
   lead_id: number | null
+  opportunity: string | null
+  opportunity_id: number | null
   author: string | null
   user_id?: number | null
   created_at: string | null
@@ -38,6 +41,7 @@ type NotesIndexProps = {
   meta: NotesMeta
   can_create: boolean
   leads: NoteFormOption[]
+  opportunities: NoteFormOption[]
   return_to: string
 }
 
@@ -57,6 +61,7 @@ export default function NotesIndex({
   meta,
   can_create: canCreate,
   leads = [],
+  opportunities = [],
   return_to: returnTo,
 }: NotesIndexProps) {
   const page = usePage()
@@ -90,6 +95,8 @@ export default function NotesIndex({
           id: editingFromError.id,
           content: editingFromError.content,
           lead_id: editingFromError.lead_id,
+          opportunity_id: editingFromError.opportunity_id,
+          link_type: editingFromError.link_type,
         }
       : null)
 
@@ -106,6 +113,8 @@ export default function NotesIndex({
       id: note.id,
       content: note.content,
       lead_id: note.lead_id,
+      opportunity_id: note.opportunity_id,
+      link_type: note.link_type,
     })
   }
 
@@ -141,7 +150,7 @@ export default function NotesIndex({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">Notes</h1>
-            <p className="mt-1 text-slate-600">Conversation details linked to your leads.</p>
+            <p className="mt-1 text-slate-600">Details linked to leads or opportunities.</p>
           </div>
 
           {canCreate && (
@@ -160,7 +169,7 @@ export default function NotesIndex({
             <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-3">Note</th>
-                <th className="px-4 py-3">Lead</th>
+                <th className="px-4 py-3">Linked to</th>
                 <th className="px-4 py-3">Author</th>
                 <th className="px-4 py-3">Created</th>
                 <th className="px-4 py-3 text-right">Actions</th>
@@ -180,15 +189,29 @@ export default function NotesIndex({
                       <div className="whitespace-pre-wrap">{previewContent(note.content)}</div>
                     </td>
                     <td className="px-4 py-3 text-slate-700">
-                      {note.lead_id ? (
-                        <Link
-                          href={`/leads/${note.lead_id}`}
-                          className="font-medium text-indigo-600 hover:text-indigo-500"
-                        >
-                          {note.lead || '—'}
-                        </Link>
+                      {note.link_type === 'opportunity' ? (
+                        <div>
+                          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                            Opportunity
+                          </div>
+                          <div className="mt-0.5 font-medium text-slate-900">
+                            {note.opportunity || '—'}
+                          </div>
+                        </div>
+                      ) : note.lead_id ? (
+                        <div>
+                          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                            Lead
+                          </div>
+                          <Link
+                            href={`/leads/${note.lead_id}`}
+                            className="mt-0.5 inline-block font-medium text-indigo-600 hover:text-indigo-500"
+                          >
+                            {note.lead || '—'}
+                          </Link>
+                        </div>
                       ) : (
-                        note.lead || '—'
+                        '—'
                       )}
                     </td>
                     <td className="px-4 py-3 text-slate-700">{note.author || '—'}</td>
@@ -256,6 +279,7 @@ export default function NotesIndex({
           open={createModalOpen}
           onClose={closeModal}
           leads={leads}
+          opportunities={opportunities}
           returnTo={createReturnTo}
         />
       )}
@@ -266,6 +290,7 @@ export default function NotesIndex({
           open
           onClose={closeModal}
           leads={leads}
+          opportunities={opportunities}
           returnTo={createReturnTo}
           note={activeEdit}
         />

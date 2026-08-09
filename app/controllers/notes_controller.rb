@@ -11,7 +11,7 @@ class NotesController < InertiaController
     page = Integer(Array(params[:page]).first, exception: false) || 1
     page = [ page, 1 ].max
 
-    scoped = policy_scope(Note).includes(:lead, :user)
+    scoped = policy_scope(Note).includes(:lead, :user, opportunity: :lead)
     total_count = scoped.count
     total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
     page = page.clamp(1, total_pages)
@@ -36,28 +36,34 @@ class NotesController < InertiaController
   end
 
   def create
-    lead = policy_scope(Lead).find_by(id: note_params[:lead_id])
-    unless lead
+    link = resolve_link_target
+    unless link
       skip_authorization
-      redirect_to safe_return_path, inertia: { errors: lead_missing_errors.merge(form: [ "note" ]) }
+      redirect_to safe_return_path, inertia: { errors: link_missing_errors.merge(form: [ "note" ]) }
       return
     end
 
-    note = Note.new(lead: lead, user: current_user)
+    note = Note.new(user: current_user)
+    if link[:type] == :lead
+      note.lead = link[:record]
+    else
+      note.opportunity = link[:record]
+    end
     authorize note
 
     note.content = note_params[:content]
+    activity_lead = note.linked_lead
 
     begin
       ActiveRecord::Base.transaction do
         note.save!
-        lead.update!(last_activity_at: Time.current)
+        activity_lead&.update!(last_activity_at: Time.current)
       end
 
       flash[:notice] = "Note added."
-      redirect_to safe_return_path(lead)
+      redirect_to safe_return_path(activity_lead)
     rescue ActiveRecord::RecordInvalid
-      redirect_to safe_return_path(lead), inertia: { errors: create_validation_errors(note) }
+      redirect_to safe_return_path(activity_lead), inertia: { errors: create_validation_errors(note) }
     end
   end
 
@@ -65,45 +71,49 @@ class NotesController < InertiaController
     authorize @note
 
     @note.content = note_params[:content]
+    activity_lead = @note.linked_lead
 
     begin
       ActiveRecord::Base.transaction do
         @note.save!
-        @note.lead.update!(last_activity_at: Time.current)
+        activity_lead&.update!(last_activity_at: Time.current)
       end
 
       flash[:notice] = "Note updated."
-      redirect_to safe_return_path(@note.lead)
+      redirect_to safe_return_path(activity_lead)
     rescue ActiveRecord::RecordInvalid
-      redirect_to safe_return_path(@note.lead), inertia: { errors: update_validation_errors(@note) }
+      redirect_to safe_return_path(activity_lead), inertia: { errors: update_validation_errors(@note) }
     end
   end
 
   def destroy
     authorize @note
-    lead = @note.lead
+    activity_lead = @note.linked_lead
 
     ActiveRecord::Base.transaction do
       @note.destroy!
-      lead.update!(last_activity_at: Time.current)
+      activity_lead&.update!(last_activity_at: Time.current)
     end
 
     flash[:notice] = "Note deleted."
-    redirect_to safe_return_path(lead)
+    redirect_to safe_return_path(activity_lead)
   end
 
   private
 
   def set_note
-    @note = policy_scope(Note).includes(:lead, :user).find(params[:id])
+    @note = policy_scope(Note).includes(:lead, :user, opportunity: :lead).find(params[:id])
   end
 
   def serialize_note(note)
     {
       id: note.id,
       content: note.content,
+      link_type: note.opportunity_note? ? "opportunity" : "lead",
       lead: note.lead&.name,
       lead_id: note.lead_id,
+      opportunity: note.opportunity&.title,
+      opportunity_id: note.opportunity_id,
       author: note.user&.name,
       user_id: note.user_id,
       created_at: note.created_at&.iso8601,
@@ -115,15 +125,22 @@ class NotesController < InertiaController
 
   def form_options
     {
-      leads: policy_scope(Lead).order(:name).map { |lead| { id: lead.id, name: lead.name } }
+      leads: policy_scope(Lead).order(:name).map { |lead| { id: lead.id, name: lead.name } },
+      opportunities: policy_scope(Opportunity).includes(:lead).order(:title).map { |opportunity|
+        {
+          id: opportunity.id,
+          name: opportunity.title.presence || "Untitled",
+          lead_name: opportunity.lead&.name
+        }
+      }
     }
   end
 
   def can_create_notes?
     return true if current_user.admin?
-    return true if current_user.assistant? && policy_scope(Lead).exists?
+    return true if current_user.assistant? && (policy_scope(Lead).exists? || policy_scope(Opportunity).exists?)
 
-    current_user.advisor? && policy_scope(Lead).exists?
+    current_user.advisor? && (policy_scope(Lead).exists? || policy_scope(Opportunity).exists?)
   end
 
   def notes_return_path(page = 1)
@@ -133,7 +150,24 @@ class NotesController < InertiaController
   end
 
   def note_params
-    params.permit(:content, :lead_id, :return_to)
+    params.permit(:content, :lead_id, :opportunity_id, :link_type, :return_to)
+  end
+
+  def resolve_link_target
+    link_type = note_params[:link_type].to_s
+    opportunity_id = note_params[:opportunity_id].presence
+    lead_id = note_params[:lead_id].presence
+
+    if opportunity_id.present? || link_type == "opportunity"
+      opportunity = policy_scope(Opportunity).find_by(id: opportunity_id)
+      return { type: :opportunity, record: opportunity } if opportunity
+      return nil
+    end
+
+    lead = policy_scope(Lead).find_by(id: lead_id)
+    return { type: :lead, record: lead } if lead
+
+    nil
   end
 
   def create_validation_errors(note)
@@ -147,8 +181,14 @@ class NotesController < InertiaController
     )
   end
 
-  def lead_missing_errors
-    if note_params[:lead_id].blank?
+  def link_missing_errors
+    if note_params[:opportunity_id].present? || note_params[:link_type].to_s == "opportunity"
+      if note_params[:opportunity_id].blank?
+        { opportunity_id: [ "can't be blank" ] }
+      else
+        { opportunity_id: [ "is invalid or inaccessible" ] }
+      end
+    elsif note_params[:lead_id].blank?
       { lead_id: [ "can't be blank" ] }
     else
       { lead_id: [ "is invalid or inaccessible" ] }
@@ -156,7 +196,7 @@ class NotesController < InertiaController
   end
 
   def safe_return_path(fallback_lead = nil)
-    raw = note_params[:return_to].to_s
+    raw = (params[:return_to].presence || note_params[:return_to]).to_s
     if raw.present?
       uri = URI.parse(raw)
       unless uri.scheme.present? || uri.host.present?
@@ -165,6 +205,8 @@ class NotesController < InertiaController
           query = Rack::Utils.parse_nested_query(uri.query.to_s)
           page = Integer(query["page"], exception: false) || 1
           return notes_return_path([ page, 1 ].max)
+        when opportunities_path, "/opportunities"
+          return opportunities_path
         else
           match = uri.path.to_s.match(%r{\A/leads/(\d+)\z})
           if match

@@ -7,11 +7,14 @@ import { useDialogA11y } from '@/hooks/useDialogA11y'
 export type NoteFormOption = {
   id: number
   name: string
+  lead_name?: string | null
 }
 
 export type NoteFormValues = {
   content: string
+  link_type: 'lead' | 'opportunity'
   lead_id: string
+  opportunity_id: string
   return_to: string
 }
 
@@ -19,14 +22,18 @@ export type EditableNote = {
   id: number
   content: string
   lead_id: number | null
+  opportunity_id?: number | null
+  link_type?: 'lead' | 'opportunity'
 }
 
 type NoteFormModalProps = {
   open: boolean
   onClose: () => void
   leads: NoteFormOption[]
+  opportunities?: NoteFormOption[]
   returnTo: string
   lockedLeadId?: number | null
+  lockedOpportunityId?: number | null
   note?: EditableNote | null
 }
 
@@ -40,11 +47,21 @@ export default function NoteFormModal({
   open,
   onClose,
   leads,
+  opportunities = [],
   returnTo,
   lockedLeadId = null,
+  lockedOpportunityId = null,
   note = null,
 }: NoteFormModalProps) {
   const editing = note != null
+  const lockedToOpportunity = lockedOpportunityId != null
+  const lockedToLead = lockedLeadId != null && !lockedToOpportunity
+
+  const initialLinkType: 'lead' | 'opportunity' =
+    lockedToOpportunity || note?.link_type === 'opportunity' || note?.opportunity_id != null
+      ? 'opportunity'
+      : 'lead'
+
   const initialLeadId =
     lockedLeadId != null
       ? String(lockedLeadId)
@@ -54,9 +71,20 @@ export default function NoteFormModal({
           ? String(leads[0].id)
           : ''
 
+  const initialOpportunityId =
+    lockedOpportunityId != null
+      ? String(lockedOpportunityId)
+      : note?.opportunity_id != null
+        ? String(note.opportunity_id)
+        : opportunities[0]
+          ? String(opportunities[0].id)
+          : ''
+
   const form = useForm<NoteFormValues>({
     content: note?.content ?? '',
+    link_type: initialLinkType,
     lead_id: initialLeadId,
+    opportunity_id: initialOpportunityId,
     return_to: returnTo,
   })
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -64,7 +92,9 @@ export default function NoteFormModal({
   function resetForm() {
     form.setData({
       content: note?.content ?? '',
+      link_type: initialLinkType,
       lead_id: initialLeadId,
+      opportunity_id: initialOpportunityId,
       return_to: returnTo,
     })
     form.clearErrors()
@@ -80,13 +110,31 @@ export default function NoteFormModal({
 
   if (!open) return null
 
+  const showLinkPicker = !editing && !lockedToLead && !lockedToOpportunity
+  const linkType = lockedToOpportunity ? 'opportunity' : lockedToLead ? 'lead' : form.data.link_type
+
   function submit(event: FormEvent) {
     event.preventDefault()
-    form.transform((data) => ({
-      ...data,
-      lead_id: lockedLeadId != null ? String(lockedLeadId) : data.lead_id,
-      return_to: returnTo,
-    }))
+    form.transform((data) => {
+      const resolvedType = lockedToOpportunity
+        ? 'opportunity'
+        : lockedToLead
+          ? 'lead'
+          : data.link_type
+
+      return {
+        content: data.content,
+        link_type: resolvedType,
+        lead_id: resolvedType === 'lead' ? (lockedLeadId != null ? String(lockedLeadId) : data.lead_id) : '',
+        opportunity_id:
+          resolvedType === 'opportunity'
+            ? lockedOpportunityId != null
+              ? String(lockedOpportunityId)
+              : data.opportunity_id
+            : '',
+        return_to: returnTo,
+      }
+    })
 
     const options = {
       preserveScroll: true,
@@ -118,8 +166,12 @@ export default function NoteFormModal({
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               {editing
-                ? 'Update this note. It stays linked to the same lead.'
-                : 'Capture a conversation detail on a lead.'}
+                ? 'Update this note. The linked lead or opportunity stays the same.'
+                : lockedToOpportunity
+                  ? 'Capture a detail on this opportunity.'
+                  : lockedToLead
+                    ? 'Capture a conversation detail on this lead.'
+                    : 'Link a note to a lead or an opportunity.'}
             </p>
           </div>
           <button
@@ -139,7 +191,22 @@ export default function NoteFormModal({
             </p>
           )}
 
-          {!editing && lockedLeadId == null && (
+          {showLinkPicker && (
+            <SelectField
+              id="note-link-type"
+              label="Linked to"
+              required
+              value={form.data.link_type}
+              onChange={(value) =>
+                form.setData('link_type', value === 'opportunity' ? 'opportunity' : 'lead')
+              }
+            >
+              <option value="lead">Lead</option>
+              <option value="opportunity">Opportunity</option>
+            </SelectField>
+          )}
+
+          {showLinkPicker && linkType === 'lead' && (
             <SelectField
               id="note-lead"
               label="Lead"
@@ -157,8 +224,36 @@ export default function NoteFormModal({
             </SelectField>
           )}
 
-          {(editing || lockedLeadId != null) && (
-            <FieldError error={fieldError(form.errors, 'lead_id') || fieldError(form.errors, 'lead')} />
+          {showLinkPicker && linkType === 'opportunity' && (
+            <SelectField
+              id="note-opportunity"
+              label="Opportunity"
+              required
+              value={form.data.opportunity_id}
+              onChange={(value) => form.setData('opportunity_id', value)}
+              error={
+                fieldError(form.errors, 'opportunity_id') || fieldError(form.errors, 'opportunity')
+              }
+            >
+              <option value="">Select an opportunity</option>
+              {opportunities.map((opportunity) => (
+                <option key={opportunity.id} value={opportunity.id}>
+                  {opportunity.name}
+                  {opportunity.lead_name ? ` · ${opportunity.lead_name}` : ''}
+                </option>
+              ))}
+            </SelectField>
+          )}
+
+          {(editing || lockedToLead || lockedToOpportunity) && (
+            <FieldError
+              error={
+                fieldError(form.errors, 'lead_id') ||
+                fieldError(form.errors, 'lead') ||
+                fieldError(form.errors, 'opportunity_id') ||
+                fieldError(form.errors, 'opportunity')
+              }
+            />
           )}
 
           <TextAreaField

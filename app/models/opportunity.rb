@@ -5,6 +5,8 @@ class Opportunity < ApplicationRecord
   belongs_to :lead
   belongs_to :user
 
+  has_many :notes, dependent: :destroy
+
   scope :active_pipeline, -> { joins(:stage).where.not(opportunity_stages: { name: %w[Won Lost] }) }
 
   validates :title, presence: true
