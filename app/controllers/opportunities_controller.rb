@@ -6,10 +6,12 @@ class OpportunitiesController < InertiaController
   def index
     authorize Opportunity
 
+    owner_id = parse_owner_id(params[:user_id])
     stages = OpportunityStage.order(:position)
-    opportunities = policy_scope(Opportunity)
-      .includes(:lead)
-      .order(created_at: :desc, id: :asc)
+    scoped = policy_scope(Opportunity).includes(:lead, :user)
+    owners = owners_for_filter(scoped, owner_id)
+    opportunities = scoped.order(created_at: :desc, id: :asc)
+    opportunities = opportunities.where(user_id: owner_id) if owner_id
     grouped = opportunities.group_by(&:stage_id)
 
     render inertia: "opportunities/index", props: {
@@ -22,9 +24,13 @@ class OpportunitiesController < InertiaController
         }
       },
       stage_options: stages.map { |stage| { id: stage.id, name: stage.name } },
+      owners: owners,
+      meta: {
+        user_id: owner_id
+      },
       **form_options,
       can_create: can_create_opportunities?,
-      return_to: opportunities_path
+      return_to: opportunities_return_path(owner_id)
     }
   end
 
@@ -76,7 +82,7 @@ class OpportunitiesController < InertiaController
     attrs["description"] = raw["description"].to_s if raw.key?("description")
 
     if raw.key?("stage_id") && attrs["stage_id"].nil?
-      redirect_to opportunities_path, inertia: {
+      redirect_to safe_return_path, inertia: {
         errors: { stage_id: [ "is invalid" ], form: [ "opportunity" ], opportunity_id: [ @opportunity.id ] }
       }
       return
@@ -84,9 +90,9 @@ class OpportunitiesController < InertiaController
 
     if @opportunity.update(attrs)
       flash[:notice] = "Opportunity updated."
-      redirect_to opportunities_path
+      redirect_to safe_return_path
     else
-      redirect_to opportunities_path, inertia: { errors: validation_errors(@opportunity) }
+      redirect_to safe_return_path, inertia: { errors: validation_errors(@opportunity) }
     end
   end
 
@@ -103,11 +109,34 @@ class OpportunitiesController < InertiaController
       value: opportunity.value&.to_s,
       lead: opportunity.lead&.name,
       lead_id: opportunity.lead_id,
+      owner: opportunity.user&.name,
+      user_id: opportunity.user_id,
       stage_id: opportunity.stage_id,
       close_date: opportunity.close_date&.iso8601,
       description: opportunity.description,
       can_update: policy(opportunity).update?
     }
+  end
+
+  def parse_owner_id(raw)
+    id = Integer(Array(raw).first, exception: false)
+    return unless id
+    return unless User.exists?(id)
+
+    id
+  end
+
+  def owners_for_filter(scoped, selected_id = nil)
+    # Owners who have open (non Won/Lost) opportunities in the caller's policy scope.
+    user_ids = scoped.active_pipeline.unscope(:order).distinct.pluck("opportunities.user_id").compact
+    user_ids |= [ selected_id ] if selected_id
+    User.where(id: user_ids).order(:name).map { |user| { id: user.id, name: user.name } }
+  end
+
+  def opportunities_return_path(owner_id = nil)
+    opts = {}
+    opts[:user_id] = owner_id if owner_id
+    opportunities_path(opts)
   end
 
   def can_create_opportunities?
@@ -143,7 +172,7 @@ class OpportunitiesController < InertiaController
   end
 
   def opportunity_update_params
-    params.permit(:title, :value, :stage_id, :close_date, :description)
+    params.permit(:title, :value, :stage_id, :close_date, :description, :return_to)
   end
 
   def normalize_value(raw)
@@ -185,7 +214,11 @@ class OpportunitiesController < InertiaController
   end
 
   def safe_return_path
-    raw = (params[:return_to].presence || opportunity_create_params[:return_to]).to_s
+    raw = (
+      params[:return_to].presence ||
+      opportunity_create_params[:return_to].presence ||
+      opportunity_update_params[:return_to]
+    ).to_s
     return opportunities_path if raw.blank?
 
     uri = URI.parse(raw)
@@ -193,7 +226,9 @@ class OpportunitiesController < InertiaController
 
     case uri.path
     when opportunities_path, "/opportunities"
-      opportunities_path
+      query = Rack::Utils.parse_nested_query(uri.query.to_s)
+      owner_id = parse_owner_id(query["user_id"])
+      opportunities_return_path(owner_id)
     else
       match = uri.path.to_s.match(%r{\A/leads/(\d+)\z})
       if match

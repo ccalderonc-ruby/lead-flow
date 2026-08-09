@@ -133,6 +133,7 @@ class DemoSeeds
       opp_stage = ->(preferred) {
         opp_stages[preferred] ||
           opp_stages["Proposal"] ||
+          opp_stages["Prospects"] ||
           opp_stages["Prospect"] ||
           opp_stages.values.first
       }
@@ -223,7 +224,7 @@ class DemoSeeds
             { title: "Intro Zoom", on: 6, time: "11:00", virtual: true }
           ],
           opportunities: [
-            { title: "Verde starter pack", stage: "Prospect", value: 18_000, priority: "medium" }
+            { title: "Verde starter pack", stage: "Prospects", value: 18_000, priority: "medium" }
           ]
         },
         {
@@ -247,7 +248,7 @@ class DemoSeeds
             { title: "Live product demo", on: 1, time: "13:00", virtual: true }
           ],
           opportunities: [
-            { title: "Summit team license", stage: "Qualification", value: 54_000, priority: "medium" }
+            { title: "Summit team license", stage: "Proposal", value: 54_000, priority: "medium" }
           ]
         },
         {
@@ -268,7 +269,7 @@ class DemoSeeds
           ],
           meetings: [],
           opportunities: [
-            { title: "Lumina nurture", stage: "Prospect", value: 35_000, priority: "low" }
+            { title: "Lumina nurture", stage: "Prospects", value: 35_000, priority: "low" }
           ]
         },
         {
@@ -315,7 +316,7 @@ class DemoSeeds
             { title: "Conference follow-up", on: 3, time: "16:00", virtual: true }
           ],
           opportunities: [
-            { title: "Northwind evaluation", stage: "Prospect", value: 60_000, priority: "medium" }
+            { title: "Northwind evaluation", stage: "Prospects", value: 60_000, priority: "medium" }
           ]
         },
         {
@@ -357,7 +358,7 @@ class DemoSeeds
           ],
           meetings: [],
           opportunities: [
-            { title: "Atlas ops seat", stage: "Prospect", value: 12_000, priority: "low" }
+            { title: "Atlas ops seat", stage: "Prospects", value: 12_000, priority: "low" }
           ]
         }
       ]

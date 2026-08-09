@@ -21,6 +21,7 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"stages"'
     assert_includes response.body, opportunity_stages(:prospect).name
     assert_includes response.body, opportunity_stages(:proposal).name
+    assert_includes response.body, opportunity_stages(:negotiation).name
     assert_includes response.body, opportunity_stages(:won).name
     assert_includes response.body, opportunity_stages(:lost).name
     assert_includes response.body, "\"value\":\"#{opportunity.value}\""
@@ -34,8 +35,8 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     get opportunities_path
 
     assert_response :success
-    # Prospect has no advisor-scoped opportunities in fixtures; empty arrays still appear.
-    assert_includes response.body, '"name":"Prospect"'
+    # Prospects has no advisor-scoped opportunities in fixtures; empty arrays still appear.
+    assert_includes response.body, '"name":"Prospects"'
     assert_includes response.body, '"opportunities":[]'
   end
 
@@ -65,17 +66,20 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     get opportunities_path
 
     assert_response :success
-    prospect_at = response.body.index('"name":"Prospect"')
+    prospects_at = response.body.index('"name":"Prospects"')
     proposal_at = response.body.index('"name":"Proposal"')
+    negotiation_at = response.body.index('"name":"Negotiation"')
     won_at = response.body.index('"name":"Won"')
     lost_at = response.body.index('"name":"Lost"')
 
-    assert prospect_at
+    assert prospects_at
     assert proposal_at
+    assert negotiation_at
     assert won_at
     assert lost_at
-    assert_operator prospect_at, :<, proposal_at
-    assert_operator proposal_at, :<, won_at
+    assert_operator prospects_at, :<, proposal_at
+    assert_operator proposal_at, :<, negotiation_at
+    assert_operator negotiation_at, :<, won_at
     assert_operator won_at, :<, lost_at
   end
 
@@ -106,6 +110,55 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"can_create":true'
     assert_includes response.body, '"leads"'
     assert_includes response.body, '"defaults"'
+    assert_includes response.body, '"owners"'
+    assert_includes response.body, "\"owner\":\"#{users(:advisor).name}\""
+    assert_includes response.body, "\"user_id\":#{users(:advisor).id}"
+  end
+
+  test "admin can filter opportunities by owner" do
+    sign_in_as users(:admin)
+    advisor = users(:advisor)
+    owned = opportunities(:migration)
+    other = opportunities(:won_deal)
+
+    get opportunities_path(user_id: advisor.id)
+
+    assert_response :success
+    assert_includes response.body, owned.title
+    refute_includes response.body, other.title
+    assert_includes response.body, "\"user_id\":#{advisor.id}"
+    assert_includes response.body, "\"return_to\":\"/opportunities?user_id=#{advisor.id}\""
+  end
+
+  test "owner filter options are open-opportunity owners in role scope" do
+    sign_in_as users(:admin)
+    advisor = users(:advisor)
+
+    get opportunities_path
+
+    assert_response :success
+    assert_includes response.body, "\"owners\":[{\"id\":#{advisor.id},\"name\":\"#{advisor.name}\"}]"
+  end
+
+  test "advisor owner filter only includes owners from assigned open opportunities" do
+    sign_in_as users(:advisor)
+    advisor = users(:advisor)
+
+    get opportunities_path
+
+    assert_response :success
+    assert_includes response.body, "\"owners\":[{\"id\":#{advisor.id},\"name\":\"#{advisor.name}\"}]"
+  end
+
+  test "invalid owner filter is ignored" do
+    sign_in_as users(:admin)
+
+    get opportunities_path(user_id: 0)
+
+    assert_response :success
+    assert_includes response.body, opportunities(:migration).title
+    assert_includes response.body, opportunities(:won_deal).title
+    assert_includes response.body, '"user_id":null'
   end
 
   test "assistant index marks opportunities can_update false" do
@@ -135,6 +188,25 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to opportunities_path
     assert_equal "Opportunity updated.", flash[:notice]
     assert_equal won.id, opportunity.reload.stage_id
+  end
+
+  test "advisor can update stage only for drag and drop" do
+    sign_in_as users(:advisor)
+    opportunity = opportunities(:migration)
+    negotiation = opportunity_stages(:negotiation)
+    previous_title = opportunity.title
+    previous_value = opportunity.value
+
+    patch opportunity_path(opportunity), params: {
+      stage_id: negotiation.id,
+      return_to: opportunities_path
+    }
+
+    assert_redirected_to opportunities_path
+    opportunity.reload
+    assert_equal negotiation.id, opportunity.stage_id
+    assert_equal previous_title, opportunity.title
+    assert_equal previous_value, opportunity.value
   end
 
   test "advisor cannot update unassigned opportunity" do

@@ -3,6 +3,7 @@ import { FormEvent, useRef } from 'react'
 
 import { FieldError, SelectField, TextAreaField, TextField } from '@/components/ui/FormFields'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
+import { formatUsdInput, parseUsdInput } from '@/lib/format'
 
 export type OpportunityFormOption = {
   id: number
@@ -95,7 +96,7 @@ export default function OpportunityFormModal({
       ...data,
       return_to: returnTo,
       lead_id: lockedLeadId != null ? String(lockedLeadId) : data.lead_id,
-      value: data.value.trim(),
+      value: parseUsdInput(data.value),
       close_date: data.close_date || '',
     }))
     form.post('/opportunities', {
@@ -195,14 +196,15 @@ export default function OpportunityFormModal({
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField
               id="opportunity-value"
-              label="Value"
-              type="number"
-              min="0"
-              step="1"
+              label="Value (USD)"
+              type="text"
+              prefix="$"
+              inputMode="decimal"
+              autoComplete="off"
               value={form.data.value}
-              onChange={(value) => form.setData('value', value)}
+              onChange={(value) => form.setData('value', formatUsdInput(value))}
               error={fieldError(form.errors, 'value')}
-              placeholder="Optional"
+              placeholder="0.00"
             />
             <TextField
               id="opportunity-close-date"

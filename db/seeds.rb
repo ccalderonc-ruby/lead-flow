@@ -25,12 +25,11 @@ end
 end
 
 [
-  { name: "Prospect", position: 1, default_probability: 20 },
-  { name: "Qualification", position: 2, default_probability: 45 },
-  { name: "Proposal", position: 3, default_probability: 60 },
-  { name: "Negotiation", position: 4, default_probability: 80 },
-  { name: "Won", position: 5, default_probability: 100 },
-  { name: "Lost", position: 6, default_probability: 0 }
+  { name: "Prospects", position: 1, default_probability: 20 },
+  { name: "Proposal", position: 2, default_probability: 60 },
+  { name: "Negotiation", position: 3, default_probability: 80 },
+  { name: "Won", position: 4, default_probability: 100 },
+  { name: "Lost", position: 5, default_probability: 0 }
 ].each do |attrs|
   OpportunityStage.find_or_create_by!(name: attrs[:name]) { |stage| stage.assign_attributes(attrs) }
 end
