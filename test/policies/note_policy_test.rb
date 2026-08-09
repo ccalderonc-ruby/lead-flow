@@ -21,4 +21,42 @@ class NotePolicyTest < ActiveSupport::TestCase
   test "advisor cannot create note on lead assigned to another user" do
     refute NotePolicy.new(@advisor, @note).create?
   end
+
+  test "assistant can update note on any lead" do
+    assert NotePolicy.new(@assistant, @note).update?
+  end
+
+  test "assistant cannot destroy notes" do
+    refute NotePolicy.new(@assistant, @note).destroy?
+  end
+
+  test "advisor can destroy note on assigned lead" do
+    note = notes(:discovery)
+    assert NotePolicy.new(@advisor, note).destroy?
+  end
+
+  test "anyone signed in can view notes index" do
+    assert NotePolicy.new(@advisor, Note).index?
+    assert NotePolicy.new(@assistant, Note).index?
+  end
+
+  test "advisor can create note on assigned opportunity" do
+    note = Note.new(
+      opportunity: opportunities(:migration),
+      user: @advisor,
+      content: "Pricing follow-up"
+    )
+
+    assert NotePolicy.new(@advisor, note).create?
+  end
+
+  test "advisor cannot create note on unassigned opportunity" do
+    note = Note.new(
+      opportunity: opportunities(:won_deal),
+      user: @advisor,
+      content: "Should fail"
+    )
+
+    refute NotePolicy.new(@advisor, note).create?
+  end
 end

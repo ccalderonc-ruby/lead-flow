@@ -8,7 +8,8 @@ class OpportunitiesController < InertiaController
 
     owner_id = parse_owner_id(params[:user_id])
     stages = OpportunityStage.order(:position)
-    scoped = policy_scope(Opportunity).includes(:lead, :user)
+    scoped = policy_scope(Opportunity).includes(:lead, :user, notes: :user)
+    selected_id = parse_opportunity_id(params[:opportunity_id], scoped)
     owners = owners_for_filter(scoped, owner_id)
     opportunities = scoped.order(created_at: :desc, id: :asc)
     opportunities = opportunities.where(user_id: owner_id) if owner_id
@@ -26,11 +27,12 @@ class OpportunitiesController < InertiaController
       stage_options: stages.map { |stage| { id: stage.id, name: stage.name } },
       owners: owners,
       meta: {
-        user_id: owner_id
+        user_id: owner_id,
+        opportunity_id: selected_id
       },
       **form_options,
       can_create: can_create_opportunities?,
-      return_to: opportunities_return_path(owner_id)
+      return_to: opportunities_return_path(owner_id, selected_id)
     }
   end
 
@@ -114,7 +116,18 @@ class OpportunitiesController < InertiaController
       stage_id: opportunity.stage_id,
       close_date: opportunity.close_date&.iso8601,
       description: opportunity.description,
-      can_update: policy(opportunity).update?
+      can_update: policy(opportunity).update?,
+      can_create_note: policy(Note.new(opportunity: opportunity)).create?,
+      notes: opportunity.notes.sort_by { |note| [ -note.created_at.to_i, -note.id ] }.map { |note|
+        {
+          id: note.id,
+          content: note.content,
+          author: note.user&.name,
+          created_at: note.created_at&.iso8601,
+          can_update: policy(note).update?,
+          can_destroy: policy(note).destroy?
+        }
+      }
     }
   end
 
@@ -126,6 +139,14 @@ class OpportunitiesController < InertiaController
     id
   end
 
+  def parse_opportunity_id(raw, scoped)
+    id = Integer(Array(raw).first, exception: false)
+    return unless id
+    return unless scoped.exists?(id)
+
+    id
+  end
+
   def owners_for_filter(scoped, selected_id = nil)
     # Owners who have open (non Won/Lost) opportunities in the caller's policy scope.
     user_ids = scoped.active_pipeline.unscope(:order).distinct.pluck("opportunities.user_id").compact
@@ -133,9 +154,10 @@ class OpportunitiesController < InertiaController
     User.where(id: user_ids).order(:name).map { |user| { id: user.id, name: user.name } }
   end
 
-  def opportunities_return_path(owner_id = nil)
+  def opportunities_return_path(owner_id = nil, opportunity_id = nil)
     opts = {}
     opts[:user_id] = owner_id if owner_id
+    opts[:opportunity_id] = opportunity_id if opportunity_id
     opportunities_path(opts)
   end
 
@@ -228,7 +250,8 @@ class OpportunitiesController < InertiaController
     when opportunities_path, "/opportunities"
       query = Rack::Utils.parse_nested_query(uri.query.to_s)
       owner_id = parse_owner_id(query["user_id"])
-      opportunities_return_path(owner_id)
+      opportunity_id = parse_opportunity_id(query["opportunity_id"], policy_scope(Opportunity))
+      opportunities_return_path(owner_id, opportunity_id)
     else
       match = uri.path.to_s.match(%r{\A/leads/(\d+)\z})
       if match

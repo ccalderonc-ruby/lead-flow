@@ -161,14 +161,24 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"user_id":null'
   end
 
+  test "index accepts opportunity_id to open a deal from notes" do
+    sign_in_as users(:advisor)
+    opportunity = opportunities(:migration)
+
+    get opportunities_path(opportunity_id: opportunity.id)
+
+    assert_response :success
+    assert_includes response.body, "\"opportunity_id\":#{opportunity.id}"
+  end
+
   test "assistant index marks opportunities can_update false" do
     sign_in_as users(:assistant)
 
     get opportunities_path
 
     assert_response :success
-    assert_includes response.body, '"can_update":false'
-    refute_includes response.body, '"can_update":true'
+    assert_includes response.body, '"can_update":false,"can_create_note":true'
+    refute_includes response.body, '"can_update":true,"can_create_note"'
     assert_includes response.body, '"can_create":false'
   end
 
@@ -418,7 +428,7 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes response.body, "title"
     assert_includes response.body, '"form":["opportunity"]'
-    refute_includes response.body, '"opportunity_id"'
+    refute_includes response.body, '"opportunity_id":['
   end
 
   test "create return_to lead path is honored when in scope" do

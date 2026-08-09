@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import OpportunityBoard, {
@@ -26,6 +26,7 @@ type OwnerOption = {
 
 type OpportunitiesMeta = {
   user_id: number | null
+  opportunity_id: number | null
 }
 
 type OpportunitiesIndexProps = {
@@ -58,7 +59,7 @@ export default function OpportunitiesIndex({
   stages = [],
   stage_options: stageOptions = [],
   owners = [],
-  meta = { user_id: null },
+  meta = { user_id: null, opportunity_id: null },
   can_create: canCreate = false,
   leads = [],
   defaults = { stage_id: null },
@@ -72,10 +73,14 @@ export default function OpportunitiesIndex({
   const updateErrorKey = updateErrorsPresent ? JSON.stringify(pageErrors) : null
   const createErrorKey = createErrorsPresent ? JSON.stringify(pageErrors) : null
 
-  const [manualId, setManualId] = useState<number | null>(null)
+  const [manualId, setManualId] = useState<number | null>(meta.opportunity_id)
   const [dismissedUpdateErrorKey, setDismissedUpdateErrorKey] = useState<string | null>(null)
   const [createManualOpen, setCreateManualOpen] = useState(false)
   const [dismissedCreateErrorKey, setDismissedCreateErrorKey] = useState<string | null>(null)
+
+  useEffect(() => {
+    setManualId(meta.opportunity_id)
+  }, [meta.opportunity_id])
 
   const updateErrorStillOpen = updateErrorKey != null && dismissedUpdateErrorKey !== updateErrorKey
   const selectedId = manualId ?? (updateErrorStillOpen ? errorOpportunityId : null)
@@ -93,6 +98,13 @@ export default function OpportunitiesIndex({
   function closeDrawer() {
     setManualId(null)
     if (updateErrorKey != null) setDismissedUpdateErrorKey(updateErrorKey)
+    if (meta.opportunity_id != null) {
+      router.get(
+        '/opportunities',
+        opportunitiesQueryParams(meta.user_id != null ? String(meta.user_id) : ''),
+        { preserveState: true, preserveScroll: true, replace: true },
+      )
+    }
   }
 
   function openCreateModal() {

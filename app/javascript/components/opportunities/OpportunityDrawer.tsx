@@ -1,14 +1,29 @@
-import { useForm } from '@inertiajs/react'
-import { FormEvent, useRef } from 'react'
+import { router, useForm, usePage } from '@inertiajs/react'
+import { FormEvent, useRef, useState } from 'react'
 import { Link } from '@inertiajs/react'
 
+import NoteFormModal, { type EditableNote } from '@/components/notes/NoteFormModal'
+import {
+  hasNoteCreateErrors,
+  hasNoteUpdateErrors,
+  noteIdFromErrors,
+} from '@/components/notes/noteFormErrors'
 import { SelectField, TextAreaField, TextField } from '@/components/ui/FormFields'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
-import { formatUsdInput, parseUsdInput } from '@/lib/format'
+import { formatDateTime, formatUsdInput, parseUsdInput } from '@/lib/format'
 
 export type OpportunityStageOption = {
   id: number
   name: string
+}
+
+export type OpportunityNote = {
+  id: number
+  content: string
+  author: string | null
+  created_at: string | null
+  can_update: boolean
+  can_destroy: boolean
 }
 
 export type OpportunityDrawerRecord = {
@@ -23,6 +38,8 @@ export type OpportunityDrawerRecord = {
   close_date: string | null
   description: string | null
   can_update: boolean
+  can_create_note?: boolean
+  notes?: OpportunityNote[]
 }
 
 type OpportunityDrawerProps = {
@@ -64,20 +81,37 @@ export default function OpportunityDrawer({
   returnTo = '/opportunities',
   onClose,
 }: OpportunityDrawerProps) {
+  const page = usePage()
+  const pageErrors = page.props.errors as Record<string, unknown> | undefined
+  const noteCreateErrors = hasNoteCreateErrors(pageErrors)
+  const noteUpdateErrors = hasNoteUpdateErrors(pageErrors)
+  const errorNoteId = noteIdFromErrors(pageErrors)
+  const noteCreateErrorKey = noteCreateErrors ? JSON.stringify(pageErrors) : null
+  const noteUpdateErrorKey = noteUpdateErrors ? JSON.stringify(pageErrors) : null
+
   const form = useForm<OpportunityFormValues>(
-    opportunity ? toFormValues(opportunity) : {
-      title: '',
-      value: '',
-      stage_id: '',
-      close_date: '',
-      description: '',
-    },
+    opportunity
+      ? toFormValues(opportunity)
+      : {
+          title: '',
+          value: '',
+          stage_id: '',
+          close_date: '',
+          description: '',
+        },
   )
   const dialogRef = useRef<HTMLDivElement>(null)
+  const [noteManualOpen, setNoteManualOpen] = useState(false)
+  const [editingNote, setEditingNote] = useState<EditableNote | null>(null)
+  const [dismissedNoteCreateErrorKey, setDismissedNoteCreateErrorKey] = useState<string | null>(null)
+  const [dismissedNoteUpdateErrorKey, setDismissedNoteUpdateErrorKey] = useState<string | null>(null)
+  const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null)
 
   function handleClose() {
     if (form.processing) return
     form.clearErrors()
+    setNoteManualOpen(false)
+    setEditingNote(null)
     onClose()
   }
 
@@ -91,6 +125,30 @@ export default function OpportunityDrawer({
 
   const record = opportunity
   const readOnly = !record.can_update
+  const notes = record.notes ?? []
+  const canCreateNote = record.can_create_note === true
+
+  const noteCreateModalOpen =
+    editingNote == null &&
+    (noteManualOpen ||
+      (noteCreateErrorKey != null && dismissedNoteCreateErrorKey !== noteCreateErrorKey))
+  const noteUpdateErrorStillOpen =
+    noteUpdateErrorKey != null && dismissedNoteUpdateErrorKey !== noteUpdateErrorKey
+  const editingNoteFromError =
+    noteUpdateErrorStillOpen && errorNoteId != null
+      ? notes.find((note) => note.id === errorNoteId) ?? null
+      : null
+  const activeEditNote =
+    editingNote ??
+    (editingNoteFromError
+      ? {
+          id: editingNoteFromError.id,
+          content: editingNoteFromError.content,
+          lead_id: null,
+          opportunity_id: record.id,
+          link_type: 'opportunity' as const,
+        }
+      : null)
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -108,6 +166,42 @@ export default function OpportunityDrawer({
         form.clearErrors()
         onClose()
       },
+    })
+  }
+
+  function openNoteModal() {
+    setEditingNote(null)
+    setDismissedNoteCreateErrorKey(null)
+    setNoteManualOpen(true)
+  }
+
+  function openEditNoteModal(note: OpportunityNote) {
+    setNoteManualOpen(false)
+    setDismissedNoteUpdateErrorKey(null)
+    setEditingNote({
+      id: note.id,
+      content: note.content,
+      lead_id: null,
+      opportunity_id: record.id,
+      link_type: 'opportunity',
+    })
+  }
+
+  function closeNoteModal() {
+    setNoteManualOpen(false)
+    setEditingNote(null)
+    if (noteCreateErrorKey != null) setDismissedNoteCreateErrorKey(noteCreateErrorKey)
+    if (noteUpdateErrorKey != null) setDismissedNoteUpdateErrorKey(noteUpdateErrorKey)
+  }
+
+  function deleteNote(note: OpportunityNote) {
+    if (deletingNoteId != null) return
+    if (!window.confirm('Delete this note? This cannot be undone.')) return
+
+    setDeletingNoteId(note.id)
+    router.delete(`/notes/${note.id}?return_to=${encodeURIComponent(returnTo)}`, {
+      preserveScroll: true,
+      onFinish: () => setDeletingNoteId(null),
     })
   }
 
@@ -145,8 +239,8 @@ export default function OpportunityDrawer({
           </button>
         </div>
 
-        <form onSubmit={submit} className="flex flex-1 flex-col overflow-y-auto px-5 py-4">
-          <div className="space-y-4">
+        <div className="flex flex-1 flex-col overflow-y-auto px-5 py-4">
+          <form onSubmit={submit} className="space-y-4">
             {fieldError(form.errors, 'base') && (
               <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {fieldError(form.errors, 'base')}
@@ -233,29 +327,109 @@ export default function OpportunityDrawer({
               <p className="block text-sm font-medium text-slate-700">Owner</p>
               <p className="mt-1 text-sm text-slate-900">{record.owner || '—'}</p>
             </div>
-          </div>
 
-          <div className="mt-auto flex justify-end gap-2 border-t border-slate-100 pt-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={form.processing}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {readOnly ? 'Close' : 'Cancel'}
-            </button>
-            {!readOnly && (
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
               <button
-                type="submit"
+                type="button"
+                onClick={handleClose}
                 disabled={form.processing}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {form.processing ? 'Saving…' : 'Save'}
+                {readOnly ? 'Close' : 'Cancel'}
               </button>
+              {!readOnly && (
+                <button
+                  type="submit"
+                  disabled={form.processing}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+                >
+                  {form.processing ? 'Saving…' : 'Save'}
+                </button>
+              )}
+            </div>
+          </form>
+
+          <section className="mt-6 border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-slate-900">Notes</h3>
+              {canCreateNote && (
+                <button
+                  type="button"
+                  onClick={openNoteModal}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  Add note
+                </button>
+              )}
+            </div>
+
+            {notes.length === 0 ? (
+              <p className="mt-3 text-sm text-slate-500">No opportunity notes yet.</p>
+            ) : (
+              <ul className="mt-3 divide-y divide-slate-100 rounded-lg border border-slate-200">
+                {notes.map((note) => (
+                  <li key={note.id} className="flex items-start justify-between gap-3 px-3 py-3">
+                    <div className="min-w-0">
+                      <div className="whitespace-pre-wrap text-sm text-slate-900">{note.content}</div>
+                      <div className="mt-1 text-xs text-slate-500">
+                        {note.author || '—'} · {formatDateTime(note.created_at)}
+                      </div>
+                    </div>
+                    {(note.can_update || note.can_destroy) && (
+                      <div className="flex shrink-0 gap-3">
+                        {note.can_update && (
+                          <button
+                            type="button"
+                            onClick={() => openEditNoteModal(note)}
+                            className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {note.can_destroy && (
+                          <button
+                            type="button"
+                            onClick={() => deleteNote(note)}
+                            disabled={deletingNoteId === note.id}
+                            className="text-sm font-medium text-red-600 hover:text-red-500 disabled:opacity-50"
+                          >
+                            {deletingNoteId === note.id ? 'Deleting…' : 'Delete'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
             )}
-          </div>
-        </form>
+          </section>
+        </div>
       </aside>
+
+      {canCreateNote && (
+        <NoteFormModal
+          key={`opp-note-create-${record.id}`}
+          open={noteCreateModalOpen}
+          onClose={closeNoteModal}
+          leads={[]}
+          opportunities={[{ id: record.id, name: record.title || 'Untitled' }]}
+          returnTo={returnTo}
+          lockedOpportunityId={record.id}
+        />
+      )}
+
+      {activeEditNote && (
+        <NoteFormModal
+          key={`opp-note-edit-${activeEditNote.id}`}
+          open
+          onClose={closeNoteModal}
+          leads={[]}
+          opportunities={[{ id: record.id, name: record.title || 'Untitled' }]}
+          returnTo={returnTo}
+          lockedOpportunityId={record.id}
+          note={activeEditNote}
+        />
+      )}
     </div>
   )
 }

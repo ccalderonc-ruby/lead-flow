@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_08_235052) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_09_174002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -109,11 +109,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_08_235052) do
   create_table "notes", force: :cascade do |t|
     t.text "content"
     t.datetime "created_at", null: false
-    t.bigint "lead_id", null: false
+    t.bigint "lead_id"
+    t.bigint "opportunity_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["lead_id"], name: "index_notes_on_lead_id"
+    t.index ["opportunity_id"], name: "index_notes_on_opportunity_id"
     t.index ["user_id"], name: "index_notes_on_user_id"
+    t.check_constraint "lead_id IS NOT NULL AND opportunity_id IS NULL OR lead_id IS NULL AND opportunity_id IS NOT NULL", name: "notes_lead_xor_opportunity"
   end
 
   create_table "opportunities", force: :cascade do |t|
@@ -216,6 +219,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_08_235052) do
   add_foreign_key "note_tags", "notes"
   add_foreign_key "note_tags", "tags"
   add_foreign_key "notes", "leads"
+  add_foreign_key "notes", "opportunities"
   add_foreign_key "notes", "users"
   add_foreign_key "opportunities", "leads"
   add_foreign_key "opportunities", "opportunity_stages", column: "stage_id"

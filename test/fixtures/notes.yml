@@ -2,3 +2,8 @@ discovery:
   content: Successful discovery call; discussed SOC2 requirements.
   lead: sarah
   user: advisor
+
+deal_follow_up:
+  content: Proposal walkthrough scheduled with finance.
+  opportunity: migration
+  user: advisor

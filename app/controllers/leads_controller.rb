@@ -286,7 +286,9 @@ class LeadsController < InertiaController
               id: note.id,
               content: note.content,
               author: note.user&.name,
-              created_at: note.created_at&.iso8601
+              created_at: note.created_at&.iso8601,
+              can_update: policy(note).update?,
+              can_destroy: policy(note).destroy?
             }
           end
         }
@@ -294,6 +296,7 @@ class LeadsController < InertiaController
       can_create_note: policy(Note.new(lead: lead)).create?,
       note_form: {
         lead_id: lead.id,
+        leads: [ { id: lead.id, name: lead.name } ],
         return_to: lead_path(lead)
       },
       opportunities: {

@@ -8,8 +8,12 @@ import MeetingFormModal, {
   type MeetingFormOption,
 } from '@/components/meetings/MeetingFormModal'
 import { hasMeetingCreateErrors } from '@/components/meetings/meetingFormErrors'
-import NoteFormModal from '@/components/notes/NoteFormModal'
-import { hasNoteCreateErrors } from '@/components/notes/noteFormErrors'
+import NoteFormModal, { type EditableNote, type NoteFormOption } from '@/components/notes/NoteFormModal'
+import {
+  hasNoteCreateErrors,
+  hasNoteUpdateErrors,
+  noteIdFromErrors,
+} from '@/components/notes/noteFormErrors'
 import OpportunityFormModal, {
   type OpportunityFormDefaults,
   type OpportunityFormOption,
@@ -79,6 +83,8 @@ type NotePreview = {
   content: string
   author: string | null
   created_at: string | null
+  can_update: boolean
+  can_destroy: boolean
 }
 
 type OpportunityPreview = {
@@ -114,6 +120,7 @@ type MeetingFormProps = {
 
 type NoteFormProps = {
   lead_id: number
+  leads?: NoteFormOption[]
   return_to: string
 }
 
@@ -206,35 +213,62 @@ export default function LeadsShow({
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
   const opportunityErrorsPresent = hasOpportunityCreateErrors(pageErrors)
   const meetingErrorsPresent = hasMeetingCreateErrors(pageErrors) && !opportunityErrorsPresent
-  const noteErrorsPresent =
-    hasNoteCreateErrors(pageErrors) && !meetingErrorsPresent && !opportunityErrorsPresent
+  const noteUpdateErrorsPresent = hasNoteUpdateErrors(pageErrors)
+  const noteCreateErrorsPresent =
+    hasNoteCreateErrors(pageErrors) &&
+    !meetingErrorsPresent &&
+    !opportunityErrorsPresent &&
+    !noteUpdateErrorsPresent
   // Opportunity/meeting markers win shared keys; note wins over task for remaining shared errors.
   const taskErrorsPresent =
     hasTaskCreateErrors(pageErrors) &&
-    !noteErrorsPresent &&
+    !noteCreateErrorsPresent &&
+    !noteUpdateErrorsPresent &&
     !meetingErrorsPresent &&
     !opportunityErrorsPresent
   const taskErrorKey = taskErrorsPresent ? JSON.stringify(pageErrors) : null
-  const noteErrorKey = noteErrorsPresent ? JSON.stringify(pageErrors) : null
+  const noteCreateErrorKey = noteCreateErrorsPresent ? JSON.stringify(pageErrors) : null
+  const noteUpdateErrorKey = noteUpdateErrorsPresent ? JSON.stringify(pageErrors) : null
   const meetingErrorKey = meetingErrorsPresent ? JSON.stringify(pageErrors) : null
+  const errorNoteId = noteIdFromErrors(pageErrors)
   const opportunityErrorKey = opportunityErrorsPresent ? JSON.stringify(pageErrors) : null
   const [taskManualOpen, setTaskManualOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<EditableTask | null>(null)
   const [noteManualOpen, setNoteManualOpen] = useState(false)
+  const [editingNote, setEditingNote] = useState<EditableNote | null>(null)
   const [meetingManualOpen, setMeetingManualOpen] = useState(false)
   const [editingMeeting, setEditingMeeting] = useState<EditableMeeting | null>(null)
   const [opportunityManualOpen, setOpportunityManualOpen] = useState(false)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
-  const [dismissedNoteErrorKey, setDismissedNoteErrorKey] = useState<string | null>(null)
+  const [dismissedNoteCreateErrorKey, setDismissedNoteCreateErrorKey] = useState<string | null>(null)
+  const [dismissedNoteUpdateErrorKey, setDismissedNoteUpdateErrorKey] = useState<string | null>(null)
   const [dismissedMeetingErrorKey, setDismissedMeetingErrorKey] = useState<string | null>(null)
   const [dismissedOpportunityErrorKey, setDismissedOpportunityErrorKey] = useState<string | null>(null)
   const [revertingId, setRevertingId] = useState<number | null>(null)
+  const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null)
 
   const taskModalOpen =
     editingTask == null &&
     (taskManualOpen || (taskErrorKey != null && dismissedTaskErrorKey !== taskErrorKey))
-  const noteModalOpen =
-    noteManualOpen || (noteErrorKey != null && dismissedNoteErrorKey !== noteErrorKey)
+  const noteCreateModalOpen =
+    editingNote == null &&
+    (noteManualOpen ||
+      (noteCreateErrorKey != null && dismissedNoteCreateErrorKey !== noteCreateErrorKey))
+  const noteUpdateErrorStillOpen =
+    noteUpdateErrorKey != null && dismissedNoteUpdateErrorKey !== noteUpdateErrorKey
+  const editingNoteFromError =
+    noteUpdateErrorStillOpen && errorNoteId != null
+      ? notes.items.find((note) => note.id === errorNoteId) ?? null
+      : null
+  const activeEditNote =
+    editingNote ??
+    (editingNoteFromError
+      ? {
+          id: editingNoteFromError.id,
+          content: editingNoteFromError.content,
+          lead_id: lead.id,
+        }
+      : null)
   const meetingModalOpen =
     editingMeeting == null &&
     (meetingManualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey))
@@ -269,13 +303,37 @@ export default function LeadsShow({
   }
 
   function openNoteModal() {
-    setDismissedNoteErrorKey(null)
+    setEditingNote(null)
+    setDismissedNoteCreateErrorKey(null)
     setNoteManualOpen(true)
+  }
+
+  function openEditNoteModal(note: NotePreview) {
+    setNoteManualOpen(false)
+    setDismissedNoteUpdateErrorKey(null)
+    setEditingNote({
+      id: note.id,
+      content: note.content,
+      lead_id: lead.id,
+    })
   }
 
   function closeNoteModal() {
     setNoteManualOpen(false)
-    if (noteErrorKey != null) setDismissedNoteErrorKey(noteErrorKey)
+    setEditingNote(null)
+    if (noteCreateErrorKey != null) setDismissedNoteCreateErrorKey(noteCreateErrorKey)
+    if (noteUpdateErrorKey != null) setDismissedNoteUpdateErrorKey(noteUpdateErrorKey)
+  }
+
+  function deleteNote(note: NotePreview) {
+    if (deletingNoteId != null) return
+    if (!window.confirm('Delete this note? This cannot be undone.')) return
+
+    setDeletingNoteId(note.id)
+    router.delete(`/notes/${note.id}?return_to=${encodeURIComponent(noteForm.return_to)}`, {
+      preserveScroll: true,
+      onFinish: () => setDeletingNoteId(null),
+    })
   }
 
   function openMeetingModal() {
@@ -492,11 +550,36 @@ export default function LeadsShow({
             }
           >
             {notes.items.map((note) => (
-              <li key={note.id} className="px-4 py-3">
-                <div className="whitespace-pre-wrap text-sm text-slate-900">{note.content}</div>
-                <div className="mt-1 text-xs text-slate-500">
-                  {note.author || '—'} · {formatDateTime(note.created_at)}
+              <li key={note.id} className="flex items-start justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <div className="whitespace-pre-wrap text-sm text-slate-900">{note.content}</div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {note.author || '—'} · {formatDateTime(note.created_at)}
+                  </div>
                 </div>
+                {(note.can_update || note.can_destroy) && (
+                  <div className="flex shrink-0 gap-3">
+                    {note.can_update && (
+                      <button
+                        type="button"
+                        onClick={() => openEditNoteModal(note)}
+                        className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {note.can_destroy && (
+                      <button
+                        type="button"
+                        onClick={() => deleteNote(note)}
+                        disabled={deletingNoteId === note.id}
+                        className="text-sm font-medium text-red-600 hover:text-red-500 disabled:opacity-50"
+                      >
+                        {deletingNoteId === note.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </li>
             ))}
           </Section>
@@ -585,10 +668,24 @@ export default function LeadsShow({
 
       {canCreateNote && (
         <NoteFormModal
-          open={noteModalOpen}
+          key="lead-note-create"
+          open={noteCreateModalOpen}
           onClose={closeNoteModal}
-          leadId={noteForm.lead_id}
+          leads={noteForm.leads ?? [{ id: noteForm.lead_id, name: lead.name }]}
           returnTo={noteForm.return_to}
+          lockedLeadId={lead.id}
+        />
+      )}
+
+      {activeEditNote && (
+        <NoteFormModal
+          key={`lead-note-edit-${activeEditNote.id}`}
+          open
+          onClose={closeNoteModal}
+          leads={noteForm.leads ?? [{ id: noteForm.lead_id, name: lead.name }]}
+          returnTo={noteForm.return_to}
+          lockedLeadId={lead.id}
+          note={activeEditNote}
         />
       )}
 
