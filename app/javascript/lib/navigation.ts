@@ -12,7 +12,9 @@ export const mainNavItems: NavItem[] = [
   { label: 'Opportunities', href: '/opportunities' },
 ]
 
-export const advisorNavItems: NavItem[] = []
+export const advisorNavItems: NavItem[] = [
+  { label: 'Assistants', href: '/assistants' },
+]
 
 const sharedAdminNavItems: NavItem[] = [
   { label: 'Users', href: '/admin/users' },
@@ -41,7 +43,7 @@ export function adminNavVisible(role: string | undefined): boolean {
 }
 
 export function advisorNavVisible(role: string | undefined): boolean {
-  return role === 'advisor'
+  return role === 'advisor' || role === 'admin' || role === 'billing_admin'
 }
 
 export function formatRoleLabel(role: string): string {

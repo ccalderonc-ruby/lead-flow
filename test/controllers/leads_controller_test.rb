@@ -79,14 +79,15 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "assistant sees organization-wide leads" do
+  test "assistant sees leads for assigned advisors only" do
     sign_in_as users(:assistant)
 
     get leads_path
 
     assert_response :success
     assert_includes response.body, leads(:sarah).name
-    assert_includes response.body, leads(:admin_owned).name
+    assert_includes response.body, leads(:marcus).name
+    refute_includes response.body, leads(:admin_owned).name
   end
 
   test "search is case-insensitive for company and email" do

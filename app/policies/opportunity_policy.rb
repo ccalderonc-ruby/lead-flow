@@ -6,10 +6,7 @@ class OpportunityPolicy < ApplicationPolicy
   end
 
   def show?
-    return true if admin?
-    return true if assistant?
-
-    advisor? && lead_assigned_to_user?
+    lead_visible?
   end
 
   def create?
@@ -35,7 +32,10 @@ class OpportunityPolicy < ApplicationPolicy
       elsif user.advisor?
         scope.joins(:lead).where(leads: { user_id: user.id })
       elsif user.assistant?
-        scope.all
+        advisor_ids = user.assigned_advisor_ids
+        return scope.none if advisor_ids.empty?
+
+        scope.joins(:lead).where(leads: { user_id: advisor_ids })
       else
         scope.none
       end

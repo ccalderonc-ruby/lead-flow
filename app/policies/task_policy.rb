@@ -6,15 +6,12 @@ class TaskPolicy < ApplicationPolicy
   end
 
   def show?
-    return true if admin?
-    return true if assistant?
-
-    advisor? && lead_assigned_to_user?
+    lead_visible? || task_assigned_to_user?
   end
 
   def create?
     return true if admin?
-    return true if assistant? && record_lead.present?
+    return true if assistant? && lead_visible_to_assistant?
 
     advisor? && lead_assigned_to_user?
   end
@@ -22,7 +19,7 @@ class TaskPolicy < ApplicationPolicy
   def update?
     return false if completion_locked?
 
-    create?
+    create? || (assistant? && task_assigned_to_user?)
   end
 
   # Revert completed → pending/in_progress: task owner or admin only, within 24h of completion.
@@ -31,7 +28,7 @@ class TaskPolicy < ApplicationPolicy
     return false unless user
     return true if admin?
 
-    record.respond_to?(:user_id) && record.user_id == user.id
+    task_assigned_to_user?
   end
 
   def destroy?
@@ -47,9 +44,21 @@ class TaskPolicy < ApplicationPolicy
       if user.admin?
         scope.all
       elsif user.advisor?
-        scope.joins(:lead).where(leads: { user_id: user.id })
+        scope.left_outer_joins(:lead).where(
+          "leads.user_id = :uid OR tasks.user_id = :uid",
+          uid: user.id
+        ).distinct
       elsif user.assistant?
-        scope.all
+        advisor_ids = user.assigned_advisor_ids
+        if advisor_ids.empty?
+          scope.where(user_id: user.id)
+        else
+          scope.left_outer_joins(:lead).where(
+            "leads.user_id IN (:aids) OR tasks.user_id = :uid",
+            aids: advisor_ids,
+            uid: user.id
+          ).distinct
+        end
       else
         scope.none
       end
@@ -60,5 +69,9 @@ class TaskPolicy < ApplicationPolicy
 
   def completion_locked?
     record.respond_to?(:completion_locked?) && record.completion_locked?
+  end
+
+  def task_assigned_to_user?
+    record.respond_to?(:user_id) && record.user_id == user.id
   end
 end

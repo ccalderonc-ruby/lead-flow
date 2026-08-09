@@ -33,9 +33,18 @@ class MeetingPolicyTest < ActiveSupport::TestCase
     refute_includes scoped, other
   end
 
-  test "admin and assistant scopes include all meetings" do
+  test "admin scope includes all meetings" do
     assert_includes MeetingPolicy::Scope.new(@admin, Meeting).resolve, @advisor_meeting
+  end
+
+  test "assistant scope includes meetings on assigned-advisor leads" do
     assert_includes MeetingPolicy::Scope.new(@assistant, Meeting).resolve, @advisor_meeting
+  end
+
+  test "unassigned assistant meeting scope is empty" do
+    AdvisorAssistant.delete_all
+
+    assert_empty MeetingPolicy::Scope.new(@assistant, Meeting).resolve
   end
 
   test "assistant cannot create meetings" do

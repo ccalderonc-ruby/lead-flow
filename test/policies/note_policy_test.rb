@@ -6,12 +6,19 @@ class NotePolicyTest < ActiveSupport::TestCase
   setup do
     @assistant = users(:assistant)
     @advisor = users(:advisor)
-    @lead = leads(:admin_owned)
-    @note = Note.new(lead: @lead, user: @assistant, content: "Follow-up scheduled")
+    @assigned_lead = leads(:sarah)
+    @other_lead = leads(:admin_owned)
+    @note = Note.new(lead: @assigned_lead, user: @assistant, content: "Follow-up scheduled")
   end
 
-  test "assistant can create note on any lead" do
+  test "assistant can create note on assigned-advisor lead" do
     assert NotePolicy.new(@assistant, @note).create?
+  end
+
+  test "assistant cannot create note on unassigned lead" do
+    note = Note.new(lead: @other_lead, user: @assistant, content: "Should fail")
+
+    refute NotePolicy.new(@assistant, note).create?
   end
 
   test "assistant cannot create note without a lead" do
@@ -19,10 +26,12 @@ class NotePolicyTest < ActiveSupport::TestCase
   end
 
   test "advisor cannot create note on lead assigned to another user" do
-    refute NotePolicy.new(@advisor, @note).create?
+    note = Note.new(lead: @other_lead, user: @advisor, content: "Should fail")
+
+    refute NotePolicy.new(@advisor, note).create?
   end
 
-  test "assistant can update note on any lead" do
+  test "assistant can update note on assigned-advisor lead" do
     assert NotePolicy.new(@assistant, @note).update?
   end
 

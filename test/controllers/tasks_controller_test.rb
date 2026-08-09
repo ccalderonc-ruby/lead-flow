@@ -39,15 +39,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, tasks(:admin_task).title
   end
 
-  test "advisor mine filter only includes tasks assigned to advisor" do
+  test "advisor mine filter redirects to all list" do
     sign_in_as users(:advisor)
 
     get tasks_path, params: { filter: "mine" }
 
+    assert_redirected_to tasks_path
+  end
+
+  test "advisor tasks index hides mine filter" do
+    sign_in_as users(:advisor)
+
+    get tasks_path
+
     assert_response :success
-    assert_includes response.body, '"filter":"mine"'
-    assert_includes response.body, tasks(:follow_up).title
-    refute_includes response.body, tasks(:assistant_owned_task).title
+    assert_includes response.body, '"show_mine_filter":false'
   end
 
   test "advisor overdue filter includes pending past due and status overdue" do
@@ -96,18 +102,21 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     get tasks_path, params: { filter: "mine" }
 
     assert_response :success
+    assert_includes response.body, '"show_mine_filter":true'
     assert_includes response.body, tasks(:admin_task).title
     refute_includes response.body, tasks(:follow_up).title
   end
 
-  test "assistant can list all tasks" do
+  test "assistant lists tasks for assigned advisor leads" do
     sign_in_as users(:assistant)
 
     get tasks_path
 
     assert_response :success
+    assert_includes response.body, '"show_mine_filter":false'
     assert_includes response.body, tasks(:follow_up).title
-    assert_includes response.body, tasks(:admin_task).title
+    assert_includes response.body, tasks(:assistant_owned_task).title
+    refute_includes response.body, tasks(:admin_task).title
   end
 
   test "invalid filter redirects to canonical all list" do
@@ -120,10 +129,30 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"filter":"all"'
   end
 
-  test "assistant creates task on any lead" do
+  test "assistant creates task on assigned-advisor lead" do
     sign_in_as users(:assistant)
 
     assert_difference "Task.count", 1 do
+      post tasks_path, params: {
+        title: "Prep briefing",
+        due_date: "2026-07-20",
+        lead_id: leads(:sarah).id,
+        user_id: users(:advisor).id,
+        return_to: tasks_path
+      }
+    end
+
+    task = Task.order(:id).last
+    assert_equal "pending", task.status
+    assert_equal users(:advisor).id, task.user_id
+    assert_redirected_to tasks_path
+    assert_equal "Task created.", flash[:notice]
+  end
+
+  test "assistant cannot create task on unassigned lead" do
+    sign_in_as users(:assistant)
+
+    assert_no_difference "Task.count" do
       post tasks_path, params: {
         title: "Prep briefing",
         due_date: "2026-07-20",
@@ -132,12 +161,6 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
         return_to: tasks_path
       }
     end
-
-    task = Task.order(:id).last
-    assert_equal "pending", task.status
-    assert_equal users(:admin).id, task.user_id
-    assert_redirected_to tasks_path
-    assert_equal "Task created.", flash[:notice]
   end
 
   test "advisor creates task only on assigned lead and forces self assignee" do
@@ -243,10 +266,10 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
 
     patch task_path(task), params: {
       status: "completed",
-      return_to: "/tasks?filter=mine&page=2"
+      return_to: "/tasks?filter=pending&page=2"
     }
 
-    assert_redirected_to tasks_path(filter: "mine", page: 2)
+    assert_redirected_to tasks_path(filter: "pending", page: 2)
     assert_equal "completed", task.reload.status
   end
 

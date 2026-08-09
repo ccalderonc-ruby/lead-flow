@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   resources :notes, only: %i[index create update destroy]
   resources :meetings, only: %i[index create update]
   resources :opportunities, only: %i[index create update]
+  resources :assistants, only: %i[index create destroy]
 
   namespace :admin do
     resources :users, only: %i[index new create edit update]

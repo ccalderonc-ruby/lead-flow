@@ -6,10 +6,7 @@ class MeetingPolicy < ApplicationPolicy
   end
 
   def show?
-    return true if admin?
-    return true if assistant?
-
-    advisor? && lead_assigned_to_user?
+    lead_visible? || meeting_hosted_by_user?
   end
 
   def create?
@@ -27,7 +24,7 @@ class MeetingPolicy < ApplicationPolicy
     return false unless user
     return true if admin?
 
-    record.respond_to?(:user_id) && record.user_id == user.id
+    meeting_hosted_by_user?
   end
 
   def destroy?
@@ -41,12 +38,24 @@ class MeetingPolicy < ApplicationPolicy
       if user.admin?
         scope.all
       elsif user.advisor?
-        scope.joins(:lead).where(leads: { user_id: user.id })
+        scope.left_outer_joins(:lead).where(
+          "leads.user_id = :uid OR meetings.user_id = :uid",
+          uid: user.id
+        ).distinct
       elsif user.assistant?
-        scope.all
+        advisor_ids = user.assigned_advisor_ids
+        return scope.none if advisor_ids.empty?
+
+        scope.joins(:lead).where(leads: { user_id: advisor_ids })
       else
         scope.none
       end
     end
+  end
+
+  private
+
+  def meeting_hosted_by_user?
+    record.respond_to?(:user_id) && record.user_id == user.id
   end
 end

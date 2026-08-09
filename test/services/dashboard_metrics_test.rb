@@ -29,10 +29,10 @@ class DashboardMetricsTest < ActiveSupport::TestCase
     assert_in_delta 32_000.0, metrics[:pipeline_value]
   end
 
-  test "assistant metrics match org-wide read scope" do
+  test "assistant metrics match assigned-advisor scope" do
     metrics = DashboardMetrics.new(users(:assistant)).call
 
-    assert_equal metrics, DashboardMetrics.new(users(:admin)).call
+    assert_equal metrics, DashboardMetrics.new(users(:advisor)).call
   end
 
   test "closed leads and won opportunities are excluded" do
