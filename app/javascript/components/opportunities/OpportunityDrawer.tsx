@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/react'
 
 import { SelectField, TextAreaField, TextField } from '@/components/ui/FormFields'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
+import { formatUsdInput, parseUsdInput } from '@/lib/format'
 
 export type OpportunityStageOption = {
   id: number
@@ -16,6 +17,8 @@ export type OpportunityDrawerRecord = {
   value: string | number | null
   lead: string | null
   lead_id: number | null
+  owner?: string | null
+  user_id?: number | null
   stage_id: number
   close_date: string | null
   description: string | null
@@ -26,6 +29,7 @@ type OpportunityDrawerProps = {
   open: boolean
   opportunity: OpportunityDrawerRecord | null
   stageOptions: OpportunityStageOption[]
+  returnTo?: string
   onClose: () => void
 }
 
@@ -46,7 +50,7 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
 function toFormValues(opportunity: OpportunityDrawerRecord): OpportunityFormValues {
   return {
     title: opportunity.title || '',
-    value: opportunity.value != null ? String(opportunity.value) : '',
+    value: formatUsdInput(opportunity.value),
     stage_id: String(opportunity.stage_id),
     close_date: opportunity.close_date || '',
     description: opportunity.description || '',
@@ -57,6 +61,7 @@ export default function OpportunityDrawer({
   open,
   opportunity,
   stageOptions,
+  returnTo = '/opportunities',
   onClose,
 }: OpportunityDrawerProps) {
   const form = useForm<OpportunityFormValues>(
@@ -93,8 +98,9 @@ export default function OpportunityDrawer({
 
     form.transform((data) => ({
       ...data,
-      value: data.value.trim() === '' ? '' : data.value,
+      value: parseUsdInput(data.value),
       close_date: data.close_date || '',
+      return_to: returnTo,
     }))
     form.patch(`/opportunities/${record.id}`, {
       preserveScroll: true,
@@ -159,12 +165,14 @@ export default function OpportunityDrawer({
 
             <TextField
               id="opportunity-value"
-              label="Value"
-              type="number"
-              min="0.01"
-              step="any"
+              label="Value (USD)"
+              type="text"
+              prefix="$"
+              inputMode="decimal"
+              autoComplete="off"
+              placeholder="0.00"
               value={form.data.value}
-              onChange={(value) => form.setData('value', value)}
+              onChange={(value) => form.setData('value', formatUsdInput(value))}
               error={fieldError(form.errors, 'value')}
               disabled={readOnly}
             />
@@ -219,6 +227,11 @@ export default function OpportunityDrawer({
                   record.lead || '—'
                 )}
               </p>
+            </div>
+
+            <div>
+              <p className="block text-sm font-medium text-slate-700">Owner</p>
+              <p className="mt-1 text-sm text-slate-900">{record.owner || '—'}</p>
             </div>
           </div>
 

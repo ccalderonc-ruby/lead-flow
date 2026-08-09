@@ -10,6 +10,11 @@ import MeetingFormModal, {
 import { hasMeetingCreateErrors } from '@/components/meetings/meetingFormErrors'
 import NoteFormModal from '@/components/notes/NoteFormModal'
 import { hasNoteCreateErrors } from '@/components/notes/noteFormErrors'
+import OpportunityFormModal, {
+  type OpportunityFormDefaults,
+  type OpportunityFormOption,
+} from '@/components/opportunities/OpportunityFormModal'
+import { hasOpportunityCreateErrors } from '@/components/opportunities/opportunityFormErrors'
 import TaskFormModal, {
   type EditableTask,
   type TaskFormDefaults,
@@ -112,6 +117,13 @@ type NoteFormProps = {
   return_to: string
 }
 
+type OpportunityFormProps = {
+  leads: OpportunityFormOption[]
+  stages: OpportunityFormOption[]
+  defaults: OpportunityFormDefaults
+  return_to: string
+}
+
 type LeadsShowProps = {
   lead: LeadDetail
   tasks: RelatedSection<TaskPreview>
@@ -124,6 +136,8 @@ type LeadsShowProps = {
   meeting_form: MeetingFormProps
   can_create_note: boolean
   note_form: NoteFormProps
+  can_create_opportunity: boolean
+  opportunity_form: OpportunityFormProps
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -185,25 +199,35 @@ export default function LeadsShow({
   meeting_form: meetingForm,
   can_create_note: canCreateNote,
   note_form: noteForm,
+  can_create_opportunity: canCreateOpportunity,
+  opportunity_form: opportunityForm,
 }: LeadsShowProps) {
   const page = usePage()
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
-  const meetingErrorsPresent = hasMeetingCreateErrors(pageErrors)
-  const noteErrorsPresent = hasNoteCreateErrors(pageErrors) && !meetingErrorsPresent
-  // Meeting marker wins shared keys; note wins over task for remaining shared errors.
+  const opportunityErrorsPresent = hasOpportunityCreateErrors(pageErrors)
+  const meetingErrorsPresent = hasMeetingCreateErrors(pageErrors) && !opportunityErrorsPresent
+  const noteErrorsPresent =
+    hasNoteCreateErrors(pageErrors) && !meetingErrorsPresent && !opportunityErrorsPresent
+  // Opportunity/meeting markers win shared keys; note wins over task for remaining shared errors.
   const taskErrorsPresent =
-    hasTaskCreateErrors(pageErrors) && !noteErrorsPresent && !meetingErrorsPresent
+    hasTaskCreateErrors(pageErrors) &&
+    !noteErrorsPresent &&
+    !meetingErrorsPresent &&
+    !opportunityErrorsPresent
   const taskErrorKey = taskErrorsPresent ? JSON.stringify(pageErrors) : null
   const noteErrorKey = noteErrorsPresent ? JSON.stringify(pageErrors) : null
   const meetingErrorKey = meetingErrorsPresent ? JSON.stringify(pageErrors) : null
+  const opportunityErrorKey = opportunityErrorsPresent ? JSON.stringify(pageErrors) : null
   const [taskManualOpen, setTaskManualOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<EditableTask | null>(null)
   const [noteManualOpen, setNoteManualOpen] = useState(false)
   const [meetingManualOpen, setMeetingManualOpen] = useState(false)
   const [editingMeeting, setEditingMeeting] = useState<EditableMeeting | null>(null)
+  const [opportunityManualOpen, setOpportunityManualOpen] = useState(false)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [dismissedNoteErrorKey, setDismissedNoteErrorKey] = useState<string | null>(null)
   const [dismissedMeetingErrorKey, setDismissedMeetingErrorKey] = useState<string | null>(null)
+  const [dismissedOpportunityErrorKey, setDismissedOpportunityErrorKey] = useState<string | null>(null)
   const [revertingId, setRevertingId] = useState<number | null>(null)
 
   const taskModalOpen =
@@ -214,6 +238,9 @@ export default function LeadsShow({
   const meetingModalOpen =
     editingMeeting == null &&
     (meetingManualOpen || (meetingErrorKey != null && dismissedMeetingErrorKey !== meetingErrorKey))
+  const opportunityModalOpen =
+    opportunityManualOpen ||
+    (opportunityErrorKey != null && dismissedOpportunityErrorKey !== opportunityErrorKey)
 
   function openTaskModal() {
     setEditingTask(null)
@@ -278,6 +305,16 @@ export default function LeadsShow({
     setMeetingManualOpen(false)
     setEditingMeeting(null)
     if (meetingErrorKey != null) setDismissedMeetingErrorKey(meetingErrorKey)
+  }
+
+  function openOpportunityModal() {
+    setDismissedOpportunityErrorKey(null)
+    setOpportunityManualOpen(true)
+  }
+
+  function closeOpportunityModal() {
+    setOpportunityManualOpen(false)
+    if (opportunityErrorKey != null) setDismissedOpportunityErrorKey(opportunityErrorKey)
   }
 
   function revertTask(task: TaskPreview) {
@@ -464,7 +501,22 @@ export default function LeadsShow({
             ))}
           </Section>
 
-          <Section title="Opportunities" count={opportunities.count} empty="No opportunities yet.">
+          <Section
+            title="Opportunities"
+            count={opportunities.count}
+            empty="No opportunities yet."
+            action={
+              canCreateOpportunity ? (
+                <button
+                  type="button"
+                  onClick={openOpportunityModal}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                >
+                  New opportunity
+                </button>
+              ) : null
+            }
+          >
             {opportunities.items.map((opportunity) => (
               <li key={opportunity.id} className="px-4 py-3">
                 <div className="font-medium text-slate-900">{opportunity.title}</div>
@@ -537,6 +589,19 @@ export default function LeadsShow({
           onClose={closeNoteModal}
           leadId={noteForm.lead_id}
           returnTo={noteForm.return_to}
+        />
+      )}
+
+      {canCreateOpportunity && (
+        <OpportunityFormModal
+          key="lead-opportunity-create"
+          open={opportunityModalOpen}
+          onClose={closeOpportunityModal}
+          leads={opportunityForm.leads}
+          stages={opportunityForm.stages}
+          defaults={opportunityForm.defaults}
+          returnTo={opportunityForm.return_to}
+          lockedLeadId={lead.id}
         />
       )}
     </AuthenticatedPage>

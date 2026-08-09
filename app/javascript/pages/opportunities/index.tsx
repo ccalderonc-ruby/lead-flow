@@ -1,29 +1,48 @@
-import { Head, Link, usePage } from '@inertiajs/react'
+import { Head, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import OpportunityBoard, {
+  type OpportunityCard,
+  type PipelineStage,
+} from '@/components/opportunities/OpportunityBoard'
 import OpportunityDrawer, {
-  type OpportunityDrawerRecord,
   type OpportunityStageOption,
 } from '@/components/opportunities/OpportunityDrawer'
+import OpportunityFormModal, {
+  type OpportunityFormDefaults,
+  type OpportunityFormOption,
+} from '@/components/opportunities/OpportunityFormModal'
 import {
+  hasOpportunityCreateErrors,
   hasOpportunityUpdateErrors,
   opportunityIdFromErrors,
 } from '@/components/opportunities/opportunityFormErrors'
-import { formatCurrency, formatDate } from '@/lib/format'
 
-type OpportunityCard = OpportunityDrawerRecord
-
-type PipelineStage = {
+type OwnerOption = {
   id: number
   name: string
-  position: number
-  opportunities: OpportunityCard[]
+}
+
+type OpportunitiesMeta = {
+  user_id: number | null
 }
 
 type OpportunitiesIndexProps = {
   stages: PipelineStage[]
   stage_options: OpportunityStageOption[]
+  owners: OwnerOption[]
+  meta: OpportunitiesMeta
+  can_create: boolean
+  leads: OpportunityFormOption[]
+  defaults: OpportunityFormDefaults
+  return_to: string
+}
+
+function opportunitiesQueryParams(userId: string) {
+  return {
+    user_id: userId || undefined,
+  }
 }
 
 function findOpportunity(stages: PipelineStage[], id: number | null): OpportunityCard | null {
@@ -38,95 +57,130 @@ function findOpportunity(stages: PipelineStage[], id: number | null): Opportunit
 export default function OpportunitiesIndex({
   stages = [],
   stage_options: stageOptions = [],
+  owners = [],
+  meta = { user_id: null },
+  can_create: canCreate = false,
+  leads = [],
+  defaults = { stage_id: null },
+  return_to: returnTo = '/opportunities',
 }: OpportunitiesIndexProps) {
   const page = usePage()
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
   const updateErrorsPresent = hasOpportunityUpdateErrors(pageErrors)
+  const createErrorsPresent = hasOpportunityCreateErrors(pageErrors)
   const errorOpportunityId = opportunityIdFromErrors(pageErrors)
-  const errorKey = updateErrorsPresent ? JSON.stringify(pageErrors) : null
+  const updateErrorKey = updateErrorsPresent ? JSON.stringify(pageErrors) : null
+  const createErrorKey = createErrorsPresent ? JSON.stringify(pageErrors) : null
 
   const [manualId, setManualId] = useState<number | null>(null)
-  const [dismissedErrorKey, setDismissedErrorKey] = useState<string | null>(null)
+  const [dismissedUpdateErrorKey, setDismissedUpdateErrorKey] = useState<string | null>(null)
+  const [createManualOpen, setCreateManualOpen] = useState(false)
+  const [dismissedCreateErrorKey, setDismissedCreateErrorKey] = useState<string | null>(null)
 
-  const errorStillOpen = errorKey != null && dismissedErrorKey !== errorKey
-  const selectedId = manualId ?? (errorStillOpen ? errorOpportunityId : null)
+  const updateErrorStillOpen = updateErrorKey != null && dismissedUpdateErrorKey !== updateErrorKey
+  const selectedId = manualId ?? (updateErrorStillOpen ? errorOpportunityId : null)
   const selected = findOpportunity(stages, selectedId)
   const drawerOpen = selected != null
 
+  const createModalOpen =
+    createManualOpen || (createErrorKey != null && dismissedCreateErrorKey !== createErrorKey)
+
   function openDrawer(opportunity: OpportunityCard) {
-    setDismissedErrorKey(null)
+    setDismissedUpdateErrorKey(null)
     setManualId(opportunity.id)
   }
 
   function closeDrawer() {
     setManualId(null)
-    if (errorKey != null) setDismissedErrorKey(errorKey)
+    if (updateErrorKey != null) setDismissedUpdateErrorKey(updateErrorKey)
   }
+
+  function openCreateModal() {
+    setDismissedCreateErrorKey(null)
+    setCreateManualOpen(true)
+  }
+
+  function closeCreateModal() {
+    setCreateManualOpen(false)
+    if (createErrorKey != null) setDismissedCreateErrorKey(createErrorKey)
+  }
+
+  function setOwnerFilter(userId: string) {
+    router.get('/opportunities', opportunitiesQueryParams(userId), { preserveState: true })
+  }
+
+  const selectedOwnerName =
+    meta.user_id != null ? owners.find((owner) => owner.id === meta.user_id)?.name : null
 
   return (
     <AuthenticatedPage>
       <Head title="Opportunities" />
 
-      <div>
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Opportunities</h1>
-          <p className="mt-1 text-slate-600">Pipeline by stage across your scoped leads.</p>
-        </div>
+      <div className="flex h-[calc(100vh-7.5rem)] min-h-[28rem] min-w-0 flex-col lg:h-[calc(100vh-8.5rem)]">
+        <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold text-slate-900">Opportunities</h1>
+            <p className="mt-1 text-slate-600">Pipeline by stage across your scoped leads.</p>
+          </div>
 
-        <div className="mt-8 flex gap-4 overflow-x-auto pb-4">
-          {stages.map((stage) => (
-            <section
-              key={stage.id}
-              className="flex w-72 shrink-0 flex-col rounded-xl border border-slate-200 bg-slate-50"
-              aria-label={`${stage.name} stage`}
-            >
-              <header className="flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-3">
-                <h2 className="text-sm font-semibold text-slate-900">{stage.name}</h2>
-                <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
-                  {stage.opportunities.length}
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative">
+              <div
+                className={`inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-sm shadow-sm ${
+                  meta.user_id != null
+                    ? 'border-indigo-200 text-slate-800'
+                    : 'border-slate-200 text-slate-700'
+                }`}
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="h-4 w-4 shrink-0 text-slate-500"
+                >
+                  <path
+                    d="M3 4.5h14l-5.5 6.25V15l-3 1.5v-5.75L3 4.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="pointer-events-none font-medium">
+                  Filter: Owner
+                  {selectedOwnerName ? (
+                    <span className="font-normal text-slate-500"> · {selectedOwnerName}</span>
+                  ) : null}
                 </span>
-              </header>
+              </div>
+              <select
+                id="opportunities-owner-filter"
+                aria-label="Filter: Owner"
+                value={meta.user_id != null ? String(meta.user_id) : ''}
+                onChange={(event) => setOwnerFilter(event.target.value)}
+                className="absolute inset-0 cursor-pointer opacity-0"
+              >
+                <option value="">All owners</option>
+                {owners.map((owner) => (
+                  <option key={owner.id} value={String(owner.id)}>
+                    {owner.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              <ul className="flex min-h-40 flex-1 flex-col gap-2 p-3">
-                {stage.opportunities.length === 0 ? (
-                  <li className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-6 text-center text-xs text-slate-400">
-                    No opportunities
-                  </li>
-                ) : (
-                  stage.opportunities.map((opportunity) => (
-                    <li key={opportunity.id}>
-                      <article className="rounded-lg border border-slate-200 bg-white shadow-sm hover:border-indigo-200 hover:bg-indigo-50/40">
-                        <button
-                          type="button"
-                          onClick={() => openDrawer(opportunity)}
-                          className="w-full px-3 pt-3 text-left"
-                        >
-                          <div className="font-medium text-slate-900">{opportunity.title || 'Untitled'}</div>
-                          <div className="mt-1 text-sm font-semibold text-slate-700">
-                            {formatCurrency(opportunity.value)}
-                          </div>
-                        </button>
-                        <div className="px-3 pb-3 pt-2 text-xs text-slate-500">
-                          {opportunity.lead_id ? (
-                            <Link
-                              href={`/leads/${opportunity.lead_id}`}
-                              className="font-medium text-indigo-600 hover:text-indigo-500"
-                            >
-                              {opportunity.lead || '—'}
-                            </Link>
-                          ) : (
-                            opportunity.lead || '—'
-                          )}
-                          {opportunity.close_date ? ` · Close ${formatDate(opportunity.close_date)}` : null}
-                        </div>
-                      </article>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </section>
-          ))}
+            {canCreate && (
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+              >
+                New opportunity
+              </button>
+            )}
+          </div>
         </div>
+
+        <OpportunityBoard stages={stages} returnTo={returnTo} onOpen={openDrawer} />
       </div>
 
       <OpportunityDrawer
@@ -134,8 +188,20 @@ export default function OpportunitiesIndex({
         open={drawerOpen}
         opportunity={selected}
         stageOptions={stageOptions}
+        returnTo={returnTo}
         onClose={closeDrawer}
       />
+
+      {canCreate && (
+        <OpportunityFormModal
+          open={createModalOpen}
+          onClose={closeCreateModal}
+          leads={leads}
+          stages={stageOptions}
+          defaults={defaults}
+          returnTo={returnTo}
+        />
+      )}
     </AuthenticatedPage>
   )
 }

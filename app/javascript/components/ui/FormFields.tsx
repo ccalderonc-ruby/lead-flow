@@ -19,6 +19,7 @@ type TextFieldProps = {
   error?: string | null
   value: string
   onChange: (value: string) => void
+  prefix?: string
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'value' | 'onChange'>
 
 export function TextField({
@@ -29,22 +30,39 @@ export function TextField({
   value,
   onChange,
   type = 'text',
+  prefix,
+  className,
   ...rest
 }: TextFieldProps) {
+  const inputClassName = [
+    fieldClassName,
+    prefix ? 'pl-7' : null,
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-slate-700">
         {label}
         {required && <span className="text-red-600"> *</span>}
       </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
-        className={fieldClassName}
-        {...rest}
-      />
+      <div className="relative">
+        {prefix ? (
+          <span className="pointer-events-none absolute inset-y-0 left-0 mt-1 flex items-center pl-3 text-sm text-slate-500">
+            {prefix}
+          </span>
+        ) : null}
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+          className={inputClassName}
+          {...rest}
+        />
+      </div>
       <FieldError error={error} />
     </div>
   )

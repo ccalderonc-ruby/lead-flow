@@ -306,6 +306,15 @@ class LeadsController < InertiaController
             stage: opportunity.stage&.name
           }
         end
+      },
+      can_create_opportunity: policy(Opportunity.new(lead: lead)).create?,
+      opportunity_form: {
+        leads: [ { id: lead.id, name: lead.name } ],
+        stages: OpportunityStage.order(:position).map { |stage| { id: stage.id, name: stage.name } },
+        defaults: {
+          stage_id: OpportunityStage.order(:position).limit(1).pick(:id)
+        },
+        return_to: lead_path(lead)
       }
     }
   end
