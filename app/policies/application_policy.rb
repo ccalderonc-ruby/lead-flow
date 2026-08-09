@@ -84,4 +84,21 @@ class ApplicationPolicy
     lead = record_lead
     lead.present? && lead.user_id == user.id
   end
+
+  # Assistant may access records for leads owned by advisors they are assigned to.
+  def lead_visible_to_assistant?(lead = record_lead)
+    return false unless assistant?
+    return false if lead.blank?
+
+    user.assigned_to_advisor?(lead.user_id)
+  end
+
+  def lead_visible?
+    return true if admin?
+    return lead_assigned_to_user? if advisor?
+    return lead_visible_to_assistant? if assistant?
+
+    false
+  end
 end
+

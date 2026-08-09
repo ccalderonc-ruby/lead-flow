@@ -24,16 +24,39 @@ class TaskPolicyTest < ActiveSupport::TestCase
     refute_includes scoped, @admin_task
   end
 
-  test "admin and assistant scopes include all tasks" do
+  test "admin scope includes all tasks" do
     assert_includes TaskPolicy::Scope.new(@admin, Task).resolve, @admin_task
-    assert_includes TaskPolicy::Scope.new(@assistant, Task).resolve, @advisor_task
+    assert_includes TaskPolicy::Scope.new(@admin, Task).resolve, @advisor_task
   end
 
-  test "assistant can create and update when lead present" do
-    task = Task.new(lead: leads(:admin_owned))
+  test "assistant scope includes assigned-advisor lead tasks and own tasks" do
+    scoped = TaskPolicy::Scope.new(@assistant, Task).resolve
+
+    assert_includes scoped, @advisor_task
+    assert_includes scoped, tasks(:assistant_owned_task)
+    refute_includes scoped, @admin_task
+  end
+
+  test "unassigned assistant scope includes only own tasks" do
+    AdvisorAssistant.delete_all
+
+    scoped = TaskPolicy::Scope.new(@assistant, Task).resolve
+
+    assert_includes scoped, tasks(:assistant_owned_task)
+    refute_includes scoped, @advisor_task
+  end
+
+  test "assistant can create and update on assigned-advisor lead" do
+    task = Task.new(lead: leads(:sarah))
 
     assert TaskPolicy.new(@assistant, task).create?
     assert TaskPolicy.new(@assistant, task).update?
+  end
+
+  test "assistant cannot create on unassigned lead" do
+    task = Task.new(lead: leads(:admin_owned))
+
+    refute TaskPolicy.new(@assistant, task).create?
   end
 
   test "assistant cannot create without lead" do

@@ -50,14 +50,14 @@ class OpportunitiesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, opportunities(:won_deal).title
   end
 
-  test "assistant can view pipeline read-only" do
+  test "assistant can view pipeline for assigned-advisor leads only" do
     sign_in_as users(:assistant)
 
     get opportunities_path
 
     assert_response :success
     assert_includes response.body, opportunities(:migration).title
-    assert_includes response.body, opportunities(:won_deal).title
+    refute_includes response.body, opportunities(:won_deal).title
   end
 
   test "stages are ordered by position" do

@@ -16,6 +16,10 @@ class TasksController < InertiaController
     end
 
     filter = FILTERS.include?(requested_filter) ? requested_filter : "all"
+    if filter == "mine" && !show_mine_filter?
+      redirect_to tasks_path(page: Array(params[:page]).first.presence)
+      return
+    end
 
     page = Integer(Array(params[:page]).first, exception: false) || 1
     page = [ page, 1 ].max
@@ -42,6 +46,7 @@ class TasksController < InertiaController
       },
       **form_options,
       can_create: can_create_tasks?,
+      show_mine_filter: show_mine_filter?,
       return_to: tasks_return_path(filter, page)
     }
   end
@@ -230,6 +235,10 @@ class TasksController < InertiaController
     return true if current_user.admin? || current_user.assistant?
 
     current_user.advisor? && policy_scope(Lead).exists?
+  end
+
+  def show_mine_filter?
+    current_user.admin?
   end
 
   def form_options

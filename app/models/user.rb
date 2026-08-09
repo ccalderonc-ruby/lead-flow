@@ -15,6 +15,20 @@ class User < ApplicationRecord
   has_many :meetings, dependent: :nullify
   has_many :notes, dependent: :destroy
 
+  has_many :advisor_assistant_links_as_advisor,
+    class_name: "AdvisorAssistant",
+    foreign_key: :advisor_id,
+    inverse_of: :advisor,
+    dependent: :destroy
+  has_many :assistants, through: :advisor_assistant_links_as_advisor, source: :assistant
+
+  has_many :advisor_assistant_links_as_assistant,
+    class_name: "AdvisorAssistant",
+    foreign_key: :assistant_id,
+    inverse_of: :assistant,
+    dependent: :destroy
+  has_many :advisors, through: :advisor_assistant_links_as_assistant, source: :advisor
+
   has_secure_password
 
   before_validation :normalize_email
@@ -28,6 +42,7 @@ class User < ApplicationRecord
   validates :password, length: { minimum: 8 }, allow_nil: true
 
   scope :advisors, -> { joins(:role).where(roles: { name: "advisor" }) }
+  scope :assistants, -> { joins(:role).where(roles: { name: "assistant" }) }
   scope :on_team, ->(team) { where(team_id: team.id) }
   scope :admins, -> { joins(:role).where(roles: { name: ADMIN_ROLE_NAMES }) }
   scope :billing_admins, -> { joins(:role).where(roles: { name: "billing_admin" }) }
@@ -81,6 +96,19 @@ class User < ApplicationRecord
 
   def revoke_pro_access!
     update!(pro_access: false)
+  end
+
+  # Advisor user ids whose leads/records this assistant may access.
+  def assigned_advisor_ids
+    return [] unless assistant?
+
+    advisor_ids
+  end
+
+  def assigned_to_advisor?(advisor_user_id)
+    return false if advisor_user_id.blank?
+
+    assigned_advisor_ids.include?(advisor_user_id)
   end
 
   private

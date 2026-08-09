@@ -32,6 +32,16 @@ class DemoSeeds
         user.pro_access = attrs[:role] != "billing_admin"
         user.save!
       end
+
+      ensure_demo_advisor_assistant_assignment!
+    end
+
+    def ensure_demo_advisor_assistant_assignment!
+      advisor = User.find_by(email: "advisor@leadflow.local")
+      assistant = User.find_by(email: "assistant@leadflow.local")
+      return unless advisor&.advisor? && assistant&.assistant?
+
+      AdvisorAssistant.find_or_create_by!(advisor: advisor, assistant: assistant)
     end
 
     def seed_dashboard_sample_data(team:, us:, cr:, advisor:, admin:)

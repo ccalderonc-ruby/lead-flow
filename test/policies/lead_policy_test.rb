@@ -27,8 +27,25 @@ class LeadPolicyTest < ActiveSupport::TestCase
     refute LeadPolicy.new(@assistant, @advisor_lead).destroy?
   end
 
-  test "assistant can show any lead" do
-    assert LeadPolicy.new(@assistant, @other_lead).show?
+  test "assistant can show lead owned by assigned advisor" do
+    assert LeadPolicy.new(@assistant, @advisor_lead).show?
+  end
+
+  test "assistant cannot show lead owned by unassigned advisor" do
+    refute LeadPolicy.new(@assistant, @other_lead).show?
+  end
+
+  test "assistant scope is limited to assigned advisors" do
+    scoped = LeadPolicy::Scope.new(@assistant, Lead).resolve
+
+    assert_includes scoped, @advisor_lead
+    refute_includes scoped, @other_lead
+  end
+
+  test "unassigned assistant scope is empty" do
+    AdvisorAssistant.delete_all
+
+    assert_empty LeadPolicy::Scope.new(@assistant, Lead).resolve
   end
 
   test "admin and advisor can create leads" do

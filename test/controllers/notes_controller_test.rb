@@ -108,13 +108,13 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"opportunities"'
   end
 
-  test "assistant creates note on any lead" do
+  test "assistant creates note on assigned-advisor lead" do
     sign_in_as users(:assistant)
-    lead = leads(:admin_owned)
+    lead = leads(:sarah)
 
     assert_difference "Note.count", 1 do
       post notes_path, params: {
-        content: "Admin lead briefing ready",
+        content: "Advisor lead briefing ready",
         lead_id: lead.id,
         return_to: lead_path(lead)
       }
@@ -123,6 +123,19 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     note = Note.order(:id).last
     assert_equal users(:assistant).id, note.user_id
     assert_redirected_to lead_path(lead)
+  end
+
+  test "assistant cannot create note on unassigned lead" do
+    sign_in_as users(:assistant)
+    lead = leads(:admin_owned)
+
+    assert_no_difference "Note.count" do
+      post notes_path, params: {
+        content: "Should fail",
+        lead_id: lead.id,
+        return_to: lead_path(leads(:sarah))
+      }
+    end
   end
 
   test "advisor cannot create note on unassigned lead" do

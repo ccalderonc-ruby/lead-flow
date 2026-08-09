@@ -51,16 +51,18 @@ type TasksIndexProps = {
   leads: TaskFormOption[]
   assignees: TaskFormOption[]
   defaults: TaskFormDefaults
+  show_mine_filter?: boolean
   return_to: string
 }
 
-const FILTERS = [
+const BASE_FILTERS = [
   { value: 'all', label: 'All' },
-  { value: 'mine', label: 'Mine' },
   { value: 'pending', label: 'Pending' },
   { value: 'completed', label: 'Completed' },
   { value: 'overdue', label: 'Overdue' },
 ] as const
+
+const MINE_FILTER = { value: 'mine', label: 'Mine' } as const
 
 function buildTasksReturnTo(meta: TasksMeta): string {
   const params = new URLSearchParams()
@@ -77,8 +79,12 @@ export default function TasksIndex({
   leads,
   assignees,
   defaults,
+  show_mine_filter: showMineFilter = false,
   return_to: returnTo,
 }: TasksIndexProps) {
+  const filters = showMineFilter
+    ? [BASE_FILTERS[0], MINE_FILTER, ...BASE_FILTERS.slice(1)]
+    : [...BASE_FILTERS]
   const page = usePage()
   const pageErrors = page.props.errors as Record<string, unknown> | undefined
   const taskErrorsPresent = hasTaskCreateErrors(pageErrors)
@@ -184,7 +190,7 @@ export default function TasksIndex({
               role="group"
               aria-label="Task filters"
             >
-              {FILTERS.map((item) => {
+              {filters.map((item) => {
                 const active = meta.filter === item.value
                 return (
                   <button

@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_09_190611) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_09_191508) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "advisor_assistants", force: :cascade do |t|
+    t.bigint "advisor_id", null: false
+    t.bigint "assistant_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["advisor_id", "assistant_id"], name: "index_advisor_assistants_on_advisor_id_and_assistant_id", unique: true
+    t.index ["advisor_id"], name: "index_advisor_assistants_on_advisor_id"
+    t.index ["assistant_id"], name: "index_advisor_assistants_on_assistant_id"
+  end
 
   create_table "companies", force: :cascade do |t|
     t.bigint "country_id", null: false
@@ -209,6 +219,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_190611) do
     t.index ["team_id"], name: "index_users_on_team_id"
   end
 
+  add_foreign_key "advisor_assistants", "users", column: "advisor_id"
+  add_foreign_key "advisor_assistants", "users", column: "assistant_id"
   add_foreign_key "companies", "countries"
   add_foreign_key "lead_tags", "leads"
   add_foreign_key "lead_tags", "tags"

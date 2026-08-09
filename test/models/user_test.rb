@@ -5,6 +5,12 @@ class UserTest < ActiveSupport::TestCase
     assert users(:admin).valid?
   end
 
+  test "assistant assigned_advisor_ids come from join table" do
+    assert_equal [ users(:advisor).id ], users(:assistant).assigned_advisor_ids
+    assert users(:assistant).assigned_to_advisor?(users(:advisor).id)
+    refute users(:assistant).assigned_to_advisor?(users(:admin).id)
+  end
+
   test "requires name and email" do
     user = User.new(
       password: "password",
