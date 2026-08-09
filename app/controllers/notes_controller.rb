@@ -201,6 +201,8 @@ class NotesController < InertiaController
       uri = URI.parse(raw)
       unless uri.scheme.present? || uri.host.present?
         case uri.path
+        when root_path, "/"
+          return root_path
         when notes_path, "/notes"
           query = Rack::Utils.parse_nested_query(uri.query.to_s)
           page = Integer(query["page"], exception: false) || 1

@@ -321,6 +321,8 @@ class TasksController < InertiaController
     return tasks_path if uri.scheme.present? || uri.host.present?
 
     case uri.path
+    when root_path, "/"
+      root_path
     when tasks_path, "/tasks"
       query = Rack::Utils.parse_nested_query(uri.query.to_s)
       filter = Array(query["filter"]).first.to_s

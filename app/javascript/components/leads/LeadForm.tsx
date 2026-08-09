@@ -63,6 +63,8 @@ type LeadFormProps = {
   submitLabel: string
   processingLabel: string
   onSubmit: (event: FormEvent) => void
+  onCancel?: () => void
+  embedded?: boolean
 }
 
 function fieldError(errors: Record<string, string | string[] | undefined>, key: string): string | null {
@@ -87,6 +89,8 @@ export default function LeadForm({
   submitLabel,
   processingLabel,
   onSubmit,
+  onCancel,
+  embedded = false,
 }: LeadFormProps) {
   const { auth } = usePage<SharedProps>().props
   const { data, setData, processing, errors } = form
@@ -97,7 +101,14 @@ export default function LeadForm({
       : null
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6">
+    <form
+      onSubmit={onSubmit}
+      className={
+        embedded
+          ? 'space-y-5'
+          : 'mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6'
+      }
+    >
       {fieldError(errors, 'base') && (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {fieldError(errors, 'base')}
@@ -316,12 +327,23 @@ export default function LeadForm({
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
-        <Link
-          href="/leads"
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          Cancel
-        </Link>
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={processing}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        ) : (
+          <Link
+            href="/leads"
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Cancel
+          </Link>
+        )}
         <button
           type="submit"
           disabled={processing}

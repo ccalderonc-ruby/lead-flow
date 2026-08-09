@@ -89,13 +89,20 @@ class LeadsController < InertiaController
 
     email = lead_form_params[:email]
     lead = Lead.find_or_initialize_by_email(email)
+    failure_path = safe_lead_return_path(fallback: new_lead_path)
+    success_path = safe_lead_return_path(fallback: nil)
 
     if lead.persisted?
-      redirect_to new_lead_path, inertia: { errors: { email: [ EMAIL_TAKEN ] } }
+      redirect_to failure_path, inertia: { errors: { email: [ EMAIL_TAKEN ], form: [ "lead" ] } }
       return
     end
 
-    save_lead!(lead, success_notice: "Lead created.", failure_path: new_lead_path)
+    save_lead!(
+      lead,
+      success_notice: "Lead created.",
+      failure_path: failure_path,
+      success_path: success_path
+    )
   end
 
   def show
@@ -124,7 +131,7 @@ class LeadsController < InertiaController
       .find(params[:id])
   end
 
-  def save_lead!(lead, success_notice:, failure_path:)
+  def save_lead!(lead, success_notice:, failure_path:, success_path: nil)
     @invalid_estimated_value = false
     company = build_company_from_params
     lead.assign_attributes(lead_attributes_from_params(updating: lead.persisted?))
@@ -142,7 +149,7 @@ class LeadsController < InertiaController
     lead.valid?
     lead.errors.add(:estimated_value, "is not a number") if @invalid_estimated_value
     unless company_valid && lead.errors.empty? && assignee_present?(lead)
-      redirect_to failure_path, inertia: { errors: validation_error_hash(company, lead) }
+      redirect_to failure_path, inertia: { errors: validation_error_hash(company, lead).merge(form: [ "lead" ]) }
       return
     end
 
@@ -152,9 +159,9 @@ class LeadsController < InertiaController
     end
 
     flash[:notice] = success_notice
-    redirect_to lead_path(lead)
+    redirect_to success_path.presence || lead_path(lead)
   rescue ActiveRecord::RecordInvalid => e
-    redirect_to failure_path, inertia: { errors: validation_error_hash(e.record, company, lead) }
+    redirect_to failure_path, inertia: { errors: validation_error_hash(e.record, company, lead).merge(form: [ "lead" ]) }
   rescue ActiveRecord::RecordNotUnique => e
     redirect_to failure_path, inertia: { errors: not_unique_errors(e) }
   rescue ActiveRecord::InvalidForeignKey
@@ -381,8 +388,26 @@ class LeadsController < InertiaController
       :user_id,
       :company_name,
       :company_country_id,
-      :update_existing_company_country
+      :update_existing_company_country,
+      :return_to
     )
+  end
+
+  def safe_lead_return_path(fallback:)
+    raw = (params[:return_to].presence || lead_form_params[:return_to]).to_s
+    return fallback if raw.blank?
+
+    uri = URI.parse(raw)
+    return fallback if uri.scheme.present? || uri.host.present?
+
+    case uri.path
+    when root_path, "/"
+      root_path
+    else
+      fallback
+    end
+  rescue URI::InvalidURIError
+    fallback
   end
 
   def param_key?(key)

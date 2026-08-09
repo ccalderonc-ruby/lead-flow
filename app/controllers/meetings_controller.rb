@@ -310,6 +310,8 @@ class MeetingsController < InertiaController
     return meetings_path if uri.scheme.present? || uri.host.present?
 
     case uri.path
+    when root_path, "/"
+      root_path
     when meetings_path, "/meetings"
       query = Rack::Utils.parse_nested_query(uri.query.to_s)
       page = Integer(Array(query["page"]).first, exception: false)
