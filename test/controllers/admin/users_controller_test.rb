@@ -173,4 +173,37 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
     assert_equal "You are not authorized to perform this action.", flash[:alert]
   end
+
+  test "regular admin cannot grant admin role" do
+    sign_in_as @admin
+
+    patch admin_user_path(@advisor), params: {
+      name: @advisor.name,
+      email: @advisor.email,
+      role_id: roles(:admin).id,
+      team_id: @advisor.team_id,
+      country_id: @advisor.country_id,
+      status: "active"
+    }
+
+    assert_redirected_to edit_admin_user_path(@advisor)
+    assert_equal "Only a billing admin can grant the admin or billing admin role.", flash[:alert]
+    assert_equal "advisor", @advisor.reload.role.name
+  end
+
+  test "billing admin can grant admin role" do
+    sign_in_as users(:billing_admin)
+
+    patch admin_user_path(@advisor), params: {
+      name: @advisor.name,
+      email: @advisor.email,
+      role_id: roles(:admin).id,
+      team_id: @advisor.team_id,
+      country_id: @advisor.country_id,
+      status: "active"
+    }
+
+    assert_redirected_to admin_users_path
+    assert_equal "admin", @advisor.reload.role.name
+  end
 end

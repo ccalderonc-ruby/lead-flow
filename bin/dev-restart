@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+set -e
+cd "$(dirname "$0")/.." || exit 1
+
+echo "Stopping LeadFlow (Overmind / Puma / Vite)…"
+
+if [ -S .overmind.sock ]; then
+  overmind quit 2>/dev/null || true
+  # Give processes a moment to exit before we force-clean.
+  sleep 1
+fi
+
+rm -f .overmind.sock
+
+# Orphan cleanup if a previous session left listeners behind.
+pkill -f 'puma .*\[lead_flow\]' 2>/dev/null || true
+pkill -f 'vite.*lead_flow|bin/vite dev' 2>/dev/null || true
+sleep 1
+
+echo "Starting LeadFlow…"
+exec bin/dev "$@"

@@ -719,8 +719,9 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "subscribed advisor can export csv of scoped leads" do
+    users(:billing_admin).update!(subscription_status: "active")
     advisor = users(:advisor)
-    advisor.update!(subscription_status: "active")
+    advisor.update!(pro_access: true)
     sign_in_as advisor
 
     get export_leads_path
@@ -736,8 +737,9 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "subscribed advisor export applies search and stage filters" do
+    users(:billing_admin).update!(subscription_status: "active")
     advisor = users(:advisor)
-    advisor.update!(subscription_status: "active")
+    advisor.update!(pro_access: true)
     sign_in_as advisor
 
     get export_leads_path, params: { q: "Sarah", stage_id: lead_stages(:qualified).id }
@@ -754,7 +756,18 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     get export_leads_path
 
     assert_redirected_to leads_path
-    assert_equal "Ask an admin to activate LeadFlow Pro so you can export leads as CSV.", flash[:alert]
+    assert_equal "Ask a billing admin to grant you LeadFlow Pro access so you can export leads as CSV.", flash[:alert]
+  end
+
+  test "billing admin can export csv" do
+    billing_admin = users(:billing_admin)
+    billing_admin.update!(subscription_status: "active")
+    sign_in_as billing_admin
+
+    get export_leads_path
+
+    assert_response :success
+    assert_match(/text\/csv/, response.media_type)
   end
 
   test "assistant cannot export csv" do
@@ -782,8 +795,9 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "leads index enables export for subscribed advisor" do
+    users(:billing_admin).update!(subscription_status: "active")
     advisor = users(:advisor)
-    advisor.update!(subscription_status: "active")
+    advisor.update!(pro_access: true)
     sign_in_as advisor
 
     get leads_path

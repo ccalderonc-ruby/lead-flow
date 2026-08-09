@@ -2,14 +2,30 @@
 
 class SubscriptionPolicy < ApplicationPolicy
   def index?
-    admin?
+    billing_admin?
   end
 
   def show?
-    admin?
+    billing_admin?
   end
 
   def create?
-    admin?
+    billing_admin?
+  end
+
+  def update?
+    billing_admin?
+  end
+
+  def grant_all?
+    billing_admin?
+  end
+
+  def cancel?
+    billing_admin?
+  end
+
+  def resume?
+    billing_admin?
   end
 end

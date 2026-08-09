@@ -1,3 +1,6 @@
+billing_admin:
+  name: billing_admin
+
 admin:
   name: admin
 

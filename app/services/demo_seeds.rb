@@ -7,7 +7,7 @@ class DemoSeeds
   DEMO_PASSWORD = "password"
 
   DEMO_USERS = [
-    { email: "admin@leadflow.local", name: "Jordan Hale", role: "admin", country_iso: "US" },
+    { email: "admin@leadflow.local", name: "Jordan Hale", role: "billing_admin", country_iso: "US" },
     { email: "advisor@leadflow.local", name: "Elena Vargas", role: "advisor", country_iso: "CR" },
     { email: "assistant@leadflow.local", name: "Carlos Mendez", role: "assistant", country_iso: "US" }
   ].freeze
@@ -27,8 +27,9 @@ class DemoSeeds
         user.team = team
         user.country = country
         user.status = "active"
-        # Advisor starts subscribed so CSV export works in demos without Stripe listen.
-        user.subscription_status = attrs[:role] == "advisor" ? "active" : "inactive"
+        # Billing admin holds org billing; other demo users get Pro access for CSV export demos.
+        user.subscription_status = attrs[:role] == "billing_admin" ? "active" : "inactive"
+        user.pro_access = attrs[:role] != "billing_admin"
         user.save!
       end
     end

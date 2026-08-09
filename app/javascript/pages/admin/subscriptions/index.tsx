@@ -1,48 +1,129 @@
-import { Head, router, usePage } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 
-export type AdvisorSubscriptionRow = {
+export type BillingProps = {
+  subscription_status: string
+  billing_active: boolean
+  cancel_at_period_end: boolean
+  current_period_end: string | null
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+}
+
+export type MemberSubscriptionRow = {
   id: number
   name: string
   email: string
-  subscription_status: string
+  role: string
+  pro_access: boolean
   subscribed: boolean
-  stripe_customer_id: string | null
+  is_billing_admin: boolean
+}
+
+function isBillingAdminRole(role: string) {
+  return role === 'billing_admin'
+}
+
+function formatPeriodEnd(iso: string | null) {
+  if (!iso) return null
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 type AdminSubscriptionsIndexProps = {
-  advisors: AdvisorSubscriptionRow[]
+  billing: BillingProps
+  members: MemberSubscriptionRow[]
   checkout_configured: boolean
-  focused_user_id: number | null
 }
 
 export default function AdminSubscriptionsIndex({
-  advisors,
+  billing,
+  members,
   checkout_configured: checkoutConfigured,
-  focused_user_id: focusedUserId,
 }: AdminSubscriptionsIndexProps) {
-  const { url } = usePage()
-  const checkoutParam = new URLSearchParams(url.split('?')[1] || '').get('checkout')
-  const [startingForId, setStartingForId] = useState<number | null>(null)
+  const [startingCheckout, setStartingCheckout] = useState(false)
+  const [busyUserId, setBusyUserId] = useState<number | null>(null)
+  const [grantingAll, setGrantingAll] = useState(false)
+  const [canceling, setCanceling] = useState(false)
+  const [resuming, setResuming] = useState(false)
 
-  const focusedAdvisor =
-    focusedUserId != null ? advisors.find((advisor) => advisor.id === focusedUserId) : null
-  const activationPending =
-    checkoutParam === 'success' && focusedAdvisor != null && !focusedAdvisor.subscribed
+  const periodEndLabel = formatPeriodEnd(billing.current_period_end)
 
-  function startCheckout(userId: number) {
-    if (startingForId != null) return
-    setStartingForId(userId)
+  function startCheckout() {
+    if (startingCheckout) return
+    setStartingCheckout(true)
     router.post(
       '/admin/subscriptions',
-      { user_id: userId },
+      {},
       {
-        onFinish: () => setStartingForId(null),
+        onFinish: () => setStartingCheckout(false),
       },
     )
   }
+
+  function cancelSubscription() {
+    if (canceling) return
+    const confirmed = window.confirm(
+      periodEndLabel
+        ? `Cancel LeadFlow Pro? Access stays active until ${periodEndLabel}.`
+        : 'Cancel LeadFlow Pro? Access stays active until the end of the current billing period.',
+    )
+    if (!confirmed) return
+
+    setCanceling(true)
+    router.post(
+      '/admin/subscriptions/cancel',
+      {},
+      {
+        onFinish: () => setCanceling(false),
+      },
+    )
+  }
+
+  function resumeSubscription() {
+    if (resuming) return
+    setResuming(true)
+    router.post(
+      '/admin/subscriptions/resume',
+      {},
+      {
+        onFinish: () => setResuming(false),
+      },
+    )
+  }
+
+  function setMemberAccess(userId: number, proAccess: boolean) {
+    if (busyUserId != null) return
+    setBusyUserId(userId)
+    router.patch(
+      '/admin/subscriptions/access',
+      { user_id: userId, pro_access: proAccess },
+      {
+        onFinish: () => setBusyUserId(null),
+      },
+    )
+  }
+
+  function grantAll() {
+    if (grantingAll) return
+    setGrantingAll(true)
+    router.post(
+      '/admin/subscriptions/grant_all',
+      {},
+      {
+        onFinish: () => setGrantingAll(false),
+      },
+    )
+  }
+
+  const grantableMembers = members.filter((member) => !isBillingAdminRole(member.role))
 
   return (
     <AuthenticatedPage>
@@ -52,7 +133,8 @@ export default function AdminSubscriptionsIndex({
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Subscriptions</h1>
           <p className="mt-1 text-slate-600">
-            Manage LeadFlow Pro for advisors. CSV export unlocks when an advisor is subscribed.
+            As billing admin you subscribe the organization to LeadFlow Pro, then grant Pro access to
+            admins, advisors, and assistants.
           </p>
         </div>
 
@@ -63,67 +145,153 @@ export default function AdminSubscriptionsIndex({
           </p>
         )}
 
-        {activationPending && (
-          <p className="mt-6 rounded-lg bg-sky-50 px-4 py-3 text-sm text-sky-900">
-            Payment received for {focusedAdvisor.name}. Waiting for Stripe to confirm — status
-            updates when the webhook arrives.
-          </p>
-        )}
+        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Organization billing</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Status:{' '}
+                <span className="font-medium capitalize text-slate-900">
+                  {billing.subscription_status}
+                </span>
+              </p>
+              {billing.billing_active && billing.cancel_at_period_end && (
+                <p className="mt-2 text-sm text-amber-800">
+                  Cancellation scheduled
+                  {periodEndLabel ? `. Pro access remains until ${periodEndLabel}.` : ' at period end.'}
+                </p>
+              )}
+              {billing.billing_active && !billing.cancel_at_period_end && periodEndLabel && (
+                <p className="mt-2 text-sm text-slate-500">Current period ends {periodEndLabel}.</p>
+              )}
+            </div>
 
-        {advisors.length === 0 ? (
-          <p className="mt-8 text-slate-600">No advisors yet.</p>
-        ) : (
-          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Advisor</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {advisors.map((advisor) => (
-                  <tr
-                    key={advisor.id}
-                    className={`text-slate-800 ${
-                      focusedUserId === advisor.id ? 'bg-indigo-50/40' : ''
-                    }`}
-                  >
-                    <td className="px-4 py-3 font-medium">{advisor.name}</td>
-                    <td className="px-4 py-3">{advisor.email}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
-                          advisor.subscribed
-                            ? 'bg-green-50 text-green-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {advisor.subscription_status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {advisor.subscribed ? (
-                        <span className="text-sm text-slate-500">Active</span>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={!checkoutConfigured || startingForId === advisor.id}
-                          onClick={() => startCheckout(advisor.id)}
-                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {startingForId === advisor.id ? 'Starting…' : 'Subscribe with Stripe'}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+              {billing.billing_active ? (
+                <>
+                  <span className="inline-flex rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-800">
+                    LeadFlow Pro active
+                  </span>
+                  {billing.cancel_at_period_end ? (
+                    <button
+                      type="button"
+                      disabled={!checkoutConfigured || resuming}
+                      onClick={resumeSubscription}
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+                    >
+                      {resuming ? 'Resuming…' : 'Keep subscription'}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!checkoutConfigured || canceling}
+                      onClick={cancelSubscription}
+                      className="text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-50"
+                    >
+                      {canceling ? 'Canceling…' : 'Cancel subscription'}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!checkoutConfigured || startingCheckout}
+                  onClick={startCheckout}
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {startingCheckout ? 'Starting…' : 'Subscribe with Stripe'}
+                </button>
+              )}
+            </div>
           </div>
-        )}
+        </section>
+
+        <section className="mt-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Team access</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Grant Pro features to users after the organization is subscribed.
+              </p>
+            </div>
+            {billing.billing_active && grantableMembers.some((member) => !member.pro_access) && (
+              <button
+                type="button"
+                disabled={grantingAll}
+                onClick={grantAll}
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+              >
+                {grantingAll ? 'Granting…' : 'Grant access to everyone'}
+              </button>
+            )}
+          </div>
+
+          {members.length === 0 ? (
+            <p className="mt-6 text-slate-600">No team members yet.</p>
+          ) : (
+            <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Access</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {members.map((member) => (
+                    <tr key={member.id} className="text-slate-800">
+                      <td className="px-4 py-3">
+                        <div className="font-medium">{member.name}</div>
+                        <div className="text-slate-500">{member.email}</div>
+                      </td>
+                      <td className="px-4 py-3 capitalize">
+                        {member.role === 'billing_admin' ? 'Billing admin' : member.role}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            member.subscribed
+                              ? 'bg-green-50 text-green-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {member.subscribed ? 'Pro' : 'No access'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {isBillingAdminRole(member.role) ? (
+                          <span className="text-sm text-slate-500">Billing admin</span>
+                        ) : !billing.billing_active ? (
+                          <span className="text-sm text-slate-500">Subscribe first</span>
+                        ) : member.pro_access ? (
+                          <button
+                            type="button"
+                            disabled={busyUserId === member.id}
+                            onClick={() => setMemberAccess(member.id, false)}
+                            className="text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-50"
+                          >
+                            {busyUserId === member.id ? 'Updating…' : 'Revoke'}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={busyUserId === member.id}
+                            onClick={() => setMemberAccess(member.id, true)}
+                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+                          >
+                            {busyUserId === member.id ? 'Updating…' : 'Grant access'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
     </AuthenticatedPage>
   )
