@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import EmptyState from '@/components/ui/EmptyState'
 import TaskFormModal, {
   type EditableTask,
   type TaskFormDefaults,
@@ -227,8 +228,22 @@ export default function TasksIndex({
             <tbody className="divide-y divide-slate-100">
               {tasks.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
-                    No tasks found.
+                  <td colSpan={6} className="p-0">
+                    <EmptyState
+                      title={meta.filter !== 'all' ? 'No tasks for this filter' : 'No tasks yet'}
+                      description={
+                        meta.filter !== 'all'
+                          ? 'Try another filter or create a task for your pipeline.'
+                          : 'Create a task to track follow-ups on your leads.'
+                      }
+                      action={
+                        meta.filter !== 'all'
+                          ? { label: 'Show all tasks', onClick: () => setFilter('all') }
+                          : canCreate
+                            ? { label: 'New task', onClick: openCreateModal }
+                            : undefined
+                      }
+                    />
                   </td>
                 </tr>
               ) : (

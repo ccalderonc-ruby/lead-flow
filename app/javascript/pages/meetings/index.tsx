@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import EmptyState from '@/components/ui/EmptyState'
 import MeetingFormModal, {
   type EditableMeeting,
   type MeetingFormDefaults,
@@ -156,8 +157,16 @@ export default function MeetingsIndex({
             <tbody className="divide-y divide-slate-100">
               {meetings.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
-                    No meetings found.
+                  <td colSpan={8} className="p-0">
+                    <EmptyState
+                      title="No meetings yet"
+                      description="Schedule a meeting to keep client conversations on track."
+                      action={
+                        canCreate
+                          ? { label: 'Schedule meeting', onClick: openCreateModal }
+                          : undefined
+                      }
+                    />
                   </td>
                 </tr>
               ) : (

@@ -3,13 +3,29 @@ import { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } f
 const fieldClassName =
   'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200'
 
+const fieldErrorClassName =
+  'mt-1 block w-full rounded-lg border border-red-300 px-3 py-2 text-sm text-slate-900 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200'
+
+export function RequiredMark() {
+  return (
+    <span className="text-red-600" aria-hidden="true">
+      {' '}
+      *
+    </span>
+  )
+}
+
 type FieldErrorProps = {
   error?: string | null
 }
 
 export function FieldError({ error }: FieldErrorProps) {
   if (!error) return null
-  return <p className="mt-1 text-sm text-red-600">{error}</p>
+  return (
+    <p className="mt-1 text-sm text-red-600" role="alert">
+      {error}
+    </p>
+  )
 }
 
 type TextFieldProps = {
@@ -35,7 +51,7 @@ export function TextField({
   ...rest
 }: TextFieldProps) {
   const inputClassName = [
-    fieldClassName,
+    error ? fieldErrorClassName : fieldClassName,
     prefix ? 'pl-7' : null,
     className,
   ]
@@ -46,7 +62,7 @@ export function TextField({
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-slate-700">
         {label}
-        {required && <span className="text-red-600"> *</span>}
+        {required && <RequiredMark />}
       </label>
       <div className="relative">
         {prefix ? (
@@ -60,6 +76,8 @@ export function TextField({
           value={value}
           onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
           className={inputClassName}
+          aria-invalid={error ? true : undefined}
+          aria-required={required || undefined}
           {...rest}
         />
       </div>
@@ -92,14 +110,16 @@ export function TextAreaField({
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-slate-700">
         {label}
-        {required && <span className="text-red-600"> *</span>}
+        {required && <RequiredMark />}
       </label>
       <textarea
         id={id}
         rows={rows}
         value={value}
         onChange={(event: ChangeEvent<HTMLTextAreaElement>) => onChange(event.target.value)}
-        className={fieldClassName}
+        className={error ? fieldErrorClassName : fieldClassName}
+        aria-invalid={error ? true : undefined}
+        aria-required={required || undefined}
         {...rest}
       />
       <FieldError error={error} />
@@ -132,14 +152,16 @@ export function SelectField({
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-slate-700">
         {label}
-        {required && <span className="text-red-600"> *</span>}
+        {required && <RequiredMark />}
       </label>
       <select
         id={id}
         value={value}
         disabled={disabled}
         onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)}
-        className={fieldClassName}
+        className={error ? fieldErrorClassName : fieldClassName}
+        aria-invalid={error ? true : undefined}
+        aria-required={required || undefined}
       >
         {children}
       </select>
