@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import EmptyState from '@/components/ui/EmptyState'
 import NoteFormModal, {
   type EditableNote,
   type NoteFormOption,
@@ -178,8 +179,14 @@ export default function NotesIndex({
             <tbody className="divide-y divide-slate-100">
               {notes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
-                    No notes yet.
+                  <td colSpan={5} className="p-0">
+                    <EmptyState
+                      title="No notes yet"
+                      description="Capture details linked to a lead or opportunity."
+                      action={
+                        canCreate ? { label: 'New note', onClick: openCreateModal } : undefined
+                      }
+                    />
                   </td>
                 </tr>
               ) : (

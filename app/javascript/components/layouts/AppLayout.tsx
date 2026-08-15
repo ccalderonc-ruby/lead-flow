@@ -1,6 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
+import FlashBanner from '@/components/ui/FlashBanner'
+import VisitProgress from '@/components/ui/VisitProgress'
 import {
   adminNavItemsFor,
   adminNavVisible,
@@ -105,6 +107,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-slate-100">
+      <VisitProgress />
       <div className="lg:flex">
         <aside className="hidden w-64 shrink-0 bg-slate-900 lg:fixed lg:inset-y-0 lg:flex lg:flex-col">
           {sidebar}
@@ -140,16 +143,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </header>
 
           <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
-            {flash?.notice && (
-              <p className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
-                {flash.notice}
-              </p>
-            )}
-            {flash?.alert && (
-              <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-                {flash.alert}
-              </p>
-            )}
+            <FlashBanner notice={flash?.notice} alert={flash?.alert} />
             {children}
           </main>
         </div>

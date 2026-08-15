@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react'
 import { FormEvent } from 'react'
 
+import { FieldError, RequiredMark } from '@/components/ui/FormFields'
 import type { SharedProps } from '@/types'
 
 export type LeadFormOption = {
@@ -73,12 +74,11 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
   return Array.isArray(value) ? value.join(', ') : value
 }
 
-function RequiredMark() {
-  return <span className="text-red-600"> *</span>
-}
-
 const inputClassName =
   'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200'
+
+const inputErrorClassName =
+  'mt-1 block w-full rounded-lg border border-red-300 px-3 py-2 text-sm text-slate-900 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200'
 
 export default function LeadForm({
   form,
@@ -110,10 +110,14 @@ export default function LeadForm({
       }
     >
       {fieldError(errors, 'base') && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
           {fieldError(errors, 'base')}
         </p>
       )}
+
+      <p className="text-sm text-slate-500">
+        Required fields are marked with <RequiredMark />
+      </p>
 
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-slate-700">
@@ -126,11 +130,10 @@ export default function LeadForm({
           required
           value={data.name}
           onChange={(event) => setData('name', event.target.value)}
-          className={inputClassName}
+          className={fieldError(errors, 'name') ? inputErrorClassName : inputClassName}
+          aria-invalid={fieldError(errors, 'name') ? true : undefined}
         />
-        {fieldError(errors, 'name') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'name')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'name')} />
       </div>
 
       <div>
@@ -146,9 +149,7 @@ export default function LeadForm({
           onChange={(event) => setData('email', event.target.value)}
           className={inputClassName}
         />
-        {fieldError(errors, 'email') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'email')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'email')} />
       </div>
 
       <div>
@@ -162,9 +163,7 @@ export default function LeadForm({
           onChange={(event) => setData('phone', event.target.value)}
           className={inputClassName}
         />
-        {fieldError(errors, 'phone') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'phone')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'phone')} />
       </div>
 
       <div>
@@ -180,9 +179,7 @@ export default function LeadForm({
           onChange={(event) => setData('company_name', event.target.value)}
           className={inputClassName}
         />
-        {fieldError(errors, 'company_name') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'company_name')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'company_name')} />
       </div>
 
       <div>
@@ -216,9 +213,7 @@ export default function LeadForm({
             existing company country).
           </span>
         </label>
-        {fieldError(errors, 'company_country_id') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'company_country_id')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'company_country_id')} />
       </div>
 
       <div>
@@ -240,12 +235,8 @@ export default function LeadForm({
             </option>
           ))}
         </select>
-        {fieldError(errors, 'country') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'country')}</p>
-        )}
-        {fieldError(errors, 'country_id') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'country_id')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'country')} />
+        <FieldError error={fieldError(errors, 'country_id')} />
       </div>
 
       <div>
@@ -267,12 +258,8 @@ export default function LeadForm({
             </option>
           ))}
         </select>
-        {fieldError(errors, 'stage') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'stage')}</p>
-        )}
-        {fieldError(errors, 'stage_id') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'stage_id')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'stage')} />
+        <FieldError error={fieldError(errors, 'stage_id')} />
       </div>
 
       <div>
@@ -300,12 +287,8 @@ export default function LeadForm({
             ))}
           </select>
         )}
-        {fieldError(errors, 'user') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'user')}</p>
-        )}
-        {fieldError(errors, 'user_id') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'user_id')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'user')} />
+        <FieldError error={fieldError(errors, 'user_id')} />
       </div>
 
       <div>
@@ -321,9 +304,7 @@ export default function LeadForm({
           onChange={(event) => setData('estimated_value', event.target.value)}
           className={inputClassName}
         />
-        {fieldError(errors, 'estimated_value') && (
-          <p className="mt-1 text-sm text-red-600">{fieldError(errors, 'estimated_value')}</p>
-        )}
+        <FieldError error={fieldError(errors, 'estimated_value')} />
       </div>
 
       <div className="flex justify-end gap-3 pt-2">

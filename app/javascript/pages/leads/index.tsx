@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { FormEvent, useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import EmptyState from '@/components/ui/EmptyState'
 import { SelectField } from '@/components/ui/FormFields'
 import { formatCurrency, formatDate } from '@/lib/format'
 
@@ -118,6 +119,20 @@ export default function LeadsIndex({
     router.get('/leads', leadsQueryParams(meta, { q: query, page }), { preserveState: true })
   }
 
+  function clearFilters() {
+    setQuery('')
+    router.get('/leads', {}, { preserveState: true })
+  }
+
+  const stageName = stages.find((stage) => stage.id === meta.stage_id)?.name
+  const assigneeName = assignees.find((assignee) => assignee.id === meta.user_id)?.name
+  const hasActiveFilters = Boolean(meta.q.trim() || meta.stage_id != null || meta.user_id != null)
+  const filtersActiveLabel = [
+    meta.q.trim() ? `Search “${meta.q.trim()}”` : null,
+    stageName ? `Stage: ${stageName}` : null,
+    assigneeName ? `Assignee: ${assigneeName}` : null,
+  ].filter(Boolean)
+
   return (
     <AuthenticatedPage>
       <Head title="Leads" />
@@ -156,28 +171,9 @@ export default function LeadsIndex({
                 href="/leads/new"
                 className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
               >
-                New lead
+                + Add lead
               </Link>
             )}
-            <form onSubmit={submitSearch} className="flex w-full gap-2 sm:w-auto">
-              <label htmlFor="leads-search" className="sr-only">
-                Search leads
-              </label>
-              <input
-                id="leads-search"
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search name, email, or company"
-                className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:w-72"
-              />
-              <button
-                type="submit"
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Search
-              </button>
-            </form>
           </div>
         </div>
 
@@ -187,39 +183,84 @@ export default function LeadsIndex({
           </p>
         )}
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <SelectField
-            id="leads-stage-filter"
-            label="Stage"
-            value={meta.stage_id != null ? String(meta.stage_id) : ''}
-            onChange={setStageFilter}
-          >
-            <option value="">All stages</option>
-            {stages.map((stage) => (
-              <option key={stage.id} value={String(stage.id)}>
-                {stage.name}
-              </option>
-            ))}
-          </SelectField>
-
-          {canFilterAssignee && (
-            <SelectField
-              id="leads-assignee-filter"
-              label="Assignee"
-              value={meta.user_id != null ? String(meta.user_id) : ''}
-              onChange={setAssigneeFilter}
+        <div className="sticky top-14 z-20 mt-6 space-y-3 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur lg:top-0">
+          <form onSubmit={submitSearch} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="min-w-0 flex-1">
+              <label htmlFor="leads-search" className="block text-sm font-medium text-slate-700">
+                Search
+              </label>
+              <input
+                id="leads-search"
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search name, email, or company"
+                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              <option value="">All assignees</option>
-              {assignees.map((assignee) => (
-                <option key={assignee.id} value={String(assignee.id)}>
-                  {assignee.name}
+              Search
+            </button>
+          </form>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <SelectField
+              id="leads-stage-filter"
+              label="Stage"
+              value={meta.stage_id != null ? String(meta.stage_id) : ''}
+              onChange={setStageFilter}
+            >
+              <option value="">All stages</option>
+              {stages.map((stage) => (
+                <option key={stage.id} value={String(stage.id)}>
+                  {stage.name}
                 </option>
               ))}
             </SelectField>
+
+            {canFilterAssignee && (
+              <SelectField
+                id="leads-assignee-filter"
+                label="Assignee"
+                value={meta.user_id != null ? String(meta.user_id) : ''}
+                onChange={setAssigneeFilter}
+              >
+                <option value="">All assignees</option>
+                {assignees.map((assignee) => (
+                  <option key={assignee.id} value={String(assignee.id)}>
+                    {assignee.name}
+                  </option>
+                ))}
+              </SelectField>
+            )}
+          </div>
+
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm text-slate-600">Active filters:</p>
+              {filtersActiveLabel.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700"
+                >
+                  {label}
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Clear all
+              </button>
+            </div>
           )}
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <tr>
@@ -235,8 +276,22 @@ export default function LeadsIndex({
             <tbody className="divide-y divide-slate-100">
               {leads.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
-                    No leads found.
+                  <td colSpan={7} className="p-0">
+                    <EmptyState
+                      title={hasActiveFilters ? 'No leads match these filters' : 'No leads yet'}
+                      description={
+                        hasActiveFilters
+                          ? 'Try clearing filters or adjusting your search.'
+                          : 'Add your first prospect to start building the pipeline.'
+                      }
+                      action={
+                        hasActiveFilters
+                          ? { label: 'Clear filters', onClick: clearFilters }
+                          : canCreate
+                            ? { label: '+ Add lead', href: '/leads/new' }
+                            : undefined
+                      }
+                    />
                   </td>
                 </tr>
               ) : (
