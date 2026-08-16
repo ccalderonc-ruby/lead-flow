@@ -1,4 +1,5 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react'
+import { useEffect } from 'react'
 
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -7,20 +8,42 @@ import ThemeToggle from '@/components/ui/ThemeToggle'
 import type { SharedProps } from '@/types'
 
 export default function Login() {
-  const { flash } = usePage<SharedProps>().props
+  const { flash, auth } = usePage<SharedProps>().props
   const { data, setData, post, processing, errors } = useForm({
     email: '',
     password: '',
   })
 
+  // Avoid serving a bfcache'd login screen after sign-in (back button).
+  useEffect(() => {
+    function reloadIfRestored(event: PageTransitionEvent) {
+      if (event.persisted) {
+        window.location.reload()
+      }
+    }
+
+    window.addEventListener('pageshow', reloadIfRestored)
+    return () => window.removeEventListener('pageshow', reloadIfRestored)
+  }, [])
+
+  // If a cached page somehow still shows login while a session exists, bounce home.
+  useEffect(() => {
+    if (auth.user) {
+      window.location.replace('/')
+    }
+  }, [auth.user])
+
   function submit(event: React.FormEvent) {
     event.preventDefault()
-    post('/session')
+    post('/session', { replace: true })
   }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-surface px-4">
-      <Head title="Sign in" />
+      <Head title="Sign in">
+        <meta httpEquiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+      </Head>
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
@@ -33,7 +56,7 @@ export default function Login() {
 
         <FlashBanner notice={flash?.notice} alert={flash?.alert} />
 
-        <form onSubmit={submit} className="space-y-5">
+        <form onSubmit={submit} className="space-y-5" autoComplete="on">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-slate-700">
               Email

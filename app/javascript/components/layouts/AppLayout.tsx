@@ -66,7 +66,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   function signOut() {
     closeMobileNav()
-    router.delete('/logout')
+    router.delete('/logout', { replace: true })
   }
 
   useEffect(() => {
