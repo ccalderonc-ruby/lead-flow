@@ -21,12 +21,12 @@ export default function VisitProgress() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-0.5 overflow-hidden bg-indigo-100"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-0.5 overflow-hidden bg-brand-muted"
       role="progressbar"
       aria-label="Loading page"
       aria-busy="true"
     >
-      <div className="h-full w-1/3 animate-pulse bg-indigo-600" />
+      <div className="h-full w-1/3 animate-pulse bg-brand" />
     </div>
   )
 }

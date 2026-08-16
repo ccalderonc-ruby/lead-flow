@@ -170,7 +170,7 @@ export default function UserForm({
       <button
         type="submit"
         disabled={processing}
-        className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {processing ? processingLabel : submitLabel}
       </button>

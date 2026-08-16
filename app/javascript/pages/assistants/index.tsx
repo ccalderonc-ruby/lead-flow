@@ -116,7 +116,7 @@ export default function AssistantsIndex({
             <button
               type="submit"
               disabled={assigning || !assistantId}
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {assigning ? 'Assigning…' : 'Assign'}
             </button>

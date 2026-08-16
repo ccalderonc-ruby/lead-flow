@@ -313,7 +313,7 @@ export default function OpportunityDrawer({
                 {record.lead_id ? (
                   <Link
                     href={`/leads/${record.lead_id}`}
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                    className="font-medium text-brand-ink hover:text-brand"
                   >
                     {record.lead || '—'}
                   </Link>
@@ -341,7 +341,7 @@ export default function OpportunityDrawer({
                 <button
                   type="submit"
                   disabled={form.processing}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+                  className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
                 >
                   {form.processing ? 'Saving…' : 'Save'}
                 </button>
@@ -356,7 +356,7 @@ export default function OpportunityDrawer({
                 <button
                   type="button"
                   onClick={openNoteModal}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-medium text-brand-ink hover:text-brand"
                 >
                   Add note
                 </button>

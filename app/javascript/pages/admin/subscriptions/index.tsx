@@ -177,7 +177,7 @@ export default function AdminSubscriptionsIndex({
                       type="button"
                       disabled={!checkoutConfigured || resuming}
                       onClick={resumeSubscription}
-                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+                      className="text-sm font-medium text-brand-ink hover:text-brand disabled:opacity-50"
                     >
                       {resuming ? 'Resuming…' : 'Keep subscription'}
                     </button>
@@ -197,7 +197,7 @@ export default function AdminSubscriptionsIndex({
                   type="button"
                   disabled={!checkoutConfigured || startingCheckout}
                   onClick={startCheckout}
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {startingCheckout ? 'Starting…' : 'Subscribe with Stripe'}
                 </button>
@@ -219,7 +219,7 @@ export default function AdminSubscriptionsIndex({
                 type="button"
                 disabled={grantingAll}
                 onClick={grantAll}
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+                className="text-sm font-medium text-brand-ink hover:text-brand disabled:opacity-50"
               >
                 {grantingAll ? 'Granting…' : 'Grant access to everyone'}
               </button>
@@ -279,7 +279,7 @@ export default function AdminSubscriptionsIndex({
                             type="button"
                             disabled={busyUserId === member.id}
                             onClick={() => setMemberAccess(member.id, true)}
-                            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+                            className="text-sm font-medium text-brand-ink hover:text-brand disabled:opacity-50"
                           >
                             {busyUserId === member.id ? 'Updating…' : 'Grant access'}
                           </button>

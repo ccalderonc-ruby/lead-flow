@@ -181,7 +181,7 @@ export default function TasksIndex({
               <button
                 type="button"
                 onClick={openCreateModal}
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
               >
                 New task
               </button>
@@ -201,7 +201,7 @@ export default function TasksIndex({
                     onClick={() => setFilter(item.value)}
                     className={
                       active
-                        ? 'rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white'
+                        ? 'rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white'
                         : 'rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50'
                     }
                   >
@@ -254,7 +254,7 @@ export default function TasksIndex({
                       {task.lead_id ? (
                         <Link
                           href={`/leads/${task.lead_id}`}
-                          className="font-medium text-indigo-600 hover:text-indigo-500"
+                          className="font-medium text-brand-ink hover:text-brand"
                         >
                           {task.lead || '—'}
                         </Link>

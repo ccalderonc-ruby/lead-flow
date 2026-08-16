@@ -2,8 +2,10 @@ import { Head, Link, router } from '@inertiajs/react'
 import { FormEvent, useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
 import { SelectField } from '@/components/ui/FormFields'
+import PageHeader from '@/components/ui/PageHeader'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 export type LeadRow = {
@@ -138,44 +140,36 @@ export default function LeadsIndex({
       <Head title="Leads" />
 
       <div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Leads</h1>
-            <p className="mt-1 text-slate-600">Search and browse your pipeline prospects.</p>
-          </div>
-
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            {canExport && (
-              <a
-                href={exportHref(meta)}
-                className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Export CSV
-              </a>
-            )}
-            {showSubscribeForExport &&
-              (showAdminSubscribeLink ? (
-                <Link
-                  href="/admin/subscriptions"
-                  className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
+        <PageHeader
+          title="Leads"
+          description="Search and browse your pipeline prospects."
+          actions={
+            <>
+              {canExport && (
+                <a
+                  href={exportHref(meta)}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
-                  Export CSV — subscribe to LeadFlow Pro
-                </Link>
-              ) : (
-                <span className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900">
-                  Export CSV — ask an admin for LeadFlow Pro
-                </span>
-              ))}
-            {canCreate && (
-              <Link
-                href="/leads/new"
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
-              >
-                + Add lead
-              </Link>
-            )}
-          </div>
-        </div>
+                  Export CSV
+                </a>
+              )}
+              {showSubscribeForExport &&
+                (showAdminSubscribeLink ? (
+                  <Link
+                    href="/admin/subscriptions"
+                    className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
+                  >
+                    Export CSV — subscribe to LeadFlow Pro
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900">
+                    Export CSV — ask an admin for LeadFlow Pro
+                  </span>
+                ))}
+              {canCreate && <Button href="/leads/new">+ Add lead</Button>}
+            </>
+          }
+        />
 
         {showSubscribeForExport && (
           <p className="mt-3 text-sm text-amber-800">
@@ -195,7 +189,7 @@ export default function LeadsIndex({
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search name, email, or company"
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
               />
             </div>
             <button
@@ -244,7 +238,7 @@ export default function LeadsIndex({
               {filtersActiveLabel.map((label) => (
                 <span
                   key={label}
-                  className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700"
+                  className="inline-flex rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-medium text-brand-ink"
                 >
                   {label}
                 </span>
@@ -252,7 +246,7 @@ export default function LeadsIndex({
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                className="text-sm font-medium text-brand-ink hover:text-brand"
               >
                 Clear all
               </button>
@@ -300,7 +294,7 @@ export default function LeadsIndex({
                     <td className="px-4 py-3 font-medium text-slate-900">
                       <Link
                         href={`/leads/${lead.id}`}
-                        className="text-indigo-600 hover:text-indigo-500"
+                        className="text-brand-ink hover:text-brand"
                       >
                         {lead.name}
                       </Link>
@@ -317,7 +311,7 @@ export default function LeadsIndex({
                       {lead.can_update ? (
                         <Link
                           href={`/leads/${lead.id}/edit`}
-                          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                          className="text-sm font-medium text-brand-ink hover:text-brand"
                         >
                           Edit
                         </Link>

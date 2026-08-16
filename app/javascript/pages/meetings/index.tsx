@@ -133,7 +133,7 @@ export default function MeetingsIndex({
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
             >
               Schedule meeting
             </button>
@@ -177,7 +177,7 @@ export default function MeetingsIndex({
                       {meeting.lead_id ? (
                         <Link
                           href={`/leads/${meeting.lead_id}`}
-                          className="font-medium text-indigo-600 hover:text-indigo-500"
+                          className="font-medium text-brand-ink hover:text-brand"
                         >
                           {meeting.lead || '—'}
                         </Link>

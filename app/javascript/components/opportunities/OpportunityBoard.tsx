@@ -100,7 +100,7 @@ function OpportunityCardView({
   return (
     <div
       className={`w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm ${
-        dragging ? 'shadow-md ring-2 ring-indigo-200' : ''
+        dragging ? 'shadow-md ring-2 ring-brand-muted' : ''
       }`}
     >
       <div className="truncate font-medium text-slate-900">{opportunity.title || 'Untitled'}</div>
@@ -149,7 +149,7 @@ function DraggableOpportunityCard({
       <button
         type="button"
         onClick={() => onOpen(opportunity)}
-        className={`w-full text-left transition-colors hover:border-indigo-200 hover:bg-indigo-50/40 ${
+        className={`w-full text-left transition-colors hover:border-brand-muted hover:bg-brand-subtle/40 ${
           canDrag ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
         }`}
         {...(canDrag ? { ...listeners, ...attributes } : {})}
@@ -178,7 +178,7 @@ function StageColumn({
   return (
     <section
       className={`flex min-h-0 min-w-0 flex-col rounded-xl border bg-slate-50 ${
-        isOver ? 'border-indigo-300 bg-indigo-50/40' : 'border-slate-200'
+        isOver ? 'border-brand bg-brand-subtle/40' : 'border-slate-200'
       }`}
       aria-label={`${stage.name} stage`}
     >

@@ -26,8 +26,8 @@ function NavLink({ href, label, currentUrl }: { href: string; label: string; cur
       href={href}
       className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
         active
-          ? 'bg-indigo-600 text-white'
-          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+          ? 'bg-brand text-white'
+          : 'text-indigo-200 hover:bg-sidebar-hover hover:text-white'
       }`}
     >
       {label}
@@ -51,15 +51,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <div className="border-b border-slate-800 px-5 py-6">
+      <div className="border-b border-sidebar-border px-5 py-6">
         <Link href="/" className="text-xl font-semibold tracking-tight text-white">
           LeadFlow
         </Link>
-        <p className="mt-1 text-xs text-slate-400">Advisor CRM</p>
+        <p className="mt-1 text-xs text-indigo-300">Advisor CRM</p>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
           CRM
         </p>
         {mainNavItems.map((item) => (
@@ -68,7 +68,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {showAdvisorNav && advisorNavItems.length > 0 && (
           <>
-            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
               Account
             </p>
             {advisorNavItems.map((item) => (
@@ -79,7 +79,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {showAdminNav && (
           <>
-            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
               Admin
             </p>
             {adminItems.map((item) => (
@@ -90,13 +90,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </nav>
 
       {user && (
-        <div className="border-t border-slate-800 px-4 py-4">
+        <div className="border-t border-sidebar-border px-4 py-4">
           <p className="truncate text-sm font-medium text-white">{user.name}</p>
-          <p className="text-xs text-slate-400">{formatRoleLabel(user.role)}</p>
+          <p className="text-xs text-indigo-300">{formatRoleLabel(user.role)}</p>
           <button
             type="button"
             onClick={signOut}
-            className="mt-3 w-full rounded-lg border border-slate-600 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800"
+            className="mt-3 w-full rounded-lg border border-indigo-400/40 px-3 py-2 text-sm font-medium text-indigo-100 hover:bg-sidebar-hover"
           >
             Sign out
           </button>
@@ -106,10 +106,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
   )
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-surface">
       <VisitProgress />
       <div className="lg:flex">
-        <aside className="hidden w-64 shrink-0 bg-slate-900 lg:fixed lg:inset-y-0 lg:flex lg:flex-col">
+        <aside className="hidden w-64 shrink-0 bg-sidebar lg:fixed lg:inset-y-0 lg:flex lg:flex-col">
           {sidebar}
         </aside>
 
@@ -118,10 +118,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <button
               type="button"
               aria-label="Close navigation"
-              className="absolute inset-0 bg-slate-900/50"
+              className="absolute inset-0 bg-sidebar/50"
               onClick={() => setMobileNavOpen(false)}
             />
-            <aside className="relative h-full w-64 bg-slate-900 shadow-xl">{sidebar}</aside>
+            <aside className="relative h-full w-64 bg-sidebar shadow-xl">{sidebar}</aside>
           </div>
         )}
 
@@ -136,7 +136,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </button>
             {user && (
               <div className="ml-auto text-right text-sm lg:hidden">
-                <p className="font-medium text-slate-900">{user.name}</p>
+                <p className="font-medium text-ink">{user.name}</p>
                 <p className="text-slate-500">{formatRoleLabel(user.role)}</p>
               </div>
             )}

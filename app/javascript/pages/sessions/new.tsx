@@ -1,5 +1,8 @@
 import { Head, useForm } from '@inertiajs/react'
 
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
+
 export default function Login() {
   const { data, setData, post, processing, errors } = useForm({
     email: '',
@@ -12,12 +15,12 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <Head title="Sign in" />
 
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+      <Card className="w-full max-w-md p-8" padding="none">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-slate-900">LeadFlow</h1>
+          <h1 className="text-2xl font-semibold text-ink">LeadFlow</h1>
           <p className="mt-2 text-sm text-slate-600">Sign in to your account</p>
         </div>
 
@@ -32,7 +35,7 @@ export default function Login() {
               autoComplete="username"
               value={data.email}
               onChange={(event) => setData('email', event.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
             />
             {errors.email && (
               <p className="mt-2 text-sm text-red-600">{errors.email.join(', ')}</p>
@@ -49,19 +52,15 @@ export default function Login() {
               autoComplete="current-password"
               value={data.password}
               onChange={(event) => setData('password', event.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={processing}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={processing} size="lg" className="w-full">
             {processing ? 'Signing in…' : 'Sign in'}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }

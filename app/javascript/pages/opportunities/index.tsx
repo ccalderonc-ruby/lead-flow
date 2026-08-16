@@ -140,7 +140,7 @@ export default function OpportunitiesIndex({
               <div
                 className={`inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-sm shadow-sm ${
                   meta.user_id != null
-                    ? 'border-indigo-200 text-slate-800'
+                    ? 'border-brand-muted text-slate-800'
                     : 'border-slate-200 text-slate-700'
                 }`}
               >
@@ -184,7 +184,7 @@ export default function OpportunitiesIndex({
               <button
                 type="button"
                 onClick={openCreateModal}
-                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
               >
                 New opportunity
               </button>

@@ -59,7 +59,7 @@ export default function AdminUsersEdit({
           </div>
           <Link
             href="/admin/users"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+            className="text-sm font-medium text-brand-ink hover:text-brand"
           >
             Back to users
           </Link>

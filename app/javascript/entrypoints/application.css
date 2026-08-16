@@ -2,3 +2,17 @@
 
 @plugin '@tailwindcss/typography';
 @plugin '@tailwindcss/forms';
+
+/* Visily LeadFlow brand tokens (U3) */
+@theme {
+  --color-brand: #f97316;
+  --color-brand-hover: #ea580c;
+  --color-brand-muted: #ffedd5;
+  --color-brand-subtle: #fff7ed;
+  --color-brand-ink: #c2410c;
+  --color-sidebar: #1e1b4b;
+  --color-sidebar-hover: #312e81;
+  --color-sidebar-border: #3730a3;
+  --color-surface: #f8fafc;
+  --color-ink: #0f172a;
+}

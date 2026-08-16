@@ -48,7 +48,7 @@ export default function AdminUsersIndex({
           {canCreate && (
             <Link
               href="/admin/users/new"
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
             >
               New user
             </Link>
@@ -82,7 +82,7 @@ export default function AdminUsersIndex({
                       {user.can_update ? (
                         <Link
                           href={`/admin/users/${user.id}/edit`}
-                          className="font-medium text-indigo-600 hover:text-indigo-500"
+                          className="font-medium text-brand-ink hover:text-brand"
                         >
                           Edit
                         </Link>
