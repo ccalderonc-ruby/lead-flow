@@ -5,6 +5,8 @@ import FlashBanner from '@/components/ui/FlashBanner'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import VisitProgress from '@/components/ui/VisitProgress'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
+import { useAuthBackGuard } from '@/hooks/useAuthBackGuard'
+import { clearAuthBackGuard } from '@/lib/authBackGuard'
 import {
   adminNavItemsFor,
   adminNavVisible,
@@ -55,6 +57,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const mobileNavRef = useRef<HTMLDivElement>(null)
 
+  useAuthBackGuard()
+
   const user = auth.user
   const showAdminNav = adminNavVisible(user?.role)
   const showAdvisorNav = advisorNavVisible(user?.role)
@@ -66,7 +70,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   function signOut() {
     closeMobileNav()
-    router.delete('/logout')
+    clearAuthBackGuard()
+    router.delete('/logout', { replace: true })
   }
 
   useEffect(() => {

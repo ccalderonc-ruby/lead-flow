@@ -39,6 +39,14 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
   end
 
+  test "login page sends no-store cache headers" do
+    get login_path
+
+    assert_response :success
+    cache_control = response.headers["Cache-Control"].to_s
+    assert_includes cache_control, "no-store"
+  end
+
   test "signed in user visiting login is redirected home" do
     post session_path, params: { email: users(:admin).email, password: "password" }
     get login_path
