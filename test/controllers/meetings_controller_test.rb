@@ -106,6 +106,68 @@ class MeetingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Meeting scheduled.", flash[:notice]
   end
 
+  test "advisor generates zoom conference link on create" do
+    sign_in_as users(:advisor)
+
+    assert_difference "Meeting.count", 1 do
+      post meetings_path, params: {
+        title: "Zoom discovery",
+        scheduled_on: (Date.current + 2.days).iso8601,
+        start_time: "15:30",
+        lead_id: leads(:sarah).id,
+        video_provider: "zoom",
+        generate_conference_link: "1",
+        return_to: meetings_path
+      }
+    end
+
+    meeting = Meeting.order(:id).last
+    assert_equal "zoom", meeting.video_provider
+    assert meeting.virtual_meeting
+    assert_match %r{\Ahttps://zoom\.us/j/stub-}, meeting.virtual_link
+    assert_match %r{\Azoom-stub-}, meeting.external_meeting_id
+  end
+
+  test "advisor generates google meet link on create" do
+    sign_in_as users(:advisor)
+
+    assert_difference "Meeting.count", 1 do
+      post meetings_path, params: {
+        title: "Meet follow-up",
+        scheduled_on: (Date.current + 2.days).iso8601,
+        start_time: "11:00",
+        lead_id: leads(:sarah).id,
+        video_provider: "google_meet",
+        generate_conference_link: true,
+        return_to: meetings_path
+      }
+    end
+
+    meeting = Meeting.order(:id).last
+    assert_equal "google_meet", meeting.video_provider
+    assert_match %r{\Ahttps://meet\.google\.com/stub-}, meeting.virtual_link
+  end
+
+  test "regenerate conference link on update overwrites virtual link" do
+    sign_in_as users(:advisor)
+    meeting = meetings(:review)
+
+    patch meeting_path(meeting), params: {
+      title: meeting.title,
+      scheduled_on: meeting.scheduled_on.iso8601,
+      start_time: meeting.start_time.strftime("%H:%M"),
+      location: meeting.location,
+      video_provider: "zoom",
+      generate_conference_link: "1",
+      return_to: meetings_path
+    }
+
+    meeting.reload
+    assert_equal "zoom", meeting.video_provider
+    assert_match %r{\Ahttps://zoom\.us/j/stub-}, meeting.virtual_link
+    assert_match %r{\Azoom-stub-}, meeting.external_meeting_id
+  end
+
   test "advisor cannot create meeting on unassigned lead" do
     sign_in_as users(:advisor)
 

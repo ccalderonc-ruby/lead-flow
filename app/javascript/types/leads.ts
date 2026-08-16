@@ -44,6 +44,8 @@ export type MeetingPreview = {
   location?: string | null
   virtual_link?: string | null
   virtual_meeting?: boolean | null
+  video_provider?: string | null
+  external_meeting_id?: string | null
   status: string | null
   user_id?: number | null
   can_edit: boolean

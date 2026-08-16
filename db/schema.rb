@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_16_200159) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_16_203010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_200159) do
     t.text "agenda"
     t.datetime "created_at", null: false
     t.integer "duration_minutes"
+    t.string "external_meeting_id"
     t.bigint "lead_id", null: false
     t.string "location"
     t.date "scheduled_on"
@@ -101,6 +102,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_16_200159) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.string "video_provider"
     t.string "virtual_link"
     t.boolean "virtual_meeting"
     t.index ["lead_id"], name: "index_meetings_on_lead_id"

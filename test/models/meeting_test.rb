@@ -55,6 +55,22 @@ class MeetingTest < ActiveSupport::TestCase
     assert meeting.valid?
   end
 
+  test "rejects unknown video provider" do
+    meeting = meetings(:review)
+    meeting.video_provider = "teams"
+
+    refute meeting.valid?
+    assert_includes meeting.errors[:video_provider], "is not included in the list"
+  end
+
+  test "starts_at combines date and time" do
+    meeting = meetings(:review)
+    meeting.scheduled_on = Date.new(2026, 8, 20)
+    meeting.start_time = Time.zone.parse("15:30")
+
+    assert_equal Time.zone.local(2026, 8, 20, 15, 30), meeting.starts_at
+  end
+
   test "upcoming scope includes scheduled meetings in next 7 days" do
     travel_to Date.new(2026, 7, 5) do
       assert_includes Meeting.upcoming, meetings(:review)

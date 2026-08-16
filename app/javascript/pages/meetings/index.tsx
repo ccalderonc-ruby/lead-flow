@@ -31,6 +31,8 @@ export type MeetingRow = {
   location: string | null
   virtual_link: string | null
   virtual_meeting: boolean | null
+  video_provider: string | null
+  external_meeting_id?: string | null
   status: string | null
   host: string | null
   user_id?: number | null
@@ -114,6 +116,7 @@ export default function MeetingsIndex({
       location: meeting.location,
       virtual_link: meeting.virtual_link,
       virtual_meeting: meeting.virtual_meeting,
+      video_provider: meeting.video_provider,
       status: meeting.status,
       can_revert: meeting.can_revert,
     })

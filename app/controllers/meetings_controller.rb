@@ -43,10 +43,20 @@ class MeetingsController < InertiaController
       start_time: meeting_create_params[:start_time],
       location: meeting_create_params[:location],
       virtual_link: meeting_create_params[:virtual_link],
+      video_provider: normalized_video_provider(meeting_create_params[:video_provider]),
       virtual_meeting: virtual_meeting_flag(meeting_create_params),
       user_id: assigned_user_id(lead, meeting_create_params[:user_id]),
       status: :scheduled
     )
+
+    begin
+      apply_generated_conference_link!(meeting, meeting_create_params)
+    rescue Meetings::ConferenceError => e
+      redirect_to safe_return_path, inertia: {
+        errors: { base: [ e.message ], video_provider: [ e.message ], form: [ "meeting" ] }
+      }
+      return
+    end
 
     if meeting.save
       flash[:notice] = "Meeting scheduled."
@@ -78,6 +88,8 @@ class MeetingsController < InertiaController
       location: meeting.location,
       virtual_link: meeting.virtual_link,
       virtual_meeting: meeting.virtual_meeting,
+      video_provider: meeting.video_provider,
+      external_meeting_id: meeting.external_meeting_id,
       status: meeting.status,
       host: meeting.user&.name,
       user_id: meeting.user_id,
@@ -123,7 +135,19 @@ class MeetingsController < InertiaController
     apply_host_on_update!(attrs)
     attrs[:virtual_meeting] = virtual_meeting_flag(attrs) if attrs.key?(:virtual_link) || attrs.key?(:virtual_meeting)
 
-    if @meeting.update(attrs)
+    @meeting.assign_attributes(attrs)
+
+    begin
+      apply_generated_conference_link!(@meeting, params)
+    rescue Meetings::ConferenceError => e
+      flash[:alert] = "Could not update meeting."
+      redirect_to safe_return_path, inertia: {
+        errors: { base: [ e.message ], video_provider: [ e.message ], form: [ "meeting" ] }
+      }
+      return
+    end
+
+    if @meeting.save
       flash[:notice] = if reopening
         "Meeting reopened."
       elsif completing
@@ -146,6 +170,7 @@ class MeetingsController < InertiaController
       :location,
       :virtual_link,
       :virtual_meeting,
+      :video_provider,
       :status,
       :user_id
     )
@@ -156,6 +181,7 @@ class MeetingsController < InertiaController
     attrs[:location] = raw[:location] if raw.key?(:location)
     attrs[:virtual_link] = raw[:virtual_link] if raw.key?(:virtual_link)
     attrs[:virtual_meeting] = raw[:virtual_meeting] if raw.key?(:virtual_meeting)
+    attrs[:video_provider] = normalized_video_provider(raw[:video_provider]) if raw.key?(:video_provider)
     attrs[:status] = raw[:status] if raw.key?(:status)
     attrs[:user_id] = raw[:user_id] if raw.key?(:user_id)
     attrs
@@ -237,8 +263,37 @@ class MeetingsController < InertiaController
     flag = ActiveModel::Type::Boolean.new.cast(source[:virtual_meeting])
     return true if flag
     return true if source[:virtual_link].to_s.strip.present?
+    return true if generate_conference_link?(source) && normalized_video_provider(source[:video_provider]).present?
 
     false
+  end
+
+  def generate_conference_link?(source)
+    ActiveModel::Type::Boolean.new.cast(source[:generate_conference_link])
+  end
+
+  def normalized_video_provider(value)
+    value.to_s.strip.presence
+  end
+
+  def apply_generated_conference_link!(meeting, source)
+    return unless generate_conference_link?(source)
+
+    provider = normalized_video_provider(source[:video_provider]) || meeting.video_provider
+    return if provider.blank?
+
+    start_at = meeting.starts_at || Time.current
+    result = Meetings::ConferenceLinkGenerator.call(
+      provider: provider,
+      title: meeting.title.to_s,
+      start_at: start_at,
+      duration_minutes: meeting.duration_minutes.presence || 30
+    )
+
+    meeting.video_provider = provider
+    meeting.virtual_link = result.join_url
+    meeting.external_meeting_id = result.external_id
+    meeting.virtual_meeting = true
   end
 
   def meeting_create_params
@@ -251,6 +306,8 @@ class MeetingsController < InertiaController
       :location,
       :virtual_link,
       :virtual_meeting,
+      :video_provider,
+      :generate_conference_link,
       :return_to
     )
   end
@@ -263,6 +320,8 @@ class MeetingsController < InertiaController
       :location,
       :virtual_link,
       :virtual_meeting,
+      :video_provider,
+      :generate_conference_link,
       :status,
       :user_id,
       :return_to
