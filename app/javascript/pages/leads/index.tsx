@@ -8,6 +8,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import { SelectField } from '@/components/ui/FormFields'
 import PageHeader from '@/components/ui/PageHeader'
 import PaginationBar from '@/components/ui/PaginationBar'
+import StageBadge from '@/components/ui/StatusBadges'
 import {
   DataTable,
   DataTableBody,
@@ -155,7 +156,7 @@ export default function LeadsIndex({
       <div>
         <PageHeader
           title="Leads"
-          description="Search and browse your pipeline prospects."
+          description="Manage and nurture your prospective clients."
           actions={
             <>
               {canExport && (
@@ -179,7 +180,7 @@ export default function LeadsIndex({
                     Export CSV — ask an admin for LeadFlow Pro
                   </span>
                 ))}
-              {canCreate && <Button href="/leads/new">+ Add lead</Button>}
+              {canCreate && <Button href="/leads/new">+ New Lead</Button>}
             </>
           }
         />
@@ -294,7 +295,9 @@ export default function LeadsIndex({
                     {lead.email && <div className="text-xs font-normal text-slate-500">{lead.email}</div>}
                   </DataTableCell>
                   <DataTableCell className="text-slate-700">{lead.company}</DataTableCell>
-                  <DataTableCell className="text-slate-700">{lead.stage}</DataTableCell>
+                  <DataTableCell>
+                    <StageBadge stage={lead.stage} />
+                  </DataTableCell>
                   <DataTableCell className="text-slate-700">{lead.advisor}</DataTableCell>
                   <DataTableCell className="text-slate-700">{formatDate(lead.last_activity_at)}</DataTableCell>
                   <DataTableCell align="right" className="tabular-nums text-slate-900">

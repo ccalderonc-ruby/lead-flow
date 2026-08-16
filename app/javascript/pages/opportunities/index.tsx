@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import ActiveFilters from '@/components/ui/ActiveFilters'
+import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
 import OpportunityBoard, {
   type OpportunityCard,
   type PipelineStage,
@@ -137,68 +139,63 @@ export default function OpportunitiesIndex({
       <Head title="Opportunities" />
 
       <div className="flex h-[calc(100vh-7.5rem)] min-h-[28rem] min-w-0 flex-col lg:h-[calc(100vh-8.5rem)]">
-        <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold text-slate-900">Opportunities</h1>
-            <p className="mt-1 text-slate-600">Pipeline by stage across your scoped leads.</p>
-          </div>
-
-          <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative">
-              <div
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full border bg-panel px-3 py-2.5 text-sm shadow-sm ${
-                  meta.user_id != null
-                    ? 'border-brand-muted text-slate-800'
-                    : 'border-slate-200 text-slate-700'
-                }`}
-              >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  className="h-4 w-4 shrink-0 text-slate-500"
+        <PageHeader
+          title="Opportunity Pipeline"
+          description="Pipeline by stage across your scoped leads."
+          actions={
+            <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative">
+                <div
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border bg-panel px-3 py-2.5 text-sm shadow-sm ${
+                    meta.user_id != null
+                      ? 'border-brand-muted text-slate-800'
+                      : 'border-slate-200 text-slate-700'
+                  }`}
                 >
-                  <path
-                    d="M3 4.5h14l-5.5 6.25V15l-3 1.5v-5.75L3 4.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="pointer-events-none font-medium">
-                  Filter: Owner
-                  {selectedOwnerName ? (
-                    <span className="font-normal text-slate-500"> · {selectedOwnerName}</span>
-                  ) : null}
-                </span>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-4 w-4 shrink-0 text-slate-500"
+                  >
+                    <path
+                      d="M3 4.5h14l-5.5 6.25V15l-3 1.5v-5.75L3 4.5Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="pointer-events-none font-medium">
+                    Filter: Owner
+                    {selectedOwnerName ? (
+                      <span className="font-normal text-slate-500"> · {selectedOwnerName}</span>
+                    ) : null}
+                  </span>
+                </div>
+                <select
+                  id="opportunities-owner-filter"
+                  aria-label="Filter: Owner"
+                  value={meta.user_id != null ? String(meta.user_id) : ''}
+                  onChange={(event) => setOwnerFilter(event.target.value)}
+                  className="absolute inset-0 cursor-pointer opacity-0"
+                >
+                  <option value="">All owners</option>
+                  {owners.map((owner) => (
+                    <option key={owner.id} value={String(owner.id)}>
+                      {owner.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <select
-                id="opportunities-owner-filter"
-                aria-label="Filter: Owner"
-                value={meta.user_id != null ? String(meta.user_id) : ''}
-                onChange={(event) => setOwnerFilter(event.target.value)}
-                className="absolute inset-0 cursor-pointer opacity-0"
-              >
-                <option value="">All owners</option>
-                {owners.map((owner) => (
-                  <option key={owner.id} value={String(owner.id)}>
-                    {owner.name}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            {canCreate && (
-              <button
-                type="button"
-                onClick={openCreateModal}
-                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
-              >
-                New opportunity
-              </button>
-            )}
-          </div>
-        </div>
+              {canCreate && (
+                <Button type="button" onClick={openCreateModal}>
+                  + New Opportunity
+                </Button>
+              )}
+            </div>
+          }
+        />
 
         {hasOwnerFilter && selectedOwnerName ? (
           <div className="mt-4 shrink-0">

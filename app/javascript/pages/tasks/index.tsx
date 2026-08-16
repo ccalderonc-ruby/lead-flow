@@ -3,7 +3,9 @@ import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import ActiveFilters from '@/components/ui/ActiveFilters'
+import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
 import PaginationBar from '@/components/ui/PaginationBar'
 import {
   DataTable,
@@ -175,28 +177,21 @@ export default function TasksIndex({
       <Head title="Tasks" />
 
       <div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Tasks</h1>
-            <p className="mt-1 text-slate-600">Prioritize follow-ups across your leads.</p>
-          </div>
+        <PageHeader
+          title="Task Management"
+          description="Keep track of outstanding actions and deadlines."
+          actions={
+            canCreate ? (
+              <Button type="button" onClick={openCreateModal}>
+                + New Task
+              </Button>
+            ) : undefined
+          }
+        />
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            {canCreate && (
-              <button
-                type="button"
-                onClick={openCreateModal}
-                className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
-              >
-                New task
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="sticky top-14 z-20 mt-6 space-y-3 rounded-xl border border-slate-200 bg-panel/95 p-4 shadow-sm backdrop-blur lg:top-0">
+        <div className="sticky top-14 z-20 mt-2 space-y-3 rounded-xl border border-slate-200 bg-panel/95 p-4 shadow-sm backdrop-blur lg:top-0">
           <div
-            className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-panel p-1"
+            className="flex flex-wrap gap-1 border-b border-slate-200 pb-1"
             role="group"
             aria-label="Task filters"
           >
@@ -210,8 +205,8 @@ export default function TasksIndex({
                   onClick={() => setFilter(item.value)}
                   className={
                     active
-                      ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11'
-                      : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11'
+                      ? 'border-b-2 border-brand px-3 py-2.5 text-sm font-semibold text-brand min-h-11'
+                      : 'border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-slate-600 hover:text-ink min-h-11'
                   }
                 >
                   {item.label}

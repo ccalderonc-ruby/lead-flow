@@ -40,13 +40,19 @@ function NavLink({
       href={href}
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
-      className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar ${
+      className={`relative block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar ${
         active
-          ? 'bg-brand text-white'
-          : 'text-indigo-100 hover:bg-sidebar-hover hover:text-white'
+          ? 'bg-sidebar-active text-white'
+          : 'text-indigo-100/90 hover:bg-sidebar-hover hover:text-white'
       }`}
     >
       {label}
+      {active ? (
+        <span
+          className="absolute right-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand"
+          aria-hidden
+        />
+      ) : null}
     </Link>
   )
 }
@@ -99,17 +105,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <Link
           href="/"
           onClick={closeMobileNav}
-          className="text-xl font-semibold tracking-tight text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+          className="flex items-start gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
         >
-          LeadFlow
+          <span
+            className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand text-sm font-bold text-white"
+            aria-hidden
+          >
+            L
+          </span>
+          <span className="min-w-0">
+            <span className="block text-lg font-semibold tracking-tight text-white">LeadFlow</span>
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-brand">
+              CRM Premium
+            </span>
+          </span>
         </Link>
-        <p className="mt-1 text-xs text-indigo-200">Advisor CRM</p>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Primary">
-        <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-200">
-          CRM
-        </p>
         {mainNavItems.map((item) => (
           <NavLink
             key={item.href}
@@ -122,7 +135,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {showAdvisorNav && advisorNavItems.length > 0 && (
           <>
-            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-200">
+            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-300/80">
               Account
             </p>
             {advisorNavItems.map((item) => (
@@ -139,7 +152,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {showAdminNav && (
           <>
-            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-200">
+            <p className="mt-6 px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-indigo-300/80">
               Admin
             </p>
             {adminItems.map((item) => (
@@ -157,12 +170,27 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       {user && (
         <div className="border-t border-sidebar-border px-4 py-4">
-          <p className="truncate text-sm font-medium text-white">{user.name}</p>
-          <p className="text-xs text-indigo-200">{formatRoleLabel(user.role)}</p>
+          <div className="flex items-center gap-3">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-active text-sm font-semibold text-white"
+              aria-hidden
+            >
+              {user.name
+                .split(/\s+/)
+                .map((part) => part[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-white">{user.name}</p>
+              <p className="truncate text-xs text-indigo-200">{formatRoleLabel(user.role)}</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={signOut}
-            className="mt-3 w-full rounded-lg border border-indigo-300/50 px-3 py-2 text-sm font-medium text-indigo-50 hover:bg-sidebar-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+            className="mt-3 w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-indigo-200 hover:bg-sidebar-hover hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
           >
             Sign out
           </button>

@@ -8,6 +8,7 @@ import LeadForm, {
   type LeadFormValues,
 } from '@/components/leads/LeadForm'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import PageHeader from '@/components/ui/PageHeader'
 
 type LeadEditRecord = {
   id: number
@@ -77,15 +78,15 @@ export default function LeadsEdit(props: LeadsEditProps) {
       <Head title={`Edit ${lead.name}`} />
 
       <div className="mx-auto max-w-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Edit lead</h1>
-            <p className="mt-1 text-slate-600">Update prospect details and assignment.</p>
-          </div>
-          <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
-            Back to leads
-          </Link>
-        </div>
+        <PageHeader
+          title="Edit lead"
+          description="Update prospect details and assignment."
+          actions={
+            <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
+              Back to leads
+            </Link>
+          }
+        />
 
         <LeadEditForm key={lead.id} {...props} />
       </div>

@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import PageHeader from '@/components/ui/PageHeader'
 import {
   DataTable,
   DataTableBody,
@@ -46,15 +47,16 @@ export default function AdminRolesIndex({ roles, matrix, read_only: readOnly }: 
       <Head title="Roles" />
 
       <div>
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Roles</h1>
-          <p className="mt-1 text-slate-600">
-            Seeded role definitions and access levels for the demo.
-            {readOnly ? ' Permissions are fixed — they cannot be edited here.' : null}
-          </p>
-        </div>
+        <PageHeader
+          title="Roles"
+          description={
+            readOnly
+              ? 'Seeded role definitions and access levels for the demo. Permissions are fixed — they cannot be edited here.'
+              : 'Seeded role definitions and access levels for the demo.'
+          }
+        />
 
-        <div className="mt-6">
+        <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Seeded roles</h2>
           {roles.length === 0 ? (
             <p className="mt-2 text-sm text-slate-600">No roles configured. Run seeds to load admin, advisor, and assistant.</p>

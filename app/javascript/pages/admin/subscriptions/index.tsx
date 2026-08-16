@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
 import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
 import {
   DataTable,
@@ -143,16 +144,13 @@ export default function AdminSubscriptionsIndex({
       <Head title="Subscriptions" />
 
       <div>
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Subscriptions</h1>
-          <p className="mt-1 text-slate-600">
-            As billing admin you subscribe the organization to LeadFlow Pro, then grant Pro access to
-            admins, advisors, and assistants.
-          </p>
-        </div>
+        <PageHeader
+          title="Subscriptions"
+          description="As billing admin you subscribe the organization to LeadFlow Pro, then grant Pro access to admins, advisors, and assistants."
+        />
 
         {!checkoutConfigured && (
-          <p className="mt-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
             Stripe is not configured. Set STRIPE_SECRET_KEY, STRIPE_PRICE_ID, and
             STRIPE_WEBHOOK_SECRET (see .env.example) to enable checkout.
           </p>
@@ -161,10 +159,10 @@ export default function AdminSubscriptionsIndex({
         <section className="mt-8 rounded-xl border border-slate-200 bg-panel p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Organization billing</h2>
+              <h2 className="text-lg font-semibold text-ink">Organization billing</h2>
               <p className="mt-1 text-sm text-slate-600">
                 Status:{' '}
-                <span className="font-medium capitalize text-slate-900">
+                <span className="font-medium capitalize text-ink">
                   {billing.subscription_status}
                 </span>
               </p>
@@ -222,7 +220,7 @@ export default function AdminSubscriptionsIndex({
         <section className="mt-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Team access</h2>
+              <h2 className="text-lg font-semibold text-ink">Team access</h2>
               <p className="mt-1 text-sm text-slate-600">
                 Grant Pro features to users after the organization is subscribed.
               </p>

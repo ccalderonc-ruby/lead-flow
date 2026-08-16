@@ -103,8 +103,8 @@ function OpportunityCardView({
         dragging ? 'shadow-md ring-2 ring-brand-muted' : ''
       }`}
     >
-      <div className="truncate font-medium text-slate-900">{opportunity.title || 'Untitled'}</div>
-      <div className="mt-1 text-sm font-semibold text-slate-700">
+      <div className="truncate font-medium text-ink">{opportunity.title || 'Untitled'}</div>
+      <div className="mt-1 text-sm font-semibold text-brand-ink">
         {formatCurrency(opportunity.value)}
       </div>
       <div className="mt-2 truncate text-xs text-slate-500">
@@ -194,14 +194,14 @@ function StageColumn({
 
   return (
     <section
-      className={`flex min-h-0 w-[min(18rem,85vw)] shrink-0 flex-col rounded-xl border bg-slate-50 md:w-auto md:min-w-0 ${
+      className={`flex min-h-0 w-[min(18rem,85vw)] shrink-0 flex-col rounded-xl border bg-panel md:w-auto md:min-w-0 ${
         isOver ? 'border-brand bg-brand-subtle/40' : 'border-slate-200'
       }`}
       aria-label={`${stage.name} stage`}
     >
-      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-3 py-3">
-        <h2 className="truncate text-sm font-semibold text-slate-900">{stage.name}</h2>
-        <span className="shrink-0 rounded-full bg-panel px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-100 bg-surface/80 px-3 py-3">
+        <h2 className="truncate text-sm font-semibold text-ink">{stage.name}</h2>
+        <span className="shrink-0 rounded-full bg-brand-muted px-2 py-0.5 text-xs font-medium text-brand-ink">
           {stage.opportunities.length}
         </span>
       </header>
