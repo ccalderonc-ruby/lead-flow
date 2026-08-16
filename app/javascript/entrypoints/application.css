@@ -53,3 +53,11 @@ html.dark :where(
   background-color: var(--color-panel);
   color: var(--color-ink);
 }
+
+/* Keyboard focus rings for raw links/buttons (U4); mouse clicks stay ring-free via :focus-visible */
+@layer base {
+  :where(a, button):focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}

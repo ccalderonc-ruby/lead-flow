@@ -49,6 +49,7 @@ function buttonClassName({
 }: Pick<CommonProps, 'variant' | 'size' | 'className'>) {
   return [
     'inline-flex items-center justify-center rounded-lg font-medium transition-colors',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel',
     variants[variant],
     sizes[size],
     className,

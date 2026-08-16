@@ -17,8 +17,8 @@ type EmptyStateProps = {
 
 function ActionButton({ action, primary }: { action: EmptyStateAction; primary?: boolean }) {
   const className = primary
-    ? 'inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover'
-    : 'inline-flex items-center justify-center rounded-lg border border-slate-300 bg-panel px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50'
+    ? 'inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel'
+    : 'inline-flex items-center justify-center rounded-lg border border-slate-300 bg-panel px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel'
 
   if (action.href) {
     return (
@@ -44,7 +44,7 @@ export default function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400" aria-hidden>
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500" aria-hidden>
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path
             strokeLinecap="round"
