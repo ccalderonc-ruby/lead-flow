@@ -95,6 +95,3 @@ class DashboardMetricsTest < ActiveSupport::TestCase
     assert_equal qualified.id, payload[:lead_stage_id]
   end
 end
-
-
-

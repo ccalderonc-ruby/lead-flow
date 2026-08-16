@@ -101,4 +101,3 @@ class ApplicationPolicy
     false
   end
 end
-

@@ -162,6 +162,3 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"show":false'
   end
 end
-
-
-
