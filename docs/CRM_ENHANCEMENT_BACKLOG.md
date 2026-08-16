@@ -32,7 +32,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | **P2** | B5 | Dedicated Notes section (synced) | **M** | 2–3 days | — |
 | **P2** | B6 | Subscription → Admin-only | **M** | 1.5–2.5 days | Product decision: org vs per-advisor billing |
 | **P3** | B1 | Global + user + admin advisor dashboards | **L** | 3–5 days | B7 for accurate assistant/advisor views |
-| **P3** | B8 | Zoom + Google Meet for meetings | **L–XL** | 4–8 days | B3 (edit meetings) helpful first; OAuth apps |
+| **P3** | B8 | Zoom + Google Meet for meetings | **L–XL** | ✅ stub-first | App-level creds; stub generate until VIDEO_CONFERENCE_LIVE |
 | **P3** | B9 | Email: user invite + email prospects | **L–XL** | ✅ shipped | Reuses password-reset invite link + app SMTP (`MAIL_FROM`) |
 | **P3** | U1 | UX: empty / loading / feedback polish | **S–M** | 1–2 days | — |
 | **P3** | U2 | UX: forms & filters clarity | **S–M** | 1–2 days | Pairs with B2–B4 |
@@ -175,28 +175,22 @@ Build **permission foundations** before dashboards that depend on “whose data.
 
 ---
 
-### B8 — Zoom + Google Meet for meetings · `bl-8` · **L–XL · 4–8 days** · P3
+### B8 — Zoom + Google Meet for meetings · `bl-8` · **L–XL · 4–8 days** · P3 · ✅ stub-first shipped
 
 **Want**
 - Integrate **Zoom** and **Google Meet** with LeadFlow meetings
 - When scheduling (or editing) a virtual meeting, create/link a real conference and store the join URL on the meeting
 - Prefer one clear UX: pick provider → generate link (or connect account once via OAuth)
 
-**Today:** `virtual_meeting` + free-text `virtual_link` / `location` only  
-**Pairs with:** B3 (meeting edit) so links can be regenerated/updated after create
+**Shipped (v1 stub-first, app-level)**
+- `video_provider` + `external_meeting_id` on meetings
+- Meeting form: provider select + Generate conference link (Zoom / Google Meet)
+- `Meetings::ConferenceLinkGenerator` + stub clients when `VIDEO_CONFERENCE_LIVE` is off (default)
+- Manual virtual link still works with provider “None”
 
-**Work (typical)**
-1. OAuth / API credentials for Zoom and Google (Calendar or Meet)
-2. Service objects to create meetings and return join URLs
-3. Meeting form: provider select + “Generate link”
-4. Persist provider + external id + join URL on `meetings`
-5. Error handling when APIs fail; tests with stubs
+**Follow-up:** wire live Zoom Server-to-Server + Google Calendar Meet when prod app credentials exist (`VIDEO_CONFERENCE_LIVE=true`).
 
-**Decide first**
-- App-level API keys vs each advisor connecting their own Zoom/Google account  
-- Google Meet usually via **Google Calendar** event; Zoom via **Zoom Meetings API**
-
-**Risks:** OAuth consent screens, token refresh, and sandbox vs prod app credentials — often slower than pure CRUD.
+**Out of scope still:** per-advisor OAuth, remote sync on edit/cancel
 
 ---
 

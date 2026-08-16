@@ -260,6 +260,8 @@ class LeadsController < InertiaController
             location: meeting.location,
             virtual_link: meeting.virtual_link,
             virtual_meeting: meeting.virtual_meeting,
+            video_provider: meeting.video_provider,
+            external_meeting_id: meeting.external_meeting_id,
             status: meeting.status,
             user_id: meeting.user_id,
             can_edit: policy(meeting).update?,

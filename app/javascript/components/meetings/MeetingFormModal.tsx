@@ -23,6 +23,8 @@ export type MeetingFormValues = {
   location: string
   virtual_link: string
   virtual_meeting: boolean
+  video_provider: string
+  generate_conference_link: boolean
   status: string
   return_to: string
 }
@@ -37,6 +39,7 @@ export type EditableMeeting = {
   location?: string | null
   virtual_link?: string | null
   virtual_meeting?: boolean | null
+  video_provider?: string | null
   status: string | null
   can_revert?: boolean
 }
@@ -104,6 +107,8 @@ export default function MeetingFormModal({
     location: meeting?.location ?? '',
     virtual_link: meeting?.virtual_link ?? '',
     virtual_meeting: Boolean(meeting?.virtual_meeting || meeting?.virtual_link),
+    video_provider: meeting?.video_provider ?? '',
+    generate_conference_link: false,
     status: editableStatus(meeting?.status),
     return_to: returnTo,
   })
@@ -124,6 +129,8 @@ export default function MeetingFormModal({
       location: meeting?.location ?? '',
       virtual_link: meeting?.virtual_link ?? '',
       virtual_meeting: Boolean(meeting?.virtual_meeting || meeting?.virtual_link),
+      video_provider: meeting?.video_provider ?? '',
+      generate_conference_link: false,
       status: editableStatus(meeting?.status),
       return_to: returnTo,
     })
@@ -152,7 +159,11 @@ export default function MeetingFormModal({
       ...data,
       return_to: returnTo,
       lead_id: lockedLeadId != null ? String(lockedLeadId) : data.lead_id,
-      virtual_meeting: data.virtual_meeting || data.virtual_link.trim().length > 0,
+      virtual_meeting:
+        data.virtual_meeting ||
+        data.virtual_link.trim().length > 0 ||
+        (data.generate_conference_link && data.video_provider.length > 0),
+      generate_conference_link: data.generate_conference_link && data.video_provider.length > 0,
     }))
 
     if (editing && meeting) {
@@ -320,6 +331,43 @@ export default function MeetingFormModal({
             placeholder="Office / address"
           />
 
+          <SelectField
+            id="meeting-video-provider"
+            label="Video provider"
+            value={form.data.video_provider}
+            onChange={(value) => {
+              form.setData('video_provider', value)
+              if (value) {
+                form.setData('generate_conference_link', true)
+                form.setData('virtual_meeting', true)
+              } else {
+                form.setData('generate_conference_link', false)
+              }
+            }}
+            error={fieldError(form.errors, 'video_provider')}
+          >
+            <option value="">None (manual link)</option>
+            <option value="zoom">Zoom</option>
+            <option value="google_meet">Google Meet</option>
+          </SelectField>
+
+          {form.data.video_provider ? (
+            <label className="flex items-start gap-3 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                checked={form.data.generate_conference_link}
+                onChange={(event) => form.setData('generate_conference_link', event.target.checked)}
+              />
+              <span>
+                Generate conference link
+                <span className="mt-0.5 block text-slate-500">
+                  Creates a Zoom or Google Meet join URL for this meeting.
+                </span>
+              </span>
+            </label>
+          ) : null}
+
           <TextField
             id="meeting-virtual-link"
             label="Virtual link"
@@ -329,8 +377,13 @@ export default function MeetingFormModal({
               form.setData('virtual_link', value)
               if (value.trim()) form.setData('virtual_meeting', true)
             }}
-            error={fieldError(form.errors, 'virtual_link')}
-            placeholder="https://"
+            error={fieldError(form.errors, 'virtual_link') || fieldError(form.errors, 'base')}
+            placeholder={
+              form.data.generate_conference_link && form.data.video_provider
+                ? 'Will be generated on save'
+                : 'https://'
+            }
+            disabled={form.data.generate_conference_link && Boolean(form.data.video_provider)}
           />
 
           <div className="flex justify-end gap-2 pt-2">

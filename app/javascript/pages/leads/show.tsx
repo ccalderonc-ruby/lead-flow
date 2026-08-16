@@ -256,6 +256,7 @@ export default function LeadsShow({
       location: meeting.location ?? null,
       virtual_link: meeting.virtual_link ?? null,
       virtual_meeting: meeting.virtual_meeting ?? null,
+      video_provider: meeting.video_provider ?? null,
       status: meeting.status,
       can_revert: meeting.can_revert,
     })
