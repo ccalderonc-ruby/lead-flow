@@ -1,6 +1,6 @@
 import { FormEvent } from 'react'
 
-import { SelectField, TextField } from '@/components/ui/FormFields'
+import { FormErrorBanner, RequiredFieldsHint, SelectField, TextField } from '@/components/ui/FormFields'
 
 export type UserFormOption = {
   id: number
@@ -64,11 +64,8 @@ export default function UserForm({
 
   return (
     <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-panel p-6">
-      {fieldError(errors, 'base') && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {fieldError(errors, 'base')}
-        </p>
-      )}
+      <FormErrorBanner message={fieldError(errors, 'base')} />
+      <RequiredFieldsHint />
 
       <TextField
         id="name"

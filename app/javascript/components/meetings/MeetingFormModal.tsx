@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react'
 import { FormEvent, useRef } from 'react'
 
-import { FieldError, SelectField, TextField } from '@/components/ui/FormFields'
+import { FieldError, FormErrorBanner, RequiredFieldsHint, RequiredMark, SelectField, TextField } from '@/components/ui/FormFields'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 
 export type MeetingFormOption = {
@@ -214,11 +214,8 @@ export default function MeetingFormModal({
         </div>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
-          {fieldError(form.errors, 'base') && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {fieldError(form.errors, 'base')}
-            </p>
-          )}
+          <FormErrorBanner message={fieldError(form.errors, 'base')} />
+          <RequiredFieldsHint />
 
           <TextField
             id="meeting-title"
@@ -253,7 +250,7 @@ export default function MeetingFormModal({
           {lockedLeadId != null || editing ? (
             <div>
               <p className="block text-sm font-medium text-slate-700">
-                Lead <span className="text-red-600">*</span>
+                Lead <RequiredMark />
               </p>
               <p className="mt-1 text-sm text-slate-900">
                 {leads.find((lead) => lead.id === Number(form.data.lead_id))?.name || 'Selected lead'}
@@ -281,7 +278,7 @@ export default function MeetingFormModal({
           {defaults.force_host ? (
             <div>
               <p className="block text-sm font-medium text-slate-700">
-                Host <span className="text-red-600">*</span>
+                Host <RequiredMark />
               </p>
               <p className="mt-1 text-sm text-slate-900">
                 {hosts.find((user) => String(user.id) === form.data.user_id)?.name || 'You'}

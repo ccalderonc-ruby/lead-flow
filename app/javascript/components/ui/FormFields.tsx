@@ -28,6 +28,23 @@ export function FieldError({ error }: FieldErrorProps) {
   )
 }
 
+export function FormErrorBanner({ message }: { message?: string | null }) {
+  if (!message) return null
+  return (
+    <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+      {message}
+    </p>
+  )
+}
+
+export function RequiredFieldsHint() {
+  return (
+    <p className="text-sm text-slate-500">
+      Required fields are marked with <RequiredMark />
+    </p>
+  )
+}
+
 type TextFieldProps = {
   id: string
   label: string
