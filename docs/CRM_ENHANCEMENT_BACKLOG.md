@@ -33,7 +33,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | **P2** | B6 | Subscription → Admin-only | **M** | 1.5–2.5 days | Product decision: org vs per-advisor billing |
 | **P3** | B1 | Global + user + admin advisor dashboards | **L** | 3–5 days | B7 for accurate assistant/advisor views |
 | **P3** | B8 | Zoom + Google Meet for meetings | **L–XL** | 4–8 days | B3 (edit meetings) helpful first; OAuth apps |
-| **P3** | B9 | Email: user invite + email prospects | **L–XL** | 4–7 days | Mail provider + (optional) deliverability setup |
+| **P3** | B9 | Email: user invite + email prospects | **L–XL** | ✅ shipped | Reuses password-reset invite link + app SMTP (`MAIL_FROM`) |
 | **P3** | U1 | UX: empty / loading / feedback polish | **S–M** | 1–2 days | — |
 | **P3** | U2 | UX: forms & filters clarity | **S–M** | 1–2 days | Pairs with B2–B4 |
 | **P3** | U3 | UX: Visily visual alignment pass | **M–L** | 2–4 days | Design reference export |
@@ -200,26 +200,16 @@ Build **permission foundations** before dashboards that depend on “whose data.
 
 ---
 
-### B9 — Email: account invites + email prospects · `bl-9` · **L–XL · 4–7 days** · P3
+### B9 — Email: account invites + email prospects · `bl-9` · **L–XL · 4–7 days** · P3 · ✅ shipped
 
 **Want**
 1. **User invite on create** — when Admin creates a user, send an email to set up / activate the account (password reset or invite token link), instead of only handing them a shared demo password  
 2. **Email prospects** — send email to a lead/prospect from LeadFlow (at least from lead detail; optionally a simple compose UI)
 
-**Today:** no Action Mailer product flows for invites or outbound CRM email
-
-**Work (typical)**
-1. Choose provider (e.g. Resend, Postmark, SendGrid, or SMTP) + Rails Action Mailer / Solid Queue delivery  
-2. Invite token (or `has_secure_password` reset flow) + mailer + landing page to set password  
-3. Hook `Admin::UsersController#create` to enqueue invite email  
-4. “Email prospect” from lead detail: subject/body, store sent copy (note or `emails` table), policy checks  
-5. Basic unsubscribe / from-address rules if required for deliverability
-
-**Decide first**
-- Invite = magic link vs temporary password email  
-- Prospect email = send-as LeadFlow address vs send via advisor’s Gmail (much larger scope)
-
-**Risks:** Spam/deliverability; storing message history; Gmail/Google send-as is a separate integration from “CRM sends via API.”
+**Shipped (v1)**
+- Invite: optional “Send invite email” on admin user create; random password if blank; reuses password-reset token URL; Resend invite on edit
+- Prospect email: compose modal on lead show; sends via app `MAIL_FROM` + SMTP; logs sent copy as a Note; same visibility as notes (`LeadPolicy#email?`)
+- Not in v1: Gmail OAuth send-as, dedicated `emails` table, unsubscribe flows
 
 ---
 

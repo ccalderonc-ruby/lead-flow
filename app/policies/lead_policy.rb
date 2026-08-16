@@ -27,6 +27,13 @@ class LeadPolicy < ApplicationPolicy
     (admin? || advisor?) && user.subscribed?
   end
 
+  def email?
+    return true if admin?
+    return true if assistant? && lead_visible_to_assistant?
+
+    advisor? && assigned_lead?
+  end
+
   class Scope < Scope
     def resolve
       return scope.none unless user

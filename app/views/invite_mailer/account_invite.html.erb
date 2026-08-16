@@ -1,0 +1,9 @@
+<p>Hi <%= @user.name.split(/\s+/).first %>,</p>
+
+<p>You've been invited to LeadFlow. Use the link below to set your password and sign in:</p>
+
+<p><a href="<%= @invite_url %>"><%= @invite_url %></a></p>
+
+<p>This link expires in <%= @expires_in_hours %> hours. If you weren't expecting this invite, you can ignore this email.</p>
+
+<p>— LeadFlow</p>

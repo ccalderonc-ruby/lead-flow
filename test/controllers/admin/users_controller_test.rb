@@ -43,6 +43,44 @@ class Admin::UsersControllerTest < ActionDispatch::IntegrationTest
     assert user.authenticate("password1")
   end
 
+  test "admin can create user with invite email and no password" do
+    sign_in_as @admin
+    ActionMailer::Base.deliveries.clear
+
+    assert_difference [ "User.count", "ActionMailer::Base.deliveries.size" ], 1 do
+      post admin_users_path, params: {
+        name: "Invited Advisor",
+        email: "invited.advisor@example.com",
+        role_id: roles(:advisor).id,
+        team_id: teams(:enterprise).id,
+        country_id: countries(:us).id,
+        status: "active",
+        send_invite: true
+      }
+    end
+
+    assert_redirected_to admin_users_path
+    follow_redirect!
+    assert_match(/Invite email sent/, flash[:notice])
+
+    user = User.find_by!(email: "invited.advisor@example.com")
+    assert_not_nil user.password_reset_token_digest
+    assert_equal "You're invited to LeadFlow", ActionMailer::Base.deliveries.last.subject
+  end
+
+  test "admin can resend invite email" do
+    sign_in_as @admin
+    ActionMailer::Base.deliveries.clear
+
+    assert_difference "ActionMailer::Base.deliveries.size", 1 do
+      post resend_invite_admin_user_path(@advisor)
+    end
+
+    assert_redirected_to edit_admin_user_path(@advisor)
+    follow_redirect!
+    assert_match(/Invite email sent/, flash[:notice])
+  end
+
   test "create rejects short password" do
     sign_in_as @admin
 

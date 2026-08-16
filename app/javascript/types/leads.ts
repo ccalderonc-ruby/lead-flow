@@ -114,6 +114,7 @@ export type LeadsShowProps = {
   can_create_meeting: boolean
   meeting_form: MeetingFormProps
   can_create_note: boolean
+  can_email: boolean
   note_form: NoteFormProps
   can_create_opportunity: boolean
   opportunity_form: OpportunityFormProps

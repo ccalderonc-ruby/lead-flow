@@ -2,7 +2,7 @@
 
 module Admin
   class UsersController < InertiaController
-    before_action :set_user, only: %i[edit update]
+    before_action :set_user, only: %i[edit update resend_invite]
 
     def index
       authorize User
@@ -35,11 +35,27 @@ module Admin
         return
       end
 
+      send_invite = ActiveModel::Type::Boolean.new.cast(params[:send_invite])
+
       user = User.new(user_attributes)
-      user.password = password_param if password_param.present?
+
+      if send_invite
+        user.password = password_param.presence || SecureRandom.alphanumeric(24)
+      elsif password_param.present?
+        user.password = password_param
+      else
+        redirect_to new_admin_user_path,
+          inertia: { errors: { password: [ "can't be blank unless you send an invite email" ] } }
+        return
+      end
 
       if user.save
-        flash[:notice] = "User created."
+        if send_invite
+          deliver_invite!(user)
+          flash[:notice] = "User created. Invite email sent to #{user.email}."
+        else
+          flash[:notice] = "User created."
+        end
         redirect_to admin_users_path
       else
         redirect_to new_admin_user_path, inertia: { errors: user.errors.to_hash(true) }
@@ -98,7 +114,26 @@ module Admin
       end
     end
 
+    def resend_invite
+      authorize @user, :update?
+
+      unless @user.active?
+        flash[:alert] = "Cannot invite a disabled user."
+        redirect_to edit_admin_user_path(@user)
+        return
+      end
+
+      deliver_invite!(@user)
+      flash[:notice] = "Invite email sent to #{@user.email}."
+      redirect_to edit_admin_user_path(@user)
+    end
+
     private
+
+    def deliver_invite!(user)
+      raw_token = user.generate_password_reset_token!
+      InviteMailer.account_invite(user, raw_token).deliver_now
+    end
 
     def set_user
       @user = policy_scope(User).includes(:role, :team, :country).find(params[:id])

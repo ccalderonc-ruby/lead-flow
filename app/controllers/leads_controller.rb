@@ -296,6 +296,7 @@ class LeadsController < InertiaController
         }
       end,
       can_create_note: policy(Note.new(lead: lead)).create?,
+      can_email: policy(lead).email?,
       note_form: {
         lead_id: lead.id,
         leads: [ { id: lead.id, name: lead.name } ],
