@@ -62,7 +62,7 @@ You currently have **uncommitted local work** on `dev` (demo enrich + docs). Lan
 
 Only if B2–B4 are merged:
 
-- [ ] **B5** Notes section, **or**
+- [x] **B5** Notes section, **or**
 - [ ] **U1** empty/loading/feedback polish, **or**
 - [ ] **U2** forms/filters clarity  
 - [ ] Re-run demo walkthrough (`docs/DEMO_WALKTHROUGH.md`)
@@ -78,15 +78,15 @@ Work top-down when ready:
 
 | Order | ID | Item |
 |------:|----|------|
-| 1 | B5 | Dedicated Notes section |
-| 2 | B6 | Subscription → Admin (decide org vs per-advisor first) |
-| 3 | B7 | Advisor ↔ Assistant assignment (big; plan a full week) |
-| 4 | B1 | Dashboards (after B7) |
-| 5 | U1 → U2 → U3 | UX polish → Visily pass (need design images) |
-| 6 | U4 → U5 → U6 | a11y → mobile → onboarding |
-| 7 | B8 | Zoom + Google Meet |
-| 8 | B9 | Email invites + email prospects |
-| 9 | K2 → K3 → K1 | Kevin leftovers |
+| 1 | B5 | Dedicated Notes section · ✅ shipped |
+| 2 | B6 | Subscription → Admin (decide org vs per-advisor first) · ✅ shipped earlier |
+| 3 | B7 | Advisor ↔ Assistant assignment · ✅ shipped |
+| 4 | B1 | Dashboards · ✅ shipped |
+| 5 | U1 → U2 → U3 | UX polish → Visily pass (U1/U2 ✅; U3 next if design ready) |
+| 6 | U4 → U5 → U6 | a11y → mobile → onboarding · ✅ shipped |
+| 7 | B8 | Zoom + Google Meet · ✅ stub-first |
+| 8 | B9 | Email invites + email prospects · ✅ shipped |
+| 9 | K2 → K3 → K1 | Kevin leftovers · K2/K3 ✅; K1 only if slow |
 
 ---
 

@@ -29,7 +29,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | **P1** | B2 | Task edit + revert completed | **S–M** | 1–2 days | Soft: clearer owner rules |
 | **P1** | B3 | Meeting edit (same model as tasks) | **S–M** | 1–2 days | B2 pattern (reuse) |
 | **P1** | B4 | Create opportunity (board + lead detail) | **M** | 1.5–2.5 days | — |
-| **P2** | B5 | Dedicated Notes section (synced) | **M** | 2–3 days | — |
+| **P2** | B5 | Dedicated Notes section (synced) | **M** | ✅ shipped | Index + CRUD; lead & opportunity links |
 | **P2** | B6 | Subscription → Admin-only | **M** | 1.5–2.5 days | Product decision: org vs per-advisor billing |
 | **P3** | B1 | Global + user + admin advisor dashboards | **L** | 3–5 days | B7 for accurate assistant/advisor views |
 | **P3** | B8 | Zoom + Google Meet for meetings | **L–XL** | ✅ stub-first | App-level creds; stub generate until VIDEO_CONFERENCE_LIVE |
@@ -60,7 +60,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | Tasks | Create + complete + **edit/reopen** (B2 on `feature/b2-task-edit-and-revert`) |
 | Meetings | Index + create only — **no update route** |
 | Opportunities | Index + update drawer — **no create** |
-| Notes | Create on lead detail only — **no index / edit / delete** |
+| Notes | Dedicated `/notes` index + create/edit/delete; also on lead detail & opportunity drawer (same records) |
 | Subscription | Advisor settings (`/settings/subscription`) + Stripe webhook |
 | Assistant access | Broad assistant lead visibility via policies — **no advisor↔assistant assignment table** |
 | Video meetings | Manual `virtual_link` / location fields only — **no Zoom or Google Meet API** |
@@ -125,15 +125,18 @@ Build **permission foundations** before dashboards that depend on “whose data.
 
 ---
 
-### B5 — Shared Notes section · `bl-5` · **M · 2–3 days** · P2
+### B5 — Shared Notes section · `bl-5` · **M · 2–3 days** · P2 · ✅ shipped
 
 **Want**
 - Dedicated **Notes** nav/section
 - Always linked to a lead
 - Create/edit/delete from Notes **or** lead detail → same records everywhere
 
-**Today:** `notes#create` only on lead  
-**Work:** index + update + destroy, shared serializer, lead timeline reuse, policies
+**Shipped**
+- Nav item + `/notes` index (paginated), create/update/destroy via `NotesController`
+- Notes link to a **lead** or an **opportunity** (opportunity notes still resolve a lead via `linked_lead`)
+- Same records on lead detail timeline and opportunity drawer; shared `NoteFormModal` + policies
+- Email-sent notes (`source: email`) are not editable or deletable
 
 ---
 
@@ -318,7 +321,7 @@ Most comments were handled in `d247ce1` (Task enum, `FormFields`, `lib/format`, 
 
 **Today:** each index page owns its own table markup  
 **Work:** shared table shell + column slots; migrate 1–2 pages first, then the rest  
-**Note:** pairs well with future Notes index (B5)
+**Note:** Notes index already shipped (B5)
 
 ---
 
