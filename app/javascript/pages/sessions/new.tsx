@@ -1,10 +1,13 @@
-import { Head, useForm } from '@inertiajs/react'
+import { Head, Link, useForm, usePage } from '@inertiajs/react'
 
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import FlashBanner from '@/components/ui/FlashBanner'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import type { SharedProps } from '@/types'
 
 export default function Login() {
+  const { flash } = usePage<SharedProps>().props
   const { data, setData, post, processing, errors } = useForm({
     email: '',
     password: '',
@@ -23,10 +26,12 @@ export default function Login() {
       </div>
 
       <Card className="w-full max-w-md p-8" padding="none">
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-semibold text-ink">LeadFlow</h1>
           <p className="mt-2 text-sm text-slate-600">Sign in to your account</p>
         </div>
+
+        <FlashBanner notice={flash?.notice} alert={flash?.alert} />
 
         <form onSubmit={submit} className="space-y-5">
           <div>
@@ -39,7 +44,7 @@ export default function Login() {
               autoComplete="username"
               value={data.email}
               onChange={(event) => setData('email', event.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
+              className="mt-1 block w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
             />
             {errors.email && (
               <p className="mt-2 text-sm text-red-600">{errors.email.join(', ')}</p>
@@ -47,16 +52,24 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-              Password
-            </label>
+            <div className="flex items-center justify-between gap-3">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-brand-ink hover:text-brand"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"
               autoComplete="current-password"
               value={data.password}
               onChange={(event) => setData('password', event.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
+              className="mt-1 block w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
             />
           </div>
 

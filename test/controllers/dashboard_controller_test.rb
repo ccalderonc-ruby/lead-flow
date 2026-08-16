@@ -140,6 +140,27 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "\"lead_stage_id\":#{stage.id}"
   end
+
+  test "advisor with no leads receives onboarding guidance" do
+    advisor = users(:advisor)
+    Lead.where(user_id: advisor.id).find_each(&:destroy!)
+
+    sign_in_as advisor
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, '"onboarding"'
+    assert_includes response.body, '"show":true'
+    assert_includes response.body, "Create your first lead"
+  end
+
+  test "advisor with leads does not receive onboarding panel" do
+    sign_in_as users(:advisor)
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, '"show":false'
+  end
 end
 
 

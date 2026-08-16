@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import MetricCard from '@/components/dashboard/MetricCard'
+import OnboardingPanel, { type OnboardingProps } from '@/components/dashboard/OnboardingPanel'
 import LeadFormModal from '@/components/leads/LeadFormModal'
 import { hasLeadCreateErrors } from '@/components/leads/leadFormErrors'
 import type { LeadFormDefaults, LeadFormOption } from '@/components/leads/LeadForm'
@@ -108,7 +109,9 @@ type DashboardIndexProps = {
     first_name: string
     role_label: string
     date_label: string
+    first_session?: boolean
   }
+  onboarding: OnboardingProps
   actions: {
     can_create_lead: boolean
     can_create_task: boolean
@@ -192,6 +195,7 @@ export default function DashboardIndex({
   advisors,
   selected_advisor_id: selectedAdvisorId,
   greeting,
+  onboarding,
   actions,
   forms,
 }: DashboardIndexProps) {
@@ -304,6 +308,7 @@ export default function DashboardIndex({
   }
 
   const firstName = greeting.first_name || auth.user?.name?.split(/\s+/)[0] || 'there'
+  const welcomeLabel = greeting.first_session || onboarding.show ? 'Welcome' : 'Welcome back'
   const tasksHint =
     metrics.high_priority_tasks_due_today > 0
       ? `${metrics.high_priority_tasks_due_today} high priority`
@@ -324,7 +329,7 @@ export default function DashboardIndex({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-ink">
-              Welcome back, {firstName}
+              {welcomeLabel}, {firstName}
             </h1>
             <p className="mt-1 text-slate-600">
               {greeting.role_label} · {greeting.date_label}
@@ -384,6 +389,8 @@ export default function DashboardIndex({
             </div>
           )}
         </div>
+
+        <OnboardingPanel onboarding={onboarding} onCreateLead={() => openModal('lead')} />
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard

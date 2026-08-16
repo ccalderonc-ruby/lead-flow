@@ -41,6 +41,18 @@ class UserTest < ActiveSupport::TestCase
     assert_not users(:admin).authenticate("wrong")
   end
 
+  test "password reset token is generated and expires" do
+    user = users(:advisor)
+    token = user.generate_password_reset_token!
+
+    assert user.password_reset_token_valid?(token)
+    assert_equal user, User.find_by_valid_password_reset_token(token)
+
+    user.update_column(:password_reset_sent_at, 3.hours.ago)
+    refute user.password_reset_token_valid?(token)
+    assert_nil User.find_by_valid_password_reset_token(token)
+  end
+
   test "status must be active or disabled" do
     user = users(:advisor)
     user.status = "paused"

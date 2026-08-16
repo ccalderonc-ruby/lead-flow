@@ -41,9 +41,12 @@ module Authentication
   end
 
   def start_new_session_for(user)
+    first_session = user.last_login_at.nil?
     reset_session
     session[:user_id] = user.id
+    session[:first_session] = true if first_session
     user.update_column(:last_login_at, Time.current)
+    first_session
   end
 
   def terminate_session

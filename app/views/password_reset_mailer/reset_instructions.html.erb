@@ -1,0 +1,9 @@
+<p>Hi <%= @user.name.split(/\s+/).first %>,</p>
+
+<p>We received a request to reset your LeadFlow password. Use the link below to choose a new password:</p>
+
+<p><a href="<%= @reset_url %>"><%= @reset_url %></a></p>
+
+<p>This link expires in <%= @expires_in_hours %> hours. If you did not request a reset, you can ignore this email.</p>
+
+<p>— LeadFlow</p>
