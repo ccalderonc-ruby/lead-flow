@@ -344,8 +344,8 @@ export default function DashboardIndex({
                   onClick={() => setView('organization')}
                   className={
                     view === 'organization'
-                      ? 'rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white'
-                      : 'rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50'
+                      ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11'
+                      : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11'
                   }
                 >
                   Organization
@@ -357,8 +357,8 @@ export default function DashboardIndex({
                   disabled={advisors.length === 0}
                   className={
                     view === 'advisor'
-                      ? 'rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50'
-                      : 'rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+                      ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11 disabled:cursor-not-allowed disabled:opacity-50'
+                      : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11 disabled:cursor-not-allowed disabled:opacity-50'
                   }
                 >
                   Advisor
@@ -482,7 +482,7 @@ export default function DashboardIndex({
                             href={item.virtual_link}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
+                            className="inline-flex min-h-11 items-center rounded-lg bg-brand px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-hover"
                           >
                             Join meeting
                           </a>
@@ -491,7 +491,7 @@ export default function DashboardIndex({
                           <button
                             type="button"
                             onClick={() => completeTask(item.id)}
-                            className="inline-flex items-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                           >
                             Mark complete
                           </button>
@@ -499,7 +499,7 @@ export default function DashboardIndex({
                         <button
                           type="button"
                           onClick={() => openActivityDetails(item)}
-                          className="inline-flex items-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                         >
                           Details
                         </button>

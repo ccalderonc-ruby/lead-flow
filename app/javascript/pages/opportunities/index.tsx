@@ -138,7 +138,7 @@ export default function OpportunitiesIndex({
           <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
               <div
-                className={`inline-flex items-center gap-2 rounded-full border bg-panel px-3 py-1.5 text-sm shadow-sm ${
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full border bg-panel px-3 py-2.5 text-sm shadow-sm ${
                   meta.user_id != null
                     ? 'border-brand-muted text-slate-800'
                     : 'border-slate-200 text-slate-700'

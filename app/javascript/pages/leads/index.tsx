@@ -246,7 +246,7 @@ export default function LeadsIndex({
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-sm font-medium text-brand-ink hover:text-brand"
+                className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-brand-ink hover:text-brand"
               >
                 Clear all
               </button>
@@ -311,7 +311,7 @@ export default function LeadsIndex({
                       {lead.can_update ? (
                         <Link
                           href={`/leads/${lead.id}/edit`}
-                          className="text-sm font-medium text-brand-ink hover:text-brand"
+                          className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-brand-ink hover:text-brand"
                         >
                           Edit
                         </Link>
@@ -337,7 +337,7 @@ export default function LeadsIndex({
               type="button"
               disabled={meta.page <= 1}
               onClick={() => goToPage(meta.page - 1)}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Previous
             </button>
@@ -345,7 +345,7 @@ export default function LeadsIndex({
               type="button"
               disabled={meta.page >= meta.total_pages}
               onClick={() => goToPage(meta.page + 1)}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
             </button>

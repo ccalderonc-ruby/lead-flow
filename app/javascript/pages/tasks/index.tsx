@@ -201,8 +201,8 @@ export default function TasksIndex({
                     onClick={() => setFilter(item.value)}
                     className={
                       active
-                        ? 'rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white'
-                        : 'rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50'
+                        ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11'
+                        : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11'
                     }
                   >
                     {item.label}
@@ -254,7 +254,7 @@ export default function TasksIndex({
                       {task.lead_id ? (
                         <Link
                           href={`/leads/${task.lead_id}`}
-                          className="font-medium text-brand-ink hover:text-brand"
+                          className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
                         >
                           {task.lead || '—'}
                         </Link>
@@ -286,7 +286,7 @@ export default function TasksIndex({
                           <button
                             type="button"
                             onClick={() => openEditModal(task)}
-                            className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                            className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
                           >
                             Edit
                           </button>
@@ -296,7 +296,7 @@ export default function TasksIndex({
                             type="button"
                             disabled={revertingId != null}
                             onClick={() => revertTask(task)}
-                            className="text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {revertingId === task.id ? 'Reopening…' : 'Reopen'}
                           </button>
@@ -324,7 +324,7 @@ export default function TasksIndex({
               type="button"
               disabled={meta.page <= 1}
               onClick={() => goToPage(meta.page - 1)}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Previous
             </button>
@@ -332,7 +332,7 @@ export default function TasksIndex({
               type="button"
               disabled={meta.page >= meta.total_pages}
               onClick={() => goToPage(meta.page + 1)}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
             </button>

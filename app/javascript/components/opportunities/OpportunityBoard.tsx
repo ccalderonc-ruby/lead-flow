@@ -146,16 +146,33 @@ function DraggableOpportunityCard({
       style={style}
       className={`shrink-0 ${isDragging ? 'opacity-40' : ''}`}
     >
-      <button
-        type="button"
-        onClick={() => onOpen(opportunity)}
-        className={`w-full text-left transition-colors hover:border-brand-muted hover:bg-brand-subtle/40 ${
-          canDrag ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
-        }`}
-        {...(canDrag ? { ...listeners, ...attributes } : {})}
-      >
-        <OpportunityCardView opportunity={opportunity} />
-      </button>
+      <div className="flex items-stretch gap-1">
+        {canDrag ? (
+          <button
+            type="button"
+            className="inline-flex min-h-11 min-w-11 shrink-0 touch-none cursor-grab items-center justify-center rounded-lg border border-slate-200 bg-panel text-slate-500 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel active:cursor-grabbing"
+            aria-label={`Drag ${opportunity.title || 'opportunity'}`}
+            {...listeners}
+            {...attributes}
+          >
+            <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+              <circle cx="5" cy="4" r="1.25" />
+              <circle cx="11" cy="4" r="1.25" />
+              <circle cx="5" cy="8" r="1.25" />
+              <circle cx="11" cy="8" r="1.25" />
+              <circle cx="5" cy="12" r="1.25" />
+              <circle cx="11" cy="12" r="1.25" />
+            </svg>
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => onOpen(opportunity)}
+          className="min-h-11 min-w-0 flex-1 text-left transition-colors hover:border-brand-muted hover:bg-brand-subtle/40"
+        >
+          <OpportunityCardView opportunity={opportunity} />
+        </button>
+      </div>
     </li>
   )
 }
@@ -177,7 +194,7 @@ function StageColumn({
 
   return (
     <section
-      className={`flex min-h-0 min-w-0 flex-col rounded-xl border bg-slate-50 ${
+      className={`flex min-h-0 w-[min(18rem,85vw)] shrink-0 flex-col rounded-xl border bg-slate-50 md:w-auto md:min-w-0 ${
         isOver ? 'border-brand bg-brand-subtle/40' : 'border-slate-200'
       }`}
       aria-label={`${stage.name} stage`}
@@ -215,7 +232,7 @@ export default function OpportunityBoard({ stages, returnTo, onOpen }: Opportuni
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
+      activationConstraint: { delay: 160, tolerance: 6 },
     }),
   )
 
@@ -278,7 +295,7 @@ export default function OpportunityBoard({ stages, returnTo, onOpen }: Opportuni
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="mt-6 grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-6 flex min-h-0 min-w-0 flex-1 gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:overflow-x-visible lg:grid-cols-3 xl:grid-cols-5">
         {board.map((stage) => (
           <StageColumn key={stage.id} stage={stage}>
             {stage.opportunities.map((opportunity) => (
