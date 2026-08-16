@@ -75,7 +75,7 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
 }
 
 const inputClassName =
-  'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200'
+  'mt-1 block w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm text-slate-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted'
 
 const inputErrorClassName =
   'mt-1 block w-full rounded-lg border border-red-300 px-3 py-2 text-sm text-slate-900 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200'
@@ -106,7 +106,7 @@ export default function LeadForm({
       className={
         embedded
           ? 'space-y-5'
-          : 'mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6'
+          : 'mt-8 space-y-5 rounded-xl border border-slate-200 bg-panel p-6'
       }
     >
       {fieldError(errors, 'base') && (
@@ -204,7 +204,7 @@ export default function LeadForm({
         <label className="mt-2 flex items-start gap-2 text-sm text-slate-600">
           <input
             type="checkbox"
-            className="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            className="mt-0.5 rounded border-slate-300 text-brand-ink focus:ring-brand"
             checked={data.update_existing_company_country}
             onChange={(event) => setData('update_existing_company_country', event.target.checked)}
           />
@@ -328,7 +328,7 @@ export default function LeadForm({
         <button
           type="submit"
           disabled={processing}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+          className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50"
         >
           {processing ? processingLabel : submitLabel}
         </button>

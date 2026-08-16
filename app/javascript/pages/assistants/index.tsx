@@ -97,7 +97,7 @@ export default function AssistantsIndex({
         {canManage && availableAssistants.length > 0 && (
           <form
             onSubmit={assignAssistant}
-            className="mt-8 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-end"
+            className="mt-8 flex flex-col gap-3 rounded-xl border border-slate-200 bg-panel p-4 sm:flex-row sm:items-end"
           >
             <div className="min-w-0 flex-1">
               <SelectField
@@ -116,7 +116,7 @@ export default function AssistantsIndex({
             <button
               type="submit"
               disabled={assigning || !assistantId}
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {assigning ? 'Assigning…' : 'Assign'}
             </button>
@@ -126,7 +126,7 @@ export default function AssistantsIndex({
         {assignments.length === 0 ? (
           <p className="mt-8 text-slate-600">No assistants assigned yet.</p>
         ) : (
-          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
             <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
               <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>

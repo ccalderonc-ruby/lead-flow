@@ -133,14 +133,14 @@ export default function MeetingsIndex({
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
             >
               Schedule meeting
             </button>
           )}
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <tr>
@@ -177,7 +177,7 @@ export default function MeetingsIndex({
                       {meeting.lead_id ? (
                         <Link
                           href={`/leads/${meeting.lead_id}`}
-                          className="font-medium text-indigo-600 hover:text-indigo-500"
+                          className="font-medium text-brand-ink hover:text-brand"
                         >
                           {meeting.lead || '—'}
                         </Link>

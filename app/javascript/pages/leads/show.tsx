@@ -172,7 +172,7 @@ function Section({
   children: ReactNode
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
+    <section className="rounded-xl border border-slate-200 bg-panel">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
@@ -406,13 +406,13 @@ export default function LeadsShow({
             <p className="mt-1 text-slate-600">Lead detail and related activity.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/leads" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+            <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
               Back to leads
             </Link>
             {lead.can_update && (
               <Link
                 href={`/leads/${lead.id}/edit`}
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
               >
                 Edit
               </Link>
@@ -420,7 +420,7 @@ export default function LeadsShow({
           </div>
         </div>
 
-        <dl className="mt-8 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-8 grid gap-4 rounded-xl border border-slate-200 bg-panel p-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Email" value={lead.email || '—'} />
           <Field label="Phone" value={lead.phone || '—'} />
           <Field label="Company" value={lead.company || '—'} />
@@ -441,7 +441,7 @@ export default function LeadsShow({
                 <button
                   type="button"
                   onClick={openTaskModal}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-medium text-brand-ink hover:text-brand"
                 >
                   New task
                 </button>
@@ -497,7 +497,7 @@ export default function LeadsShow({
                 <button
                   type="button"
                   onClick={openMeetingModal}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-medium text-brand-ink hover:text-brand"
                 >
                   Schedule meeting
                 </button>
@@ -535,7 +535,7 @@ export default function LeadsShow({
                 <button
                   type="button"
                   onClick={openNoteModal}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-medium text-brand-ink hover:text-brand"
                 >
                   Add note
                 </button>
@@ -593,7 +593,7 @@ export default function LeadsShow({
                 <button
                   type="button"
                   onClick={openOpportunityModal}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-medium text-brand-ink hover:text-brand"
                 >
                   New opportunity
                 </button>

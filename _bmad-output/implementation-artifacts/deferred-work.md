@@ -44,3 +44,13 @@
 
 - Strengthen flash asserts on every CRM denial test (e.g. assistant cannot create/update lead) — AC2 already covered by admin_access + advisor create denial.
 - `redirect_back` vs hardcoded `root_path` assert — matches fallback when no Referer in integration tests.
+
+## Deferred from: spec-u3-visily-visual-alignment.md (2026-08-16)
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-visily-visual-alignment.md`
+  summary: Migrate remaining hand-rolled primary CTAs and card shells to Button/Card primitives
+  evidence: Review noted most pages still paste `bg-brand` class strings; only login, leads header, and MetricCard adopted the new components in v1.
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-u3-visily-visual-alignment.md`
+  summary: Apply `text-ink` / PageHeader consistently across all CRM page titles
+  evidence: Dashboard greeting and leads PageHeader use ink tokens; other list/admin headings still use `text-slate-900`.

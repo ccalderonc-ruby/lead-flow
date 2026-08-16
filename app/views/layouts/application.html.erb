@@ -18,6 +18,25 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <%# Apply stored/system color scheme before paint to avoid a day→night flash %>
+    <script>
+      (function () {
+        try {
+          var key = 'leadflow-color-scheme';
+          var stored = localStorage.getItem(key);
+          var scheme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          if (scheme === 'dark') document.documentElement.classList.add('dark');
+          document.documentElement.dataset.colorScheme = scheme;
+          document.documentElement.style.colorScheme = scheme;
+        } catch (e) {}
+      })();
+    </script>
+
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
@@ -31,7 +50,7 @@
       If using a TypeScript entrypoint file:
         vite_typescript_tag 'application'
 
-      If using a .jsx or .tsx entrypoint, add the extension:
+      If using a .jsx or .tsx entrypoint, use the extension:
         vite_javascript_tag 'application.jsx'
 
       Visit the guide for more information: https://vite-ruby.netlify.app/guide/rails

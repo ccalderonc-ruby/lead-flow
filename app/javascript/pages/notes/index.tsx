@@ -158,14 +158,14 @@ export default function NotesIndex({
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
             >
               New note
             </button>
           )}
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <tr>
@@ -204,7 +204,7 @@ export default function NotesIndex({
                           {note.opportunity_id ? (
                             <Link
                               href={`/opportunities?opportunity_id=${note.opportunity_id}`}
-                              className="mt-0.5 inline-block font-medium text-indigo-600 hover:text-indigo-500"
+                              className="mt-0.5 inline-block font-medium text-brand-ink hover:text-brand"
                             >
                               {note.opportunity || '—'}
                             </Link>
@@ -221,7 +221,7 @@ export default function NotesIndex({
                           </div>
                           <Link
                             href={`/leads/${note.lead_id}`}
-                            className="mt-0.5 inline-block font-medium text-indigo-600 hover:text-indigo-500"
+                            className="mt-0.5 inline-block font-medium text-brand-ink hover:text-brand"
                           >
                             {note.lead || '—'}
                           </Link>

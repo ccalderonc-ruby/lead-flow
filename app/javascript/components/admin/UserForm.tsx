@@ -56,7 +56,7 @@ export default function UserForm({
   const { data, setData, processing, errors } = form
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6">
+    <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-panel p-6">
       {fieldError(errors, 'base') && (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {fieldError(errors, 'base')}
@@ -170,7 +170,7 @@ export default function UserForm({
       <button
         type="submit"
         disabled={processing}
-        className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {processing ? processingLabel : submitLabel}
       </button>

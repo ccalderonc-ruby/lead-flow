@@ -323,7 +323,7 @@ export default function DashboardIndex({
       <div className="space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+            <h1 className="text-3xl font-semibold tracking-tight text-ink">
               Welcome back, {firstName}
             </h1>
             <p className="mt-1 text-slate-600">
@@ -334,7 +334,7 @@ export default function DashboardIndex({
           {canSwitchView && (
             <div className="flex flex-col gap-3 sm:items-end">
               <div
-                className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1"
+                className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-panel p-1"
                 role="group"
                 aria-label="Dashboard view"
               >
@@ -344,7 +344,7 @@ export default function DashboardIndex({
                   onClick={() => setView('organization')}
                   className={
                     view === 'organization'
-                      ? 'rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white'
+                      ? 'rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white'
                       : 'rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50'
                   }
                 >
@@ -357,7 +357,7 @@ export default function DashboardIndex({
                   disabled={advisors.length === 0}
                   className={
                     view === 'advisor'
-                      ? 'rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50'
+                      ? 'rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50'
                       : 'rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
                   }
                 >
@@ -390,7 +390,7 @@ export default function DashboardIndex({
             label="Open leads"
             value={String(metrics.open_leads)}
             hint="Excludes closed stage"
-            accentClassName="bg-indigo-500"
+            accentClassName="bg-brand"
           />
           <MetricCard
             label="Active opportunities"
@@ -414,7 +414,7 @@ export default function DashboardIndex({
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="space-y-6">
-            <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-xl border border-slate-200 bg-panel shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Upcoming activities</h2>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -435,13 +435,13 @@ export default function DashboardIndex({
                   <div className="flex items-center gap-3 pb-2">
                     <Link
                       href="/tasks"
-                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                      className="text-sm font-medium text-brand-ink hover:text-brand"
                     >
                       View tasks
                     </Link>
                     <Link
                       href="/meetings"
-                      className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                      className="text-sm font-medium text-brand-ink hover:text-brand"
                     >
                       View meetings
                     </Link>
@@ -463,7 +463,7 @@ export default function DashboardIndex({
                         <span
                           className={
                             item.kind === 'meeting'
-                              ? 'mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-indigo-500'
+                              ? 'mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-brand'
                               : 'mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500'
                           }
                           aria-hidden
@@ -482,7 +482,7 @@ export default function DashboardIndex({
                             href={item.virtual_link}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
+                            className="inline-flex items-center rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover"
                           >
                             Join meeting
                           </a>
@@ -510,7 +510,7 @@ export default function DashboardIndex({
               )}
             </section>
 
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-panel shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Recent leads</h2>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -531,7 +531,7 @@ export default function DashboardIndex({
                   </div>
                   <Link
                     href="/leads"
-                    className="pb-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                    className="pb-2 text-sm font-medium text-brand-ink hover:text-brand"
                   >
                     View all
                   </Link>
@@ -556,7 +556,7 @@ export default function DashboardIndex({
                       {recentLeads.map((lead) => (
                         <tr key={lead.id} className="text-slate-800">
                           <td className="px-5 py-3 font-medium">
-                            <Link href={`/leads/${lead.id}`} className="hover:text-indigo-600">
+                            <Link href={`/leads/${lead.id}`} className="hover:text-brand">
                               {lead.name}
                             </Link>
                           </td>
@@ -579,14 +579,14 @@ export default function DashboardIndex({
           </div>
 
           <aside className="space-y-6">
-            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900">Quick actions</h2>
               <div className="mt-4 flex flex-col gap-2">
                 {actions.can_create_lead ? (
                   <button
                     type="button"
                     onClick={() => openModal('lead')}
-                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
+                    className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-hover"
                   >
                     + Create new lead
                   </button>
@@ -621,17 +621,17 @@ export default function DashboardIndex({
               </div>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-lg font-semibold text-slate-900">Pipeline snapshot</h2>
-                <p className="text-sm font-semibold text-indigo-600">
+                <p className="text-sm font-semibold text-brand-ink">
                   {compactCurrency(metrics.pipeline_value)}
                 </p>
               </div>
               <ul className="mt-5 space-y-4">
                 {pipelineStages.map((stage, index) => {
                   const width = Math.max((stage.value / maxPipelineValue) * 100, stage.count > 0 ? 8 : 0)
-                  const barColors = ['bg-indigo-600', 'bg-amber-500', 'bg-teal-500', 'bg-violet-400']
+                  const barColors = ['bg-brand', 'bg-amber-500', 'bg-teal-500', 'bg-violet-400']
                   return (
                     <li key={stage.id}>
                       <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
@@ -653,7 +653,7 @@ export default function DashboardIndex({
               </ul>
               <Link
                 href="/opportunities"
-                className="mt-5 inline-flex text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                className="mt-5 inline-flex text-sm font-medium text-brand-ink hover:text-brand"
               >
                 Open board
               </Link>

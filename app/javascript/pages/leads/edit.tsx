@@ -82,7 +82,7 @@ export default function LeadsEdit(props: LeadsEditProps) {
             <h1 className="text-2xl font-semibold text-slate-900">Edit lead</h1>
             <p className="mt-1 text-slate-600">Update prospect details and assignment.</p>
           </div>
-          <Link href="/leads" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+          <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
             Back to leads
           </Link>
         </div>

@@ -51,7 +51,7 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
             <h1 className="text-2xl font-semibold text-slate-900">New lead</h1>
             <p className="mt-1 text-slate-600">Add a prospect to the pipeline.</p>
           </div>
-          <Link href="/leads" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+          <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
             Back to leads
           </Link>
         </div>

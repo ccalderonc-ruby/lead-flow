@@ -114,7 +114,7 @@ export default function OpportunityFormModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="opportunity-form-title"
-        className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-lg"
+        className="w-full max-w-lg rounded-xl border border-slate-200 bg-panel p-6 shadow-lg"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -237,7 +237,7 @@ export default function OpportunityFormModal({
             <button
               type="submit"
               disabled={form.processing}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
             >
               {form.processing ? 'Creating…' : 'Create opportunity'}
             </button>

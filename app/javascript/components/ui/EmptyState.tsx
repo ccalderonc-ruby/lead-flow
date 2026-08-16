@@ -17,8 +17,8 @@ type EmptyStateProps = {
 
 function ActionButton({ action, primary }: { action: EmptyStateAction; primary?: boolean }) {
   const className = primary
-    ? 'inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500'
-    : 'inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50'
+    ? 'inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover'
+    : 'inline-flex items-center justify-center rounded-lg border border-slate-300 bg-panel px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50'
 
   if (action.href) {
     return (
@@ -53,7 +53,7 @@ export default function EmptyState({
           />
         </svg>
       </div>
-      <h3 className="mt-4 text-base font-semibold text-slate-900">{title}</h3>
+      <h3 className="mt-4 text-base font-semibold text-ink">{title}</h3>
       {description ? <p className="mt-1 max-w-sm text-sm text-slate-500">{description}</p> : null}
       {children}
       {(action || secondaryAction) && (
