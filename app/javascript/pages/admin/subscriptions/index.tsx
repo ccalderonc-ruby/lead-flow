@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import EmptyState from '@/components/ui/EmptyState'
 import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
 import {
   DataTable,
@@ -250,7 +251,11 @@ export default function AdminSubscriptionsIndex({
             <DataTableBody>
               {members.length === 0 ? (
                 <DataTableEmpty colSpan={4}>
-                  <p className="px-6 py-12 text-center text-slate-600">No team members yet.</p>
+                  <EmptyState
+                    title="No team members yet"
+                    description="Users will appear here once accounts exist."
+                    action={{ label: 'Manage users', href: '/admin/users' }}
+                  />
                 </DataTableEmpty>
               ) : (
                 members.map((member) => (

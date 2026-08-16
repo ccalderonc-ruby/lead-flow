@@ -2,6 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import EmptyState from '@/components/ui/EmptyState'
 import OpportunityBoard, {
   type OpportunityCard,
   type PipelineStage,
@@ -124,6 +125,12 @@ export default function OpportunitiesIndex({
   const selectedOwnerName =
     meta.user_id != null ? owners.find((owner) => owner.id === meta.user_id)?.name : null
 
+  const totalOpportunities = stages.reduce(
+    (sum, stage) => sum + stage.opportunities.length,
+    0,
+  )
+  const hasOwnerFilter = meta.user_id != null
+
   return (
     <AuthenticatedPage>
       <Head title="Opportunities" />
@@ -192,7 +199,27 @@ export default function OpportunitiesIndex({
           </div>
         </div>
 
-        <OpportunityBoard stages={stages} returnTo={returnTo} onOpen={openDrawer} />
+        {totalOpportunities === 0 ? (
+          <div className="mt-8 flex min-h-0 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-panel">
+            <EmptyState
+              title={hasOwnerFilter ? 'No opportunities for this owner' : 'No opportunities yet'}
+              description={
+                hasOwnerFilter
+                  ? 'Try another owner filter or create a new opportunity.'
+                  : 'Create a deal from the pipeline or from a lead’s detail page.'
+              }
+              action={
+                hasOwnerFilter
+                  ? { label: 'Clear owner filter', onClick: () => setOwnerFilter('') }
+                  : canCreate
+                    ? { label: 'New opportunity', onClick: openCreateModal }
+                    : undefined
+              }
+            />
+          </div>
+        ) : (
+          <OpportunityBoard stages={stages} returnTo={returnTo} onOpen={openDrawer} />
+        )}
       </div>
 
       <OpportunityDrawer

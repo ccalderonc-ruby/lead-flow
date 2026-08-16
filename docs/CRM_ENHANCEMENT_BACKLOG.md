@@ -34,7 +34,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | **P3** | B1 | Global + user + admin advisor dashboards | **L** | 3–5 days | B7 for accurate assistant/advisor views |
 | **P3** | B8 | Zoom + Google Meet for meetings | **L–XL** | ✅ stub-first | App-level creds; stub generate until VIDEO_CONFERENCE_LIVE |
 | **P3** | B9 | Email: user invite + email prospects | **L–XL** | ✅ shipped | Reuses password-reset invite link + app SMTP (`MAIL_FROM`) |
-| **P3** | U1 | UX: empty / loading / feedback polish | **S–M** | 1–2 days | — |
+| **P3** | U1 | UX: empty / loading / feedback polish | **S–M** | ✅ shipped | EmptyState + VisitProgress + FlashBanner |
 | **P3** | U2 | UX: forms & filters clarity | **S–M** | 1–2 days | Pairs with B2–B4 |
 | **P3** | U3 | UX: Visily visual alignment pass | **M–L** | 2–4 days | Design reference export |
 | **P4** | U4 | UX: accessibility hardening | **M** | 1.5–3 days | New modals must keep `useDialogA11y` |
@@ -213,15 +213,17 @@ Umbrella for presentation and usability work (not new CRM entities).
 Reference: Visily export (project-context); park rules in `docs/BUG_POLISH_TRIAGE.md`.  
 Add screen-specific notes under each item as you decide them.
 
-### U1 — Empty, loading, and feedback polish · `bl-u1` · **S–M · 1–2 days** · P3
+### U1 — Empty, loading, and feedback polish · `bl-u1` · **S–M · 1–2 days** · P3 · ✅ shipped
 
 **Want**
 - Clear empty states on lists (leads, tasks, meetings, opportunities, notes) with a primary CTA
 - Loading / pending UI on slow Inertia visits and form submits (disable + spinner where helpful)
 - Consistent flash / inline error presentation across pages
 
-**Today:** mixed empty copy; processing states uneven  
-**Week fit:** good add-on after B2–B4 if you want the app to feel finished
+**Shipped**
+- Shared `EmptyState`, `FlashBanner`, and `VisitProgress` on CRM lists
+- Opportunities board empty + assistants / admin users / subscriptions empty CTAs
+- Form `processing` labels already cover submit pending states
 
 ---
 

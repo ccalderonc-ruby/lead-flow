@@ -3,6 +3,7 @@ import { FormEvent, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import { SelectField } from '@/components/ui/FormFields'
+import EmptyState from '@/components/ui/EmptyState'
 import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
 import {
   DataTable,
@@ -153,7 +154,16 @@ export default function AssistantsIndex({
           <DataTableBody>
             {assignments.length === 0 ? (
               <DataTableEmpty colSpan={3}>
-                <p className="px-6 py-12 text-center text-slate-600">No assistants assigned yet.</p>
+                <EmptyState
+                  title="No assistants assigned yet"
+                  description={
+                    canManage
+                      ? availableAssistants.length > 0
+                        ? 'Pick an assistant above to give them access to this advisor\'s CRM data.'
+                        : 'There are no available assistants left to assign.'
+                      : 'Assistants assigned to this advisor will appear here.'
+                  }
+                />
               </DataTableEmpty>
             ) : (
               assignments.map((row) => (
