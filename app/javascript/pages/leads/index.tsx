@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import Button from '@/components/ui/Button'
+import ActiveFilters from '@/components/ui/ActiveFilters'
 import EmptyState from '@/components/ui/EmptyState'
 import { SelectField } from '@/components/ui/FormFields'
 import PageHeader from '@/components/ui/PageHeader'
@@ -245,24 +246,7 @@ export default function LeadsIndex({
           </div>
 
           {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm text-slate-600">Active filters:</p>
-              {filtersActiveLabel.map((label) => (
-                <span
-                  key={label}
-                  className="inline-flex rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-medium text-brand-ink"
-                >
-                  {label}
-                </span>
-              ))}
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-brand-ink hover:text-brand"
-              >
-                Clear all
-              </button>
-            </div>
+            <ActiveFilters labels={filtersActiveLabel as string[]} onClear={clearFilters} />
           )}
         </div>
 

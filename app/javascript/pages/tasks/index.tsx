@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import ActiveFilters from '@/components/ui/ActiveFilters'
 import EmptyState from '@/components/ui/EmptyState'
 import PaginationBar from '@/components/ui/PaginationBar'
 import {
@@ -190,34 +191,44 @@ export default function TasksIndex({
                 New task
               </button>
             )}
-            <div
-              className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-panel p-1"
-              role="group"
-              aria-label="Task filters"
-            >
-              {filters.map((item) => {
-                const active = meta.filter === item.value
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => setFilter(item.value)}
-                    className={
-                      active
-                        ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11'
-                        : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11'
-                    }
-                  >
-                    {item.label}
-                  </button>
-                )
-              })}
-            </div>
           </div>
         </div>
 
-        <DataTable className="mt-8">
+        <div className="sticky top-14 z-20 mt-6 space-y-3 rounded-xl border border-slate-200 bg-panel/95 p-4 shadow-sm backdrop-blur lg:top-0">
+          <div
+            className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-panel p-1"
+            role="group"
+            aria-label="Task filters"
+          >
+            {filters.map((item) => {
+              const active = meta.filter === item.value
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setFilter(item.value)}
+                  className={
+                    active
+                      ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11'
+                      : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11'
+                  }
+                >
+                  {item.label}
+                </button>
+              )
+            })}
+          </div>
+          {meta.filter !== 'all' && (
+            <ActiveFilters
+              labels={[`Filter: ${filters.find((item) => item.value === meta.filter)?.label ?? meta.filter}`]}
+              onClear={() => setFilter('all')}
+              clearLabel="Show all"
+            />
+          )}
+        </div>
+
+        <DataTable className="mt-6">
           <DataTableHead>
             <tr>
               <DataTableHeaderCell>Title</DataTableHeaderCell>

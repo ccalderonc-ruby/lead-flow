@@ -35,7 +35,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | **P3** | B8 | Zoom + Google Meet for meetings | **L–XL** | ✅ stub-first | App-level creds; stub generate until VIDEO_CONFERENCE_LIVE |
 | **P3** | B9 | Email: user invite + email prospects | **L–XL** | ✅ shipped | Reuses password-reset invite link + app SMTP (`MAIL_FROM`) |
 | **P3** | U1 | UX: empty / loading / feedback polish | **S–M** | ✅ shipped | EmptyState + VisitProgress + FlashBanner |
-| **P3** | U2 | UX: forms & filters clarity | **S–M** | 1–2 days | Pairs with B2–B4 |
+| **P3** | U2 | UX: forms & filters clarity | **S–M** | ✅ shipped | ActiveFilters + LeadForm FormFields + modal validation |
 | **P3** | U3 | UX: Visily visual alignment pass | **M–L** | 2–4 days | Design reference export |
 | **P4** | U4 | UX: accessibility hardening | **M** | 1.5–3 days | New modals must keep `useDialogA11y` |
 | **P4** | U5 | UX: responsive / mobile pass | **M** | 2–3 days | — |
@@ -227,14 +227,17 @@ Add screen-specific notes under each item as you decide them.
 
 ---
 
-### U2 — Forms & filters UX · `bl-u2` · **S–M · 1–2 days** · P3
+### U2 — Forms & filters UX · `bl-u2` · **S–M · 1–2 days** · P3 · ✅ shipped
 
 **Want**
 - Clearer required-field / validation messaging (Inertia errors)
 - Filter/search UX: obvious active filters, easy reset, sticky filter bar where useful
 - Align modal forms on shared `FormFields` patterns (already started)
 
-**Pairs with:** B2–B4 (edit/create flows), K3 (shared tables)
+**Shipped**
+- Shared `ActiveFilters` on leads, tasks, and opportunities
+- Sticky task filter bar; owner clear chip on opportunities even with results
+- `LeadForm` migrated to FormFields; shared `FormErrorBanner` + `RequiredFieldsHint` on CRM modals
 
 ---
 

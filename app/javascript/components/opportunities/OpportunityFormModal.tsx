@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react'
 import { FormEvent, useRef } from 'react'
 
-import { FieldError, SelectField, TextAreaField, TextField } from '@/components/ui/FormFields'
+import { FieldError, FormErrorBanner, RequiredFieldsHint, RequiredMark, SelectField, TextAreaField, TextField } from '@/components/ui/FormFields'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 import { formatUsdInput, parseUsdInput } from '@/lib/format'
 
@@ -134,11 +134,8 @@ export default function OpportunityFormModal({
         </div>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
-          {fieldError(form.errors, 'base') && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {fieldError(form.errors, 'base')}
-            </p>
-          )}
+          <FormErrorBanner message={fieldError(form.errors, 'base')} />
+          <RequiredFieldsHint />
 
           <TextField
             id="opportunity-title"
@@ -152,7 +149,7 @@ export default function OpportunityFormModal({
           {lockedLeadId != null ? (
             <div>
               <p className="block text-sm font-medium text-slate-700">
-                Lead <span className="text-red-600">*</span>
+                Lead <RequiredMark />
               </p>
               <p className="mt-1 text-sm text-slate-900">
                 {leads.find((lead) => lead.id === lockedLeadId)?.name || 'Selected lead'}

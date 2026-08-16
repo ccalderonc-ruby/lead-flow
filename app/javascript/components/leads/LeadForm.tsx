@@ -1,7 +1,14 @@
 import { Link, usePage } from '@inertiajs/react'
 import { FormEvent } from 'react'
 
-import { FieldError, RequiredMark } from '@/components/ui/FormFields'
+import {
+  FieldError,
+  FormErrorBanner,
+  RequiredFieldsHint,
+  RequiredMark,
+  SelectField,
+  TextField,
+} from '@/components/ui/FormFields'
 import type { SharedProps } from '@/types'
 
 export type LeadFormOption = {
@@ -74,12 +81,6 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
   return Array.isArray(value) ? value.join(', ') : value
 }
 
-const inputClassName =
-  'mt-1 block w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm text-slate-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted'
-
-const inputErrorClassName =
-  'mt-1 block w-full rounded-lg border border-red-300 px-3 py-2 text-sm text-slate-900 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200'
-
 export default function LeadForm({
   form,
   countries,
@@ -109,90 +110,55 @@ export default function LeadForm({
           : 'mt-8 space-y-5 rounded-xl border border-slate-200 bg-panel p-6'
       }
     >
-      {fieldError(errors, 'base') && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-          {fieldError(errors, 'base')}
-        </p>
-      )}
+      <FormErrorBanner message={fieldError(errors, 'base')} />
+      <RequiredFieldsHint />
 
-      <p className="text-sm text-slate-500">
-        Required fields are marked with <RequiredMark />
-      </p>
+      <TextField
+        id="name"
+        label="Name"
+        required
+        value={data.name}
+        onChange={(value) => setData('name', value)}
+        error={fieldError(errors, 'name')}
+      />
 
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-slate-700">
-          Name
-          <RequiredMark />
-        </label>
-        <input
-          id="name"
-          type="text"
-          required
-          value={data.name}
-          onChange={(event) => setData('name', event.target.value)}
-          className={fieldError(errors, 'name') ? inputErrorClassName : inputClassName}
-          aria-invalid={fieldError(errors, 'name') ? true : undefined}
-        />
-        <FieldError error={fieldError(errors, 'name')} />
-      </div>
+      <TextField
+        id="email"
+        label="Email"
+        type="email"
+        required
+        value={data.email}
+        onChange={(value) => setData('email', value)}
+        error={fieldError(errors, 'email')}
+      />
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-slate-700">
-          Email
-          <RequiredMark />
-        </label>
-        <input
-          id="email"
-          type="email"
-          required
-          value={data.email}
-          onChange={(event) => setData('email', event.target.value)}
-          className={inputClassName}
-        />
-        <FieldError error={fieldError(errors, 'email')} />
-      </div>
+      <TextField
+        id="phone"
+        label="Phone"
+        type="tel"
+        value={data.phone}
+        onChange={(value) => setData('phone', value)}
+        error={fieldError(errors, 'phone')}
+        placeholder="Optional"
+      />
+
+      <TextField
+        id="company_name"
+        label="Company"
+        required
+        value={data.company_name}
+        onChange={(value) => setData('company_name', value)}
+        error={fieldError(errors, 'company_name')}
+      />
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-slate-700">
-          Phone <span className="font-normal text-slate-400">(optional)</span>
-        </label>
-        <input
-          id="phone"
-          type="tel"
-          value={data.phone}
-          onChange={(event) => setData('phone', event.target.value)}
-          className={inputClassName}
-        />
-        <FieldError error={fieldError(errors, 'phone')} />
-      </div>
-
-      <div>
-        <label htmlFor="company_name" className="block text-sm font-medium text-slate-700">
-          Company
-          <RequiredMark />
-        </label>
-        <input
-          id="company_name"
-          type="text"
-          required
-          value={data.company_name}
-          onChange={(event) => setData('company_name', event.target.value)}
-          className={inputClassName}
-        />
-        <FieldError error={fieldError(errors, 'company_name')} />
-      </div>
-
-      <div>
-        <label htmlFor="company_country_id" className="block text-sm font-medium text-slate-700">
-          Company country
-          <RequiredMark />
-        </label>
-        <select
+        <SelectField
           id="company_country_id"
+          label="Company country"
           required
           value={data.company_country_id}
-          onChange={(event) => setData('company_country_id', event.target.value)}
-          className={inputClassName}
+          onChange={(value) => setData('company_country_id', value)}
+          error={fieldError(errors, 'company_country_id')}
         >
           <option value="">Select country</option>
           {countries.map((country) => (
@@ -200,10 +166,11 @@ export default function LeadForm({
               {country.name}
             </option>
           ))}
-        </select>
+        </SelectField>
         <label className="mt-2 flex items-start gap-2 text-sm text-slate-600">
           <input
             type="checkbox"
+            id="update_existing_company_country"
             className="mt-0.5 rounded border-slate-300 text-brand-ink focus:ring-brand"
             checked={data.update_existing_company_country}
             onChange={(event) => setData('update_existing_company_country', event.target.checked)}
@@ -213,99 +180,79 @@ export default function LeadForm({
             existing company country).
           </span>
         </label>
-        <FieldError error={fieldError(errors, 'company_country_id')} />
       </div>
 
-      <div>
-        <label htmlFor="country_id" className="block text-sm font-medium text-slate-700">
-          Lead country
-          <RequiredMark />
-        </label>
-        <select
-          id="country_id"
-          required
-          value={data.country_id}
-          onChange={(event) => setData('country_id', event.target.value)}
-          className={inputClassName}
-        >
-          <option value="">Select country</option>
-          {countries.map((country) => (
-            <option key={country.id} value={country.id}>
-              {country.name}
-            </option>
-          ))}
-        </select>
-        <FieldError error={fieldError(errors, 'country')} />
-        <FieldError error={fieldError(errors, 'country_id')} />
-      </div>
+      <SelectField
+        id="country_id"
+        label="Lead country"
+        required
+        value={data.country_id}
+        onChange={(value) => setData('country_id', value)}
+        error={fieldError(errors, 'country') || fieldError(errors, 'country_id')}
+      >
+        <option value="">Select country</option>
+        {countries.map((country) => (
+          <option key={country.id} value={country.id}>
+            {country.name}
+          </option>
+        ))}
+      </SelectField>
 
-      <div>
-        <label htmlFor="stage_id" className="block text-sm font-medium text-slate-700">
-          Stage
-          <RequiredMark />
-        </label>
-        <select
-          id="stage_id"
-          required
-          value={data.stage_id}
-          onChange={(event) => setData('stage_id', event.target.value)}
-          className={inputClassName}
-        >
-          <option value="">Select stage</option>
-          {stages.map((stage) => (
-            <option key={stage.id} value={stage.id}>
-              {stage.name}
-            </option>
-          ))}
-        </select>
-        <FieldError error={fieldError(errors, 'stage')} />
-        <FieldError error={fieldError(errors, 'stage_id')} />
-      </div>
+      <SelectField
+        id="stage_id"
+        label="Stage"
+        required
+        value={data.stage_id}
+        onChange={(value) => setData('stage_id', value)}
+        error={fieldError(errors, 'stage') || fieldError(errors, 'stage_id')}
+      >
+        <option value="">Select stage</option>
+        {stages.map((stage) => (
+          <option key={stage.id} value={stage.id}>
+            {stage.name}
+          </option>
+        ))}
+      </SelectField>
 
-      <div>
-        <label htmlFor="user_id" className="block text-sm font-medium text-slate-700">
-          Assigned user
-          <RequiredMark />
-        </label>
-        {defaults.force_assignee ? (
+      {defaults.force_assignee ? (
+        <div>
+          <p className="block text-sm font-medium text-slate-700">
+            Assigned user <RequiredMark />
+          </p>
           <p className="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
             {assigneeLabel}
           </p>
-        ) : (
-          <select
-            id="user_id"
-            required
-            value={data.user_id}
-            onChange={(event) => setData('user_id', event.target.value)}
-            className={inputClassName}
-          >
-            <option value="">Select user</option>
-            {assignees.map((assignee) => (
-              <option key={assignee.id} value={assignee.id}>
-                {assignee.name}
-              </option>
-            ))}
-          </select>
-        )}
-        <FieldError error={fieldError(errors, 'user')} />
-        <FieldError error={fieldError(errors, 'user_id')} />
-      </div>
+          <FieldError error={fieldError(errors, 'user') || fieldError(errors, 'user_id')} />
+        </div>
+      ) : (
+        <SelectField
+          id="user_id"
+          label="Assigned user"
+          required
+          value={data.user_id}
+          onChange={(value) => setData('user_id', value)}
+          error={fieldError(errors, 'user') || fieldError(errors, 'user_id')}
+        >
+          <option value="">Select user</option>
+          {assignees.map((assignee) => (
+            <option key={assignee.id} value={assignee.id}>
+              {assignee.name}
+            </option>
+          ))}
+        </SelectField>
+      )}
 
-      <div>
-        <label htmlFor="estimated_value" className="block text-sm font-medium text-slate-700">
-          Estimated value <span className="font-normal text-slate-400">(optional)</span>
-        </label>
-        <input
-          id="estimated_value"
-          type="number"
-          min="0"
-          step="1"
-          value={data.estimated_value}
-          onChange={(event) => setData('estimated_value', event.target.value)}
-          className={inputClassName}
-        />
-        <FieldError error={fieldError(errors, 'estimated_value')} />
-      </div>
+      <TextField
+        id="estimated_value"
+        label="Estimated value"
+        type="number"
+        value={data.estimated_value}
+        onChange={(value) => setData('estimated_value', value)}
+        error={fieldError(errors, 'estimated_value')}
+        placeholder="Optional"
+        min={0}
+        step={1}
+      />
 
       <div className="flex justify-end gap-3 pt-2">
         {onCancel ? (

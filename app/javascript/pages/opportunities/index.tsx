@@ -2,6 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import ActiveFilters from '@/components/ui/ActiveFilters'
 import EmptyState from '@/components/ui/EmptyState'
 import OpportunityBoard, {
   type OpportunityCard,
@@ -198,6 +199,16 @@ export default function OpportunitiesIndex({
             )}
           </div>
         </div>
+
+        {hasOwnerFilter && selectedOwnerName ? (
+          <div className="mt-4 shrink-0">
+            <ActiveFilters
+              labels={[`Owner: ${selectedOwnerName}`]}
+              onClear={() => setOwnerFilter('')}
+              clearLabel="Clear owner filter"
+            />
+          </div>
+        ) : null}
 
         {totalOpportunities === 0 ? (
           <div className="mt-8 flex min-h-0 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-panel">

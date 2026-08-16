@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react'
 import { FormEvent, useRef } from 'react'
 
-import { FieldError, SelectField, TextAreaField } from '@/components/ui/FormFields'
+import { FieldError, FormErrorBanner, RequiredFieldsHint, SelectField, TextAreaField } from '@/components/ui/FormFields'
 import { useDialogA11y } from '@/hooks/useDialogA11y'
 
 export type NoteFormOption = {
@@ -185,11 +185,8 @@ export default function NoteFormModal({
         </div>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
-          {fieldError(form.errors, 'base') && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {fieldError(form.errors, 'base')}
-            </p>
-          )}
+          <FormErrorBanner message={fieldError(form.errors, 'base')} />
+          <RequiredFieldsHint />
 
           {showLinkPicker && (
             <SelectField
