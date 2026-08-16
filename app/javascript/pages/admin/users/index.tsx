@@ -82,7 +82,7 @@ export default function AdminUsersIndex({
                       {user.can_update ? (
                         <Link
                           href={`/admin/users/${user.id}/edit`}
-                          className="font-medium text-brand-ink hover:text-brand"
+                          className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
                         >
                           Edit
                         </Link>
@@ -107,7 +107,7 @@ export default function AdminUsersIndex({
                 type="button"
                 disabled={meta.page <= 1}
                 onClick={() => goToPage(meta.page - 1)}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 disabled:opacity-40"
+                className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 disabled:opacity-40"
               >
                 Previous
               </button>
@@ -115,7 +115,7 @@ export default function AdminUsersIndex({
                 type="button"
                 disabled={meta.page >= meta.total_pages}
                 onClick={() => goToPage(meta.page + 1)}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 disabled:opacity-40"
+                className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 disabled:opacity-40"
               >
                 Next
               </button>

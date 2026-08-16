@@ -95,7 +95,7 @@ export default function LeadFormModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="lead-form-title"
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-panel p-6 shadow-xl"
+        className="max-h-[min(90dvh,90vh)] w-full max-w-2xl overflow-y-auto rounded-xl bg-panel p-6 shadow-xl"
       >
         <h2 id="lead-form-title" className="text-lg font-semibold text-slate-900">
           New lead

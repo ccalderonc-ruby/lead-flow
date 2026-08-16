@@ -194,7 +194,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <button
                   type="button"
                   onClick={closeMobileNav}
-                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-indigo-100 hover:bg-sidebar-hover hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+                  className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-indigo-100 hover:bg-sidebar-hover hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
                 >
                   Close
                 </button>
@@ -208,7 +208,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-panel px-4 py-3 lg:px-8">
             <button
               type="button"
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel lg:hidden"
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel lg:hidden"
               aria-expanded={mobileNavOpen}
               aria-haspopup="dialog"
               aria-controls={mobileNavOpen ? 'mobile-navigation' : undefined}

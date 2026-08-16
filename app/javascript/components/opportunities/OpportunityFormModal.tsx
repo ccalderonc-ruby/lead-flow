@@ -114,7 +114,7 @@ export default function OpportunityFormModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="opportunity-form-title"
-        className="w-full max-w-lg rounded-xl border border-slate-200 bg-panel p-6 shadow-lg"
+        className="max-h-[min(90dvh,90vh)] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-200 bg-panel p-6 shadow-lg"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -127,7 +127,7 @@ export default function OpportunityFormModal({
             type="button"
             onClick={handleClose}
             disabled={form.processing}
-            className="text-sm font-medium text-slate-500 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-slate-500 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Close
           </button>

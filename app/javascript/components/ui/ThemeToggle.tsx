@@ -47,7 +47,7 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
       type="button"
       onClick={toggle}
       className={[
-        'inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-panel px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel',
+        'inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 bg-panel px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-panel',
         className,
       ]
         .filter(Boolean)

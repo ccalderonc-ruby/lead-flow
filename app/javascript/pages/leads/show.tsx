@@ -468,7 +468,7 @@ export default function LeadsShow({
                     <button
                       type="button"
                       onClick={() => openEditTaskModal(task)}
-                      className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                      className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
                     >
                       Edit
                     </button>
@@ -478,7 +478,7 @@ export default function LeadsShow({
                       type="button"
                       disabled={revertingId != null}
                       onClick={() => revertTask(task)}
-                      className="text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {revertingId === task.id ? 'Reopening…' : 'Reopen'}
                     </button>
@@ -563,7 +563,7 @@ export default function LeadsShow({
                       <button
                         type="button"
                         onClick={() => openEditNoteModal(note)}
-                        className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                        className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
                       >
                         Edit
                       </button>
@@ -573,7 +573,7 @@ export default function LeadsShow({
                         type="button"
                         onClick={() => deleteNote(note)}
                         disabled={deletingNoteId === note.id}
-                        className="text-sm font-medium text-red-600 hover:text-red-500 disabled:opacity-50"
+                        className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-red-600 hover:text-red-500 disabled:opacity-50"
                       >
                         {deletingNoteId === note.id ? 'Deleting…' : 'Delete'}
                       </button>
