@@ -4,6 +4,15 @@ import { useState } from 'react'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import EmptyState from '@/components/ui/EmptyState'
 import PaginationBar from '@/components/ui/PaginationBar'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 import MeetingFormModal, {
   type EditableMeeting,
   type MeetingFormDefaults,
@@ -140,75 +149,75 @@ export default function MeetingsIndex({
           )}
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Lead</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Time</th>
-                <th className="px-4 py-3">Place</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Host</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {meetings.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-0">
-                    <EmptyState
-                      title="No meetings yet"
-                      description="Schedule a meeting to keep client conversations on track."
-                      action={
-                        canCreate
-                          ? { label: 'Schedule meeting', onClick: openCreateModal }
-                          : undefined
-                      }
-                    />
-                  </td>
-                </tr>
-              ) : (
-                meetings.map((meeting) => (
-                  <tr key={meeting.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{meeting.title}</td>
-                    <td className="px-4 py-3 text-slate-700">
-                      {meeting.lead_id ? (
-                        <Link
-                          href={`/leads/${meeting.lead_id}`}
-                          className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
-                        >
-                          {meeting.lead || '—'}
-                        </Link>
-                      ) : (
-                        meeting.lead || '—'
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{formatDate(meeting.scheduled_on)}</td>
-                    <td className="px-4 py-3 text-slate-700">{meeting.start_time || '—'}</td>
-                    <td className="max-w-xs truncate px-4 py-3 text-slate-700">{placeSummary(meeting)}</td>
-                    <td className="px-4 py-3 text-slate-700">{formatMeetingStatus(meeting.status)}</td>
-                    <td className="px-4 py-3 text-slate-700">{meeting.host || '—'}</td>
-                    <td className="px-4 py-3 text-right">
-                      {meeting.can_edit ? (
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(meeting)}
-                          className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
-                        >
-                          Edit
-                        </button>
-                      ) : (
-                        <span className="text-slate-300">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable className="mt-8">
+          <DataTableHead>
+            <tr>
+              <DataTableHeaderCell>Title</DataTableHeaderCell>
+              <DataTableHeaderCell>Lead</DataTableHeaderCell>
+              <DataTableHeaderCell>Date</DataTableHeaderCell>
+              <DataTableHeaderCell>Time</DataTableHeaderCell>
+              <DataTableHeaderCell>Place</DataTableHeaderCell>
+              <DataTableHeaderCell>Status</DataTableHeaderCell>
+              <DataTableHeaderCell>Host</DataTableHeaderCell>
+              <DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+            </tr>
+          </DataTableHead>
+          <DataTableBody>
+            {meetings.length === 0 ? (
+              <DataTableEmpty colSpan={8}>
+                <EmptyState
+                  title="No meetings yet"
+                  description="Schedule a meeting to keep client conversations on track."
+                  action={
+                    canCreate
+                      ? { label: 'Schedule meeting', onClick: openCreateModal }
+                      : undefined
+                  }
+                />
+              </DataTableEmpty>
+            ) : (
+              meetings.map((meeting) => (
+                <DataTableRow key={meeting.id}>
+                  <DataTableCell className="font-medium text-slate-900">{meeting.title}</DataTableCell>
+                  <DataTableCell className="text-slate-700">
+                    {meeting.lead_id ? (
+                      <Link
+                        href={`/leads/${meeting.lead_id}`}
+                        className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
+                      >
+                        {meeting.lead || '—'}
+                      </Link>
+                    ) : (
+                      meeting.lead || '—'
+                    )}
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">{formatDate(meeting.scheduled_on)}</DataTableCell>
+                  <DataTableCell className="text-slate-700">{meeting.start_time || '—'}</DataTableCell>
+                  <DataTableCell className="max-w-xs truncate text-slate-700">
+                    {placeSummary(meeting)}
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">
+                    {formatMeetingStatus(meeting.status)}
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">{meeting.host || '—'}</DataTableCell>
+                  <DataTableCell align="right">
+                    {meeting.can_edit ? (
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(meeting)}
+                        className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                      >
+                        Edit
+                      </button>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </DataTableCell>
+                </DataTableRow>
+              ))
+            )}
+          </DataTableBody>
+        </DataTable>
 
         <PaginationBar meta={meta} path="/meetings" label="meetings" />
       </div>

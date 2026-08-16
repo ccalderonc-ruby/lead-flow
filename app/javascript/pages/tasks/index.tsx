@@ -4,6 +4,15 @@ import { useState } from 'react'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import EmptyState from '@/components/ui/EmptyState'
 import PaginationBar from '@/components/ui/PaginationBar'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 import TaskFormModal, {
   type EditableTask,
   type TaskFormDefaults,
@@ -208,105 +217,99 @@ export default function TasksIndex({
           </div>
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Lead</th>
-                <th className="px-4 py-3">Due date</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Assignee</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {tasks.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-0">
-                    <EmptyState
-                      title={meta.filter !== 'all' ? 'No tasks for this filter' : 'No tasks yet'}
-                      description={
-                        meta.filter !== 'all'
-                          ? 'Try another filter or create a task for your pipeline.'
-                          : 'Create a task to track follow-ups on your leads.'
-                      }
-                      action={
-                        meta.filter !== 'all'
-                          ? { label: 'Show all tasks', onClick: () => setFilter('all') }
-                          : canCreate
-                            ? { label: 'New task', onClick: openCreateModal }
-                            : undefined
-                      }
-                    />
-                  </td>
-                </tr>
-              ) : (
-                tasks.map((task) => (
-                  <tr key={task.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{task.title}</td>
-                    <td className="px-4 py-3 text-slate-700">
-                      {task.lead_id ? (
-                        <Link
-                          href={`/leads/${task.lead_id}`}
-                          className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
-                        >
-                          {task.lead || '—'}
-                        </Link>
-                      ) : (
-                        task.lead || '—'
-                      )}
-                    </td>
-                    <td
-                      className={
-                        taskIsPastDue(task)
-                          ? 'px-4 py-3 font-medium text-red-600'
-                          : 'px-4 py-3 text-slate-700'
-                      }
-                    >
-                      {formatDate(task.due_date)}
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">
-                      <div>{formatTaskStatus(task.status)}</div>
-                      {task.status === 'completed' && task.completed_at ? (
-                        <div className="mt-0.5 text-xs text-slate-500">
-                          Completed {formatDateTime(task.completed_at)}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{task.assignee || '—'}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-3">
-                        {task.can_edit && (
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(task)}
-                            className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
-                          >
-                            Edit
-                          </button>
-                        )}
-                        {task.can_revert ? (
-                          <button
-                            type="button"
-                            disabled={revertingId != null}
-                            onClick={() => revertTask(task)}
-                            className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {revertingId === task.id ? 'Reopening…' : 'Reopen'}
-                          </button>
-                        ) : null}
-                        {!task.can_edit && !task.can_revert ? (
-                          <span className="text-slate-300">—</span>
-                        ) : null}
+        <DataTable className="mt-8">
+          <DataTableHead>
+            <tr>
+              <DataTableHeaderCell>Title</DataTableHeaderCell>
+              <DataTableHeaderCell>Lead</DataTableHeaderCell>
+              <DataTableHeaderCell>Due date</DataTableHeaderCell>
+              <DataTableHeaderCell>Status</DataTableHeaderCell>
+              <DataTableHeaderCell>Assignee</DataTableHeaderCell>
+              <DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+            </tr>
+          </DataTableHead>
+          <DataTableBody>
+            {tasks.length === 0 ? (
+              <DataTableEmpty colSpan={6}>
+                <EmptyState
+                  title={meta.filter !== 'all' ? 'No tasks for this filter' : 'No tasks yet'}
+                  description={
+                    meta.filter !== 'all'
+                      ? 'Try another filter or create a task for your pipeline.'
+                      : 'Create a task to track follow-ups on your leads.'
+                  }
+                  action={
+                    meta.filter !== 'all'
+                      ? { label: 'Show all tasks', onClick: () => setFilter('all') }
+                      : canCreate
+                        ? { label: 'New task', onClick: openCreateModal }
+                        : undefined
+                  }
+                />
+              </DataTableEmpty>
+            ) : (
+              tasks.map((task) => (
+                <DataTableRow key={task.id}>
+                  <DataTableCell className="font-medium text-slate-900">{task.title}</DataTableCell>
+                  <DataTableCell className="text-slate-700">
+                    {task.lead_id ? (
+                      <Link
+                        href={`/leads/${task.lead_id}`}
+                        className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
+                      >
+                        {task.lead || '—'}
+                      </Link>
+                    ) : (
+                      task.lead || '—'
+                    )}
+                  </DataTableCell>
+                  <DataTableCell
+                    className={
+                      taskIsPastDue(task) ? 'font-medium text-red-600' : 'text-slate-700'
+                    }
+                  >
+                    {formatDate(task.due_date)}
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">
+                    <div>{formatTaskStatus(task.status)}</div>
+                    {task.status === 'completed' && task.completed_at ? (
+                      <div className="mt-0.5 text-xs text-slate-500">
+                        Completed {formatDateTime(task.completed_at)}
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    ) : null}
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">{task.assignee || '—'}</DataTableCell>
+                  <DataTableCell align="right">
+                    <div className="flex justify-end gap-3">
+                      {task.can_edit && (
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(task)}
+                          className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {task.can_revert ? (
+                        <button
+                          type="button"
+                          disabled={revertingId != null}
+                          onClick={() => revertTask(task)}
+                          className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-amber-700 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {revertingId === task.id ? 'Reopening…' : 'Reopen'}
+                        </button>
+                      ) : null}
+                      {!task.can_edit && !task.can_revert ? (
+                        <span className="text-slate-300">—</span>
+                      ) : null}
+                    </div>
+                  </DataTableCell>
+                </DataTableRow>
+              ))
+            )}
+          </DataTableBody>
+        </DataTable>
 
         <PaginationBar
           meta={meta}
