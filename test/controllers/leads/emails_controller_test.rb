@@ -50,6 +50,24 @@ class Leads::EmailsControllerTest < ActionDispatch::IntegrationTest
     assert_equal original, note.reload.content
   end
 
+  test "email log notes cannot be deleted" do
+    sign_in_as users(:advisor)
+    lead = leads(:sarah)
+
+    post lead_emails_path(lead), params: {
+      subject: "Locked note",
+      body: "Do not delete"
+    }
+
+    note = Note.order(:id).last
+
+    assert_no_difference "Note.count" do
+      delete note_path(note, return_to: lead_path(lead))
+    end
+
+    assert_redirected_to root_path
+  end
+
   test "advisor cannot email another advisor lead" do
     sign_in_as users(:advisor)
     lead = leads(:admin_owned)
