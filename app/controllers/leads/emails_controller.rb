@@ -33,6 +33,7 @@ module Leads
         Note.create!(
           lead: @lead,
           user: current_user,
+          source: Note::SOURCES[:email],
           content: "Email sent to #{@lead.email}\nSubject: #{subject}\n\n#{body}"
         )
         @lead.update!(

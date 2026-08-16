@@ -35,6 +35,19 @@ class NotePolicyTest < ActiveSupport::TestCase
     assert NotePolicy.new(@assistant, @note).update?
   end
 
+  test "email log notes are not updatable" do
+    note = Note.new(
+      lead: @assigned_lead,
+      user: @advisor,
+      content: "Email sent to someone@example.com\nSubject: Hi\n\nBody",
+      source: Note::SOURCES[:email]
+    )
+
+    refute NotePolicy.new(@advisor, note).update?
+    refute NotePolicy.new(@assistant, note).update?
+    refute NotePolicy.new(users(:admin), note).update?
+  end
+
   test "assistant cannot destroy notes" do
     refute NotePolicy.new(@assistant, @note).destroy?
   end

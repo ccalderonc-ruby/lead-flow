@@ -17,8 +17,11 @@ class NotePolicy < ApplicationPolicy
   end
 
   def update?
+    return false if record.respond_to?(:editable?) && !record.editable?
+
     create?
   end
+
 
   def destroy?
     admin? || (advisor? && lead_assigned_to_user?)

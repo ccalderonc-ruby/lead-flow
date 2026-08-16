@@ -24,8 +24,30 @@ class Leads::EmailsControllerTest < ActionDispatch::IntegrationTest
 
     note = Note.order(:id).last
     assert_equal lead.id, note.lead_id
+    assert_equal Note::SOURCES[:email], note.source
     assert_includes note.content, "Thanks for your time"
     assert_not_nil lead.reload.last_contacted_at
+  end
+
+  test "email log notes cannot be updated" do
+    sign_in_as users(:advisor)
+    lead = leads(:sarah)
+
+    post lead_emails_path(lead), params: {
+      subject: "Locked note",
+      body: "Do not edit"
+    }
+
+    note = Note.order(:id).last
+    original = note.content
+
+    patch note_path(note), params: {
+      content: "Hijacked email log",
+      return_to: lead_path(lead)
+    }
+
+    assert_redirected_to root_path
+    assert_equal original, note.reload.content
   end
 
   test "advisor cannot email another advisor lead" do
