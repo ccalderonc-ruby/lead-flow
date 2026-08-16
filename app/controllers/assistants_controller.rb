@@ -10,15 +10,19 @@ class AssistantsController < InertiaController
       return
     end
 
-    assignments = AdvisorAssistant
+    assignments_scope = AdvisorAssistant
       .includes(:assistant)
       .where(advisor_id: advisor.id)
       .joins(:assistant)
       .merge(User.order(:name, :id))
 
+    total_count = assignments_scope.count
+    pagination = resolve_pagination(total_count)
+    assignments = apply_pagination(assignments_scope, pagination)
+
     available = User.assistants
       .on_team(advisor.team)
-      .where.not(id: assignments.select(:assistant_id))
+      .where.not(id: assignments_scope.select(:assistant_id))
       .where.not(status: "disabled")
       .order(:name, :id)
 
@@ -26,6 +30,7 @@ class AssistantsController < InertiaController
       advisor: { id: advisor.id, name: advisor.name },
       assignments: assignments.map { |row| serialize_assignment(row) },
       available_assistants: available.map { |user| serialize_user(user) },
+      meta: pagination,
       can_manage: can_manage_for?(advisor),
       managed_advisors: managed_advisor_options
     }

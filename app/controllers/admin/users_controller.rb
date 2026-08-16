@@ -2,31 +2,20 @@
 
 module Admin
   class UsersController < InertiaController
-    PER_PAGE = 25
-
     before_action :set_user, only: %i[edit update]
 
     def index
       authorize User
 
-      page = Integer(Array(params[:page]).first, exception: false) || 1
-      page = [ page, 1 ].max
-
       scoped = policy_scope(User).includes(:role, :team, :country).order(:name, :id)
       total_count = scoped.count
-      total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
-      page = page.clamp(1, total_pages)
+      pagination = resolve_pagination(total_count)
 
-      users = scoped.offset((page - 1) * PER_PAGE).limit(PER_PAGE)
+      users = apply_pagination(scoped, pagination)
 
       render inertia: "admin/users/index", props: {
         users: users.map { |user| serialize_user(user) },
-        meta: {
-          page: page,
-          per_page: PER_PAGE,
-          total_count: total_count,
-          total_pages: total_pages
-        },
+        meta: pagination,
         can_create: policy(User).create?
       }
     end

@@ -2,6 +2,7 @@
 
 class InertiaController < ApplicationController
   require_authentication
+  include Paginatable
 
   inertia_share auth: -> {
     if current_user

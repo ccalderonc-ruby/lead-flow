@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class TasksController < InertiaController
-  PER_PAGE = 25
   FILTERS = %w[all mine pending completed overdue].freeze
 
   before_action :set_task, only: :update
@@ -11,43 +10,35 @@ class TasksController < InertiaController
 
     requested_filter = Array(params[:filter]).first.to_s
     if requested_filter.present? && FILTERS.exclude?(requested_filter)
-      redirect_to tasks_path(page: Array(params[:page]).first.presence)
+      redirect_to tasks_path(pagination_redirect_params)
       return
     end
 
     filter = FILTERS.include?(requested_filter) ? requested_filter : "all"
     if filter == "mine" && !show_mine_filter?
-      redirect_to tasks_path(page: Array(params[:page]).first.presence)
+      redirect_to tasks_path(pagination_redirect_params)
       return
     end
 
-    page = Integer(Array(params[:page]).first, exception: false) || 1
-    page = [ page, 1 ].max
-
     scoped = apply_filter(policy_scope(Task), filter)
     total_count = scoped.count
-    total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
-    page = page.clamp(1, total_pages)
+    pagination = resolve_pagination(total_count)
 
-    tasks = scoped
-      .includes(:lead, :user)
-      .order(:due_date, :id)
-      .offset((page - 1) * PER_PAGE)
-      .limit(PER_PAGE)
+    tasks = apply_pagination(
+      scoped.includes(:lead, :user).order(:due_date, :id),
+      pagination
+    )
 
     render inertia: "tasks/index", props: {
       tasks: tasks.map { |task| serialize_task(task) },
       meta: {
         filter: filter,
-        page: page,
-        per_page: PER_PAGE,
-        total_count: total_count,
-        total_pages: total_pages
+        **pagination
       },
       **form_options,
       can_create: can_create_tasks?,
       show_mine_filter: show_mine_filter?,
-      return_to: tasks_return_path(filter, page)
+      return_to: tasks_return_path(filter, pagination[:page], pagination[:per_page])
     }
   end
 
@@ -306,10 +297,9 @@ class TasksController < InertiaController
     end
   end
 
-  def tasks_return_path(filter = "all", page = 1)
-    opts = {}
+  def tasks_return_path(filter = "all", page = 1, per_page = DEFAULT_PER_PAGE)
+    opts = pagination_path_opts(page: page, per_page: per_page)
     opts[:filter] = filter if filter.present? && filter != "all"
-    opts[:page] = page if page.present? && page.to_i > 1
     tasks_path(opts)
   end
 
@@ -326,8 +316,10 @@ class TasksController < InertiaController
     when tasks_path, "/tasks"
       query = Rack::Utils.parse_nested_query(uri.query.to_s)
       filter = Array(query["filter"]).first.to_s
-      page = Integer(Array(query["page"]).first, exception: false)
-      tasks_return_path(FILTERS.include?(filter) ? filter : "all", page || 1)
+      page = Integer(Array(query["page"]).first, exception: false) || 1
+      per_page = Integer(Array(query["per_page"]).first, exception: false) || DEFAULT_PER_PAGE
+      per_page = DEFAULT_PER_PAGE unless ALLOWED_PER_PAGE.include?(per_page)
+      tasks_return_path(FILTERS.include?(filter) ? filter : "all", page, per_page)
     else
       match = uri.path.to_s.match(%r{\A/leads/(\d+)\z})
       if match

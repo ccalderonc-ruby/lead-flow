@@ -1,37 +1,26 @@
 # frozen_string_literal: true
 
 class NotesController < InertiaController
-  PER_PAGE = 25
-
   before_action :set_note, only: %i[update destroy]
 
   def index
     authorize Note
 
-    page = Integer(Array(params[:page]).first, exception: false) || 1
-    page = [ page, 1 ].max
-
     scoped = policy_scope(Note).includes(:lead, :user, opportunity: :lead)
     total_count = scoped.count
-    total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
-    page = page.clamp(1, total_pages)
+    pagination = resolve_pagination(total_count)
 
-    notes = scoped
-      .order(created_at: :desc, id: :desc)
-      .offset((page - 1) * PER_PAGE)
-      .limit(PER_PAGE)
+    notes = apply_pagination(
+      scoped.order(created_at: :desc, id: :desc),
+      pagination
+    )
 
     render inertia: "notes/index", props: {
       notes: notes.map { |note| serialize_note(note) },
-      meta: {
-        page: page,
-        per_page: PER_PAGE,
-        total_count: total_count,
-        total_pages: total_pages
-      },
+      meta: pagination,
       **form_options,
       can_create: can_create_notes?,
-      return_to: notes_return_path(page)
+      return_to: notes_return_path(pagination[:page], pagination[:per_page])
     }
   end
 
@@ -143,10 +132,8 @@ class NotesController < InertiaController
     current_user.advisor? && (policy_scope(Lead).exists? || policy_scope(Opportunity).exists?)
   end
 
-  def notes_return_path(page = 1)
-    opts = {}
-    opts[:page] = page if page > 1
-    notes_path(opts)
+  def notes_return_path(page = 1, per_page = DEFAULT_PER_PAGE)
+    notes_path(pagination_path_opts(page: page, per_page: per_page))
   end
 
   def note_params
@@ -205,8 +192,10 @@ class NotesController < InertiaController
           return root_path
         when notes_path, "/notes"
           query = Rack::Utils.parse_nested_query(uri.query.to_s)
-          page = Integer(query["page"], exception: false) || 1
-          return notes_return_path([ page, 1 ].max)
+          page = Integer(Array(query["page"]).first, exception: false) || 1
+          per_page = Integer(Array(query["per_page"]).first, exception: false) || DEFAULT_PER_PAGE
+          per_page = DEFAULT_PER_PAGE unless ALLOWED_PER_PAGE.include?(per_page)
+          return notes_return_path([ page, 1 ].max, per_page)
         when opportunities_path, "/opportunities"
           return opportunities_path
         else

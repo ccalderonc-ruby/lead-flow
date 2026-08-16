@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import EmptyState from '@/components/ui/EmptyState'
+import PaginationBar from '@/components/ui/PaginationBar'
 import TaskFormModal, {
   type EditableTask,
   type TaskFormDefaults,
@@ -69,6 +70,7 @@ function buildTasksReturnTo(meta: TasksMeta): string {
   const params = new URLSearchParams()
   if (meta.filter !== 'all') params.set('filter', meta.filter)
   if (meta.page > 1) params.set('page', String(meta.page))
+  if (meta.per_page !== 25) params.set('per_page', String(meta.per_page))
   const query = params.toString()
   return query ? `/tasks?${query}` : '/tasks'
 }
@@ -129,17 +131,10 @@ export default function TasksIndex({
   function setFilter(nextFilter: string) {
     router.get(
       '/tasks',
-      { filter: nextFilter === 'all' ? undefined : nextFilter, page: 1 },
-      { preserveState: true },
-    )
-  }
-
-  function goToPage(pageNumber: number) {
-    router.get(
-      '/tasks',
       {
-        filter: meta.filter === 'all' ? undefined : meta.filter,
-        page: pageNumber,
+        filter: nextFilter === 'all' ? undefined : nextFilter,
+        page: 1,
+        per_page: meta.per_page !== 25 ? meta.per_page : undefined,
       },
       { preserveState: true },
     )
@@ -313,31 +308,12 @@ export default function TasksIndex({
           </table>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">
-            {meta.total_count === 0
-              ? '0 tasks'
-              : `Showing page ${meta.page} of ${meta.total_pages} (${meta.total_count} total)`}
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={meta.page <= 1}
-              onClick={() => goToPage(meta.page - 1)}
-              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              disabled={meta.page >= meta.total_pages}
-              onClick={() => goToPage(meta.page + 1)}
-              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+        <PaginationBar
+          meta={meta}
+          path="/tasks"
+          label="tasks"
+          query={{ filter: meta.filter === 'all' ? undefined : meta.filter }}
+        />
       </div>
 
       {canCreate && (

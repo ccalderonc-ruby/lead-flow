@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class LeadsController < InertiaController
-  PER_PAGE = 25
   MAX_QUERY_LENGTH = 100
   EMAIL_TAKEN = "already belongs to another lead"
   PREVIEW_LIMIT = 5
@@ -16,8 +15,6 @@ class LeadsController < InertiaController
     authorize Lead
 
     query = Array(params[:q]).first.to_s.strip.slice(0, MAX_QUERY_LENGTH)
-    page = Integer(Array(params[:page]).first, exception: false) || 1
-    page = [ page, 1 ].max
     stage_id = parse_optional_id(params[:stage_id])
     stage_id = nil unless stage_id && LeadStage.exists?(stage_id)
 
@@ -29,14 +26,14 @@ class LeadsController < InertiaController
     scoped = scoped.where(user_id: user_id) if user_id
 
     total_count = scoped.count
-    total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
-    page = page.clamp(1, total_pages)
+    pagination = resolve_pagination(total_count)
 
-    leads = scoped
-      .includes(:company, :stage, :user)
-      .order(Arel.sql("COALESCE(leads.last_activity_at, leads.updated_at) DESC"))
-      .offset((page - 1) * PER_PAGE)
-      .limit(PER_PAGE)
+    leads = apply_pagination(
+      scoped
+        .includes(:company, :stage, :user)
+        .order(Arel.sql("COALESCE(leads.last_activity_at, leads.updated_at) DESC")),
+      pagination
+    )
 
     render inertia: "leads/index", props: {
       leads: leads.map { |lead| serialize_lead(lead) },
@@ -44,10 +41,7 @@ class LeadsController < InertiaController
         q: query,
         stage_id: stage_id,
         user_id: user_id,
-        page: page,
-        per_page: PER_PAGE,
-        total_count: total_count,
-        total_pages: total_pages
+        **pagination
       },
       stages: LeadStage.order(:position).map { |stage| { id: stage.id, name: stage.name } },
       assignees: current_user.admin? ? assignable_users.map { |user| { id: user.id, name: user.name } } : [],
