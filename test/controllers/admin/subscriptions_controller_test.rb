@@ -38,6 +38,8 @@ class Admin::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"component":"admin/subscriptions/index"'
     assert_includes response.body, users(:advisor).email
     assert_includes response.body, '"billing_active":false'
+    assert_includes response.body, '"per_page":25'
+    assert_includes response.body, '"show_grant_all":false'
   end
 
   test "regular admin cannot open subscriptions" do

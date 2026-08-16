@@ -1,6 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import PaginationBar from '@/components/ui/PaginationBar'
 
 export type AdminUserRow = {
   id: number
@@ -30,10 +31,6 @@ export default function AdminUsersIndex({
   meta,
   can_create: canCreate,
 }: AdminUsersIndexProps) {
-  function goToPage(page: number) {
-    router.get('/admin/users', { page }, { preserveState: true })
-  }
-
   return (
     <AuthenticatedPage>
       <Head title="Users" />
@@ -97,31 +94,7 @@ export default function AdminUsersIndex({
           </div>
         )}
 
-        {meta.total_pages > 1 && (
-          <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-            <p>
-              Page {meta.page} of {meta.total_pages} ({meta.total_count} users)
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={meta.page <= 1}
-                onClick={() => goToPage(meta.page - 1)}
-                className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 disabled:opacity-40"
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                disabled={meta.page >= meta.total_pages}
-                onClick={() => goToPage(meta.page + 1)}
-                className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <PaginationBar meta={meta} path="/admin/users" label="users" />
       </div>
     </AuthenticatedPage>
   )

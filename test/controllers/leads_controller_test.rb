@@ -71,6 +71,24 @@ class LeadsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"page":1'
   end
 
+  test "per_page query selects allowed page size" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { per_page: 10 }
+
+    assert_response :success
+    assert_includes response.body, '"per_page":10'
+  end
+
+  test "invalid per_page falls back to default" do
+    sign_in_as users(:admin)
+
+    get leads_path, params: { per_page: 7 }
+
+    assert_response :success
+    assert_includes response.body, '"per_page":25'
+  end
+
   test "array page param does not crash" do
     sign_in_as users(:advisor)
 

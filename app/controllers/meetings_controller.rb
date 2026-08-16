@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class MeetingsController < InertiaController
-  PER_PAGE = 25
   EDITABLE_STATUSES = Meeting.statuses.values.freeze
 
   before_action :set_meeting, only: :update
@@ -9,31 +8,21 @@ class MeetingsController < InertiaController
   def index
     authorize Meeting
 
-    page = Integer(Array(params[:page]).first, exception: false) || 1
-    page = [ page, 1 ].max
-
     scoped = policy_scope(Meeting)
     total_count = scoped.count
-    total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
-    page = page.clamp(1, total_pages)
+    pagination = resolve_pagination(total_count)
 
-    meetings = scoped
-      .includes(:lead, :user)
-      .order(:scheduled_on, :start_time, :id)
-      .offset((page - 1) * PER_PAGE)
-      .limit(PER_PAGE)
+    meetings = apply_pagination(
+      scoped.includes(:lead, :user).order(:scheduled_on, :start_time, :id),
+      pagination
+    )
 
     render inertia: "meetings/index", props: {
       meetings: meetings.map { |meeting| serialize_meeting(meeting) },
-      meta: {
-        page: page,
-        per_page: PER_PAGE,
-        total_count: total_count,
-        total_pages: total_pages
-      },
+      meta: pagination,
       **form_options,
       can_create: can_create_meetings?,
-      return_to: meetings_return_path(page)
+      return_to: meetings_return_path(pagination[:page], pagination[:per_page])
     }
   end
 
@@ -292,10 +281,8 @@ class MeetingsController < InertiaController
     end
   end
 
-  def meetings_return_path(page = 1)
-    opts = {}
-    opts[:page] = page if page.present? && page.to_i > 1
-    meetings_path(opts)
+  def meetings_return_path(page = 1, per_page = DEFAULT_PER_PAGE)
+    meetings_path(pagination_path_opts(page: page, per_page: per_page))
   end
 
   def safe_return_path
@@ -314,8 +301,10 @@ class MeetingsController < InertiaController
       root_path
     when meetings_path, "/meetings"
       query = Rack::Utils.parse_nested_query(uri.query.to_s)
-      page = Integer(Array(query["page"]).first, exception: false)
-      meetings_return_path(page || 1)
+      page = Integer(Array(query["page"]).first, exception: false) || 1
+      per_page = Integer(Array(query["per_page"]).first, exception: false) || DEFAULT_PER_PAGE
+      per_page = DEFAULT_PER_PAGE unless ALLOWED_PER_PAGE.include?(per_page)
+      meetings_return_path(page, per_page)
     else
       match = uri.path.to_s.match(%r{\A/leads/(\d+)\z})
       if match

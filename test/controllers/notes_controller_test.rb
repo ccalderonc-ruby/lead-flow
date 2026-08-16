@@ -24,6 +24,7 @@ class NotesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, note.content
     assert_includes response.body, '"can_create":true'
     assert_includes response.body, '"leads"'
+    assert_includes response.body, '"per_page":25'
   end
 
   test "create requires authentication" do

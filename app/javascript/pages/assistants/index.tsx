@@ -3,6 +3,7 @@ import { FormEvent, useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import { SelectField } from '@/components/ui/FormFields'
+import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
 
 export type AssistantUser = {
   id: number
@@ -19,6 +20,7 @@ type AssistantsIndexProps = {
   advisor: { id: number; name: string }
   assignments: AssistantAssignment[]
   available_assistants: AssistantUser[]
+  meta: PaginationMeta
   can_manage: boolean
   managed_advisors: AssistantUser[]
 }
@@ -27,6 +29,7 @@ export default function AssistantsIndex({
   advisor,
   assignments,
   available_assistants: availableAssistants,
+  meta,
   can_manage: canManage,
   managed_advisors: managedAdvisors,
 }: AssistantsIndexProps) {
@@ -37,7 +40,14 @@ export default function AssistantsIndex({
   const [assigning, setAssigning] = useState(false)
 
   function switchAdvisor(nextAdvisorId: string) {
-    router.get('/assistants', { advisor_id: nextAdvisorId }, { preserveState: true })
+    router.get(
+      '/assistants',
+      {
+        advisor_id: nextAdvisorId,
+        per_page: meta.per_page !== 25 ? meta.per_page : undefined,
+      },
+      { preserveState: true },
+    )
   }
 
   function assignAssistant(event: FormEvent) {
@@ -160,6 +170,13 @@ export default function AssistantsIndex({
             </table>
           </div>
         )}
+
+        <PaginationBar
+          meta={meta}
+          path="/assistants"
+          label="assignments"
+          query={{ advisor_id: advisor.id }}
+        />
       </div>
     </AuthenticatedPage>
   )

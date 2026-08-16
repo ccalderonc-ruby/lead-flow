@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
 
 export type BillingProps = {
   subscription_status: string
@@ -40,12 +41,16 @@ function formatPeriodEnd(iso: string | null) {
 type AdminSubscriptionsIndexProps = {
   billing: BillingProps
   members: MemberSubscriptionRow[]
+  meta: PaginationMeta
+  show_grant_all: boolean
   checkout_configured: boolean
 }
 
 export default function AdminSubscriptionsIndex({
   billing,
   members,
+  meta,
+  show_grant_all: showGrantAll,
   checkout_configured: checkoutConfigured,
 }: AdminSubscriptionsIndexProps) {
   const [startingCheckout, setStartingCheckout] = useState(false)
@@ -122,8 +127,6 @@ export default function AdminSubscriptionsIndex({
       },
     )
   }
-
-  const grantableMembers = members.filter((member) => !isBillingAdminRole(member.role))
 
   return (
     <AuthenticatedPage>
@@ -214,7 +217,7 @@ export default function AdminSubscriptionsIndex({
                 Grant Pro features to users after the organization is subscribed.
               </p>
             </div>
-            {billing.billing_active && grantableMembers.some((member) => !member.pro_access) && (
+            {showGrantAll && (
               <button
                 type="button"
                 disabled={grantingAll}
@@ -291,6 +294,8 @@ export default function AdminSubscriptionsIndex({
               </table>
             </div>
           )}
+
+          <PaginationBar meta={meta} path="/admin/subscriptions" label="members" />
         </section>
       </div>
     </AuthenticatedPage>

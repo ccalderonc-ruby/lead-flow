@@ -12,11 +12,23 @@ module Admin
         flash.now[:alert] = "Checkout was canceled. No charges were made."
       end
 
-      members = User.on_team(current_user.team).includes(:role).order(:name, :id)
+      members_scope = User.on_team(current_user.team).includes(:role).order(:name, :id)
+      total_count = members_scope.count
+      pagination = resolve_pagination(total_count)
+      members = apply_pagination(members_scope, pagination)
+
+      show_grant_all = current_user.billing_active? &&
+        members_scope
+          .joins(:role)
+          .where.not(roles: { name: "billing_admin" })
+          .where(pro_access: false)
+          .exists?
 
       render inertia: "admin/subscriptions/index", props: {
         billing: serialize_billing(current_user),
         members: members.map { |user| serialize_member(user) },
+        meta: pagination,
+        show_grant_all: show_grant_all,
         checkout_configured: StripeConfig.configured?
       }
     end

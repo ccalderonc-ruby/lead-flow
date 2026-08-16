@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
 import { SelectField } from '@/components/ui/FormFields'
 import PageHeader from '@/components/ui/PageHeader'
+import PaginationBar from '@/components/ui/PaginationBar'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 export type LeadRow = {
@@ -49,7 +50,7 @@ type LeadsIndexProps = {
 
 function leadsQueryParams(
   meta: LeadsMeta,
-  overrides: Partial<{ q: string; stage_id: string; user_id: string; page: number }> = {},
+  overrides: Partial<{ q: string; stage_id: string; user_id: string; page: number; per_page: number }> = {},
 ) {
   const q = overrides.q !== undefined ? overrides.q : meta.q
   const stageId =
@@ -65,12 +66,14 @@ function leadsQueryParams(
         ? String(meta.user_id)
         : ''
   const page = overrides.page !== undefined ? overrides.page : meta.page
+  const perPage = overrides.per_page !== undefined ? overrides.per_page : meta.per_page
 
   return {
     q: q.trim() || undefined,
     stage_id: stageId || undefined,
     user_id: userId || undefined,
     page: page > 1 ? page : undefined,
+    per_page: perPage !== 25 ? perPage : undefined,
   }
 }
 
@@ -117,13 +120,13 @@ export default function LeadsIndex({
     })
   }
 
-  function goToPage(page: number) {
-    router.get('/leads', leadsQueryParams(meta, { q: query, page }), { preserveState: true })
-  }
-
   function clearFilters() {
     setQuery('')
-    router.get('/leads', {}, { preserveState: true })
+    router.get(
+      '/leads',
+      meta.per_page !== 25 ? { per_page: meta.per_page } : {},
+      { preserveState: true },
+    )
   }
 
   const stageName = stages.find((stage) => stage.id === meta.stage_id)?.name
@@ -326,31 +329,16 @@ export default function LeadsIndex({
           </table>
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">
-            {meta.total_count === 0
-              ? '0 leads'
-              : `Showing page ${meta.page} of ${meta.total_pages} (${meta.total_count} total)`}
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={meta.page <= 1}
-              onClick={() => goToPage(meta.page - 1)}
-              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              disabled={meta.page >= meta.total_pages}
-              onClick={() => goToPage(meta.page + 1)}
-              className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+        <PaginationBar
+          meta={meta}
+          path="/leads"
+          label="leads"
+          query={{
+            q: query.trim() || undefined,
+            stage_id: meta.stage_id,
+            user_id: meta.user_id,
+          }}
+        />
       </div>
     </AuthenticatedPage>
   )

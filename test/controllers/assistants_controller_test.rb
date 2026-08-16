@@ -12,6 +12,7 @@ class AssistantsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '"component":"assistants/index"'
     assert_includes response.body, users(:assistant).name
     assert_includes response.body, '"can_manage":true'
+    assert_includes response.body, '"per_page":25'
   end
 
   test "assistant cannot manage assistants" do

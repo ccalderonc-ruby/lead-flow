@@ -12,6 +12,7 @@ import {
   hasNoteUpdateErrors,
   noteIdFromErrors,
 } from '@/components/notes/noteFormErrors'
+import PaginationBar from '@/components/ui/PaginationBar'
 import { formatDateTime } from '@/lib/format'
 
 export type NoteRow = {
@@ -47,8 +48,11 @@ type NotesIndexProps = {
 }
 
 function buildNotesReturnTo(meta: NotesMeta): string {
-  if (meta.page > 1) return `/notes?page=${meta.page}`
-  return '/notes'
+  const params = new URLSearchParams()
+  if (meta.page > 1) params.set('page', String(meta.page))
+  if (meta.per_page !== 25) params.set('per_page', String(meta.per_page))
+  const query = params.toString()
+  return query ? `/notes?${query}` : '/notes'
 }
 
 function previewContent(content: string, max = 160): string {
@@ -127,10 +131,6 @@ export default function NotesIndex({
   }
 
   const createReturnTo = buildNotesReturnTo(meta) || returnTo
-
-  function goToPage(pageNumber: number) {
-    router.get('/notes', { page: pageNumber }, { preserveState: true })
-  }
 
   function deleteNote(note: NoteRow) {
     if (deletingId != null) return
@@ -262,31 +262,7 @@ export default function NotesIndex({
           </table>
         </div>
 
-        {meta.total_pages > 1 && (
-          <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-            <p>
-              Page {meta.page} of {meta.total_pages} · {meta.total_count} notes
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={meta.page <= 1}
-                onClick={() => goToPage(meta.page - 1)}
-                className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                disabled={meta.page >= meta.total_pages}
-                onClick={() => goToPage(meta.page + 1)}
-                className="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-3 py-2.5 font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <PaginationBar meta={meta} path="/notes" label="notes" />
       </div>
 
       {canCreate && (
