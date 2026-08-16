@@ -55,7 +55,7 @@ export default function AdminRolesIndex({ roles, matrix, read_only: readOnly }: 
               {roles.map((role) => (
                 <li
                   key={role.id}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium capitalize text-slate-800"
+                  className="rounded-lg border border-slate-200 bg-panel px-3 py-1.5 text-sm font-medium capitalize text-slate-800"
                 >
                   {role.name}
                 </li>
@@ -67,7 +67,7 @@ export default function AdminRolesIndex({ roles, matrix, read_only: readOnly }: 
         {matrix.rows.length === 0 ? (
           <p className="mt-8 text-sm text-slate-600">Permission matrix unavailable until roles are seeded.</p>
         ) : (
-          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
             <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
               <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>

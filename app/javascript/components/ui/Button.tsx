@@ -5,7 +5,7 @@ const variants = {
   primary:
     'bg-brand text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed',
   secondary:
-    'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed',
+    'border border-slate-300 bg-panel text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed',
   ghost: 'text-brand-ink hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed',
 } as const
 

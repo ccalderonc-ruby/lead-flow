@@ -145,7 +145,7 @@ export default function AdminSubscriptionsIndex({
           </p>
         )}
 
-        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+        <section className="mt-8 rounded-xl border border-slate-200 bg-panel p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Organization billing</h2>
@@ -229,7 +229,7 @@ export default function AdminSubscriptionsIndex({
           {members.length === 0 ? (
             <p className="mt-6 text-slate-600">No team members yet.</p>
           ) : (
-            <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
               <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
                 <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <tr>

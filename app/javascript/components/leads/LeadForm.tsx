@@ -75,7 +75,7 @@ function fieldError(errors: Record<string, string | string[] | undefined>, key: 
 }
 
 const inputClassName =
-  'mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted'
+  'mt-1 block w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm text-slate-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted'
 
 const inputErrorClassName =
   'mt-1 block w-full rounded-lg border border-red-300 px-3 py-2 text-sm text-slate-900 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200'
@@ -106,7 +106,7 @@ export default function LeadForm({
       className={
         embedded
           ? 'space-y-5'
-          : 'mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6'
+          : 'mt-8 space-y-5 rounded-xl border border-slate-200 bg-panel p-6'
       }
     >
       {fieldError(errors, 'base') && (

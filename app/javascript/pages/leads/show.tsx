@@ -172,7 +172,7 @@ function Section({
   children: ReactNode
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
+    <section className="rounded-xl border border-slate-200 bg-panel">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
@@ -420,7 +420,7 @@ export default function LeadsShow({
           </div>
         </div>
 
-        <dl className="mt-8 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-8 grid gap-4 rounded-xl border border-slate-200 bg-panel p-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Email" value={lead.email || '—'} />
           <Field label="Phone" value={lead.phone || '—'} />
           <Field label="Company" value={lead.company || '—'} />

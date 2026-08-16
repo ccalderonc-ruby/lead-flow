@@ -56,7 +56,7 @@ export default function UserForm({
   const { data, setData, processing, errors } = form
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-white p-6">
+    <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-panel p-6">
       {fieldError(errors, 'base') && (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {fieldError(errors, 'base')}

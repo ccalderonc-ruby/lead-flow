@@ -167,7 +167,7 @@ export default function TaskFormModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="task-form-title"
-        className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-lg"
+        className="w-full max-w-lg rounded-xl border border-slate-200 bg-panel p-6 shadow-lg"
       >
         <div className="flex items-start justify-between gap-4">
           <div>

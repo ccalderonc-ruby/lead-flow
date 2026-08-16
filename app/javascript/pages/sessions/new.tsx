@@ -2,6 +2,7 @@ import { Head, useForm } from '@inertiajs/react'
 
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 export default function Login() {
   const { data, setData, post, processing, errors } = useForm({
@@ -15,8 +16,11 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-surface px-4">
       <Head title="Sign in" />
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
 
       <Card className="w-full max-w-md p-8" padding="none">
         <div className="mb-8 text-center">

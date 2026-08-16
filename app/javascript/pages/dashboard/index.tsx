@@ -334,7 +334,7 @@ export default function DashboardIndex({
           {canSwitchView && (
             <div className="flex flex-col gap-3 sm:items-end">
               <div
-                className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1"
+                className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-panel p-1"
                 role="group"
                 aria-label="Dashboard view"
               >
@@ -414,7 +414,7 @@ export default function DashboardIndex({
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="space-y-6">
-            <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-xl border border-slate-200 bg-panel shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Upcoming activities</h2>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -510,7 +510,7 @@ export default function DashboardIndex({
               )}
             </section>
 
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-panel shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Recent leads</h2>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -579,7 +579,7 @@ export default function DashboardIndex({
           </div>
 
           <aside className="space-y-6">
-            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-900">Quick actions</h2>
               <div className="mt-4 flex flex-col gap-2">
                 {actions.can_create_lead ? (
@@ -621,7 +621,7 @@ export default function DashboardIndex({
               </div>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-lg font-semibold text-slate-900">Pipeline snapshot</h2>
                 <p className="text-sm font-semibold text-brand-ink">

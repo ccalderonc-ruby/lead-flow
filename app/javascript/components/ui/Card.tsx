@@ -16,7 +16,7 @@ export default function Card({ children, className, padding = 'md', ...rest }: C
   return (
     <div
       className={[
-        'rounded-xl border border-slate-200 bg-white shadow-sm',
+        'rounded-xl border border-slate-200 bg-panel shadow-sm',
         paddingClass[padding],
         className,
       ]

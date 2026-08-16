@@ -99,7 +99,7 @@ function OpportunityCardView({
 }) {
   return (
     <div
-      className={`w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm ${
+      className={`w-full rounded-lg border border-slate-200 bg-panel p-3 text-left shadow-sm ${
         dragging ? 'shadow-md ring-2 ring-brand-muted' : ''
       }`}
     >
@@ -184,7 +184,7 @@ function StageColumn({
     >
       <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-3 py-3">
         <h2 className="truncate text-sm font-semibold text-slate-900">{stage.name}</h2>
-        <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+        <span className="shrink-0 rounded-full bg-panel px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
           {stage.opportunities.length}
         </span>
       </header>
@@ -195,7 +195,7 @@ function StageColumn({
       >
         {children}
         {stage.opportunities.length === 0 ? (
-          <li className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-6 text-center text-xs text-slate-400">
+          <li className="rounded-lg border border-dashed border-slate-200 bg-panel px-3 py-6 text-center text-xs text-slate-400">
             Drop here
           </li>
         ) : null}

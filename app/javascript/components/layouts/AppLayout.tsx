@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import FlashBanner from '@/components/ui/FlashBanner'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 import VisitProgress from '@/components/ui/VisitProgress'
 import {
   adminNavItemsFor,
@@ -126,7 +127,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         )}
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-64">
-          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:px-8">
+          <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-panel px-4 py-3 lg:px-8">
             <button
               type="button"
               className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 lg:hidden"
@@ -134,12 +135,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
             >
               Menu
             </button>
-            {user && (
-              <div className="ml-auto text-right text-sm lg:hidden">
-                <p className="font-medium text-ink">{user.name}</p>
-                <p className="text-slate-500">{formatRoleLabel(user.role)}</p>
-              </div>
-            )}
+            <div className="ml-auto flex items-center gap-3">
+              <ThemeToggle />
+              {user && (
+                <div className="text-right text-sm lg:hidden">
+                  <p className="font-medium text-ink">{user.name}</p>
+                  <p className="text-slate-500">{formatRoleLabel(user.role)}</p>
+                </div>
+              )}
+            </div>
           </header>
 
           <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">

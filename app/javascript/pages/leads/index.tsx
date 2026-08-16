@@ -148,7 +148,7 @@ export default function LeadsIndex({
               {canExport && (
                 <a
                   href={exportHref(meta)}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-panel px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
                   Export CSV
                 </a>
@@ -177,7 +177,7 @@ export default function LeadsIndex({
           </p>
         )}
 
-        <div className="sticky top-14 z-20 mt-6 space-y-3 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur lg:top-0">
+        <div className="sticky top-14 z-20 mt-6 space-y-3 rounded-xl border border-slate-200 bg-panel/95 p-4 shadow-sm backdrop-blur lg:top-0">
           <form onSubmit={submitSearch} className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
               <label htmlFor="leads-search" className="block text-sm font-medium text-slate-700">
@@ -189,12 +189,12 @@ export default function LeadsIndex({
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search name, email, or company"
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-panel px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-muted"
               />
             </div>
             <button
               type="submit"
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 bg-panel px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Search
             </button>
@@ -254,7 +254,7 @@ export default function LeadsIndex({
           )}
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <tr>

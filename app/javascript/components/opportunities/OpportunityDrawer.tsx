@@ -218,7 +218,7 @@ export default function OpportunityDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="opportunity-drawer-title"
-        className="flex h-full w-full max-w-md flex-col border-l border-slate-200 bg-white shadow-xl"
+        className="flex h-full w-full max-w-md flex-col border-l border-slate-200 bg-panel shadow-xl"
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
           <div>
