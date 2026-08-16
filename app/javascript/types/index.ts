@@ -18,3 +18,5 @@ export type SharedProps = {
   }
   flash: FlashData
 }
+
+export type * from './leads'

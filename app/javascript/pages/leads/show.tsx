@@ -4,55 +4,27 @@ import { useState, type ReactNode } from 'react'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import MeetingFormModal, {
   type EditableMeeting,
-  type MeetingFormDefaults,
-  type MeetingFormOption,
 } from '@/components/meetings/MeetingFormModal'
 import { hasMeetingCreateErrors } from '@/components/meetings/meetingFormErrors'
-import NoteFormModal, { type EditableNote, type NoteFormOption } from '@/components/notes/NoteFormModal'
+import NoteFormModal, { type EditableNote } from '@/components/notes/NoteFormModal'
 import {
   hasNoteCreateErrors,
   hasNoteUpdateErrors,
   noteIdFromErrors,
 } from '@/components/notes/noteFormErrors'
-import OpportunityFormModal, {
-  type OpportunityFormDefaults,
-  type OpportunityFormOption,
-} from '@/components/opportunities/OpportunityFormModal'
+import OpportunityFormModal from '@/components/opportunities/OpportunityFormModal'
 import { hasOpportunityCreateErrors } from '@/components/opportunities/opportunityFormErrors'
 import TaskFormModal, {
   type EditableTask,
-  type TaskFormDefaults,
-  type TaskFormOption,
 } from '@/components/tasks/TaskFormModal'
 import { hasTaskCreateErrors } from '@/components/tasks/taskFormErrors'
 import { formatCurrency, formatDate, formatDateTime, isPastDueDate } from '@/lib/format'
-
-type LeadDetail = {
-  id: number
-  name: string
-  email: string
-  phone: string | null
-  estimated_value: string | number | null
-  last_activity_at: string | null
-  company: string | null
-  country: string | null
-  stage: string | null
-  advisor: string | null
-  can_update: boolean
-}
-
-type TaskPreview = {
-  id: number
-  title: string
-  description?: string | null
-  due_date: string | null
-  status: string | null
-  past_due?: boolean
-  completed_at?: string | null
-  user_id?: number | null
-  can_edit: boolean
-  can_revert: boolean
-}
+import type {
+  LeadsShowProps,
+  MeetingPreview,
+  NotePreview,
+  TaskPreview,
+} from '@/types/leads'
 
 function formatTaskStatus(status: string | null): string {
   if (!status) return '—'
@@ -62,89 +34,6 @@ function formatTaskStatus(status: string | null): string {
 
 function taskIsPastDue(task: Pick<TaskPreview, 'due_date' | 'status'>): boolean {
   return task.status !== 'completed' && isPastDueDate(task.due_date)
-}
-
-type MeetingPreview = {
-  id: number
-  title: string
-  scheduled_on: string | null
-  start_time?: string | null
-  location?: string | null
-  virtual_link?: string | null
-  virtual_meeting?: boolean | null
-  status: string | null
-  user_id?: number | null
-  can_edit: boolean
-  can_revert: boolean
-}
-
-type NotePreview = {
-  id: number
-  content: string
-  author: string | null
-  created_at: string | null
-  can_update: boolean
-  can_destroy: boolean
-}
-
-type OpportunityPreview = {
-  id: number
-  title: string
-  value: string | number | null
-  stage: string | null
-}
-
-type RelatedSection<T> = {
-  count: number
-  items: T[]
-}
-
-type NotesSection = RelatedSection<NotePreview> & {
-  showing: number
-  truncated: boolean
-}
-
-type TaskFormProps = {
-  leads: TaskFormOption[]
-  assignees: TaskFormOption[]
-  defaults: TaskFormDefaults
-  return_to: string
-}
-
-type MeetingFormProps = {
-  leads: MeetingFormOption[]
-  hosts: MeetingFormOption[]
-  defaults: MeetingFormDefaults
-  return_to: string
-}
-
-type NoteFormProps = {
-  lead_id: number
-  leads?: NoteFormOption[]
-  return_to: string
-}
-
-type OpportunityFormProps = {
-  leads: OpportunityFormOption[]
-  stages: OpportunityFormOption[]
-  defaults: OpportunityFormDefaults
-  return_to: string
-}
-
-type LeadsShowProps = {
-  lead: LeadDetail
-  tasks: RelatedSection<TaskPreview>
-  meetings: RelatedSection<MeetingPreview>
-  notes: NotesSection
-  opportunities: RelatedSection<OpportunityPreview>
-  can_create_task: boolean
-  task_form: TaskFormProps
-  can_create_meeting: boolean
-  meeting_form: MeetingFormProps
-  can_create_note: boolean
-  note_form: NoteFormProps
-  can_create_opportunity: boolean
-  opportunity_form: OpportunityFormProps
 }
 
 function Field({ label, value }: { label: string; value: string }) {

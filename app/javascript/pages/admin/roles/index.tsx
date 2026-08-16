@@ -1,6 +1,14 @@
 import { Head } from '@inertiajs/react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 
 export type RoleOption = {
   id: number
@@ -67,32 +75,30 @@ export default function AdminRolesIndex({ roles, matrix, read_only: readOnly }: 
         {matrix.rows.length === 0 ? (
           <p className="mt-8 text-sm text-slate-600">Permission matrix unavailable until roles are seeded.</p>
         ) : (
-          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Role</th>
-                  {matrix.columns.map((column) => (
-                    <th key={column} className="px-4 py-3">
-                      {COLUMN_LABELS[column] ?? column}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {matrix.rows.map((row) => (
-                  <tr key={row.role} className="text-slate-800">
-                    <td className="px-4 py-3 font-medium capitalize">{row.role}</td>
-                    {matrix.columns.map((column) => (
-                      <td key={`${row.role}-${column}`} className="px-4 py-3 text-slate-600">
-                        {row.permissions[column] ?? '—'}
-                      </td>
-                    ))}
-                  </tr>
+          <DataTable className="mt-8">
+            <DataTableHead>
+              <tr>
+                <DataTableHeaderCell>Role</DataTableHeaderCell>
+                {matrix.columns.map((column) => (
+                  <DataTableHeaderCell key={column}>
+                    {COLUMN_LABELS[column] ?? column}
+                  </DataTableHeaderCell>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </tr>
+            </DataTableHead>
+            <DataTableBody>
+              {matrix.rows.map((row) => (
+                <DataTableRow key={row.role} hover={false} className="text-slate-800">
+                  <DataTableCell className="font-medium capitalize">{row.role}</DataTableCell>
+                  {matrix.columns.map((column) => (
+                    <DataTableCell key={`${row.role}-${column}`} className="text-slate-600">
+                      {row.permissions[column] ?? '—'}
+                    </DataTableCell>
+                  ))}
+                </DataTableRow>
+              ))}
+            </DataTableBody>
+          </DataTable>
         )}
       </div>
     </AuthenticatedPage>

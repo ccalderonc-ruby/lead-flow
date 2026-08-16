@@ -13,6 +13,15 @@ import {
   noteIdFromErrors,
 } from '@/components/notes/noteFormErrors'
 import PaginationBar from '@/components/ui/PaginationBar'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 import { formatDateTime } from '@/lib/format'
 
 export type NoteRow = {
@@ -165,102 +174,100 @@ export default function NotesIndex({
           )}
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Note</th>
-                <th className="px-4 py-3">Linked to</th>
-                <th className="px-4 py-3">Author</th>
-                <th className="px-4 py-3">Created</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {notes.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-0">
-                    <EmptyState
-                      title="No notes yet"
-                      description="Capture details linked to a lead or opportunity."
-                      action={
-                        canCreate ? { label: 'New note', onClick: openCreateModal } : undefined
-                      }
-                    />
-                  </td>
-                </tr>
-              ) : (
-                notes.map((note) => (
-                  <tr key={note.id} className="align-top">
-                    <td className="max-w-md px-4 py-3 text-slate-900">
-                      <div className="whitespace-pre-wrap">{previewContent(note.content)}</div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">
-                      {note.link_type === 'opportunity' ? (
-                        <div>
-                          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                            Opportunity
-                          </div>
-                          {note.opportunity_id ? (
-                            <Link
-                              href={`/opportunities?opportunity_id=${note.opportunity_id}`}
-                              className="mt-0.5 inline-block font-medium text-brand-ink hover:text-brand"
-                            >
-                              {note.opportunity || '—'}
-                            </Link>
-                          ) : (
-                            <div className="mt-0.5 font-medium text-slate-900">
-                              {note.opportunity || '—'}
-                            </div>
-                          )}
+        <DataTable className="mt-8">
+          <DataTableHead>
+            <tr>
+              <DataTableHeaderCell>Note</DataTableHeaderCell>
+              <DataTableHeaderCell>Linked to</DataTableHeaderCell>
+              <DataTableHeaderCell>Author</DataTableHeaderCell>
+              <DataTableHeaderCell>Created</DataTableHeaderCell>
+              <DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+            </tr>
+          </DataTableHead>
+          <DataTableBody>
+            {notes.length === 0 ? (
+              <DataTableEmpty colSpan={5}>
+                <EmptyState
+                  title="No notes yet"
+                  description="Capture details linked to a lead or opportunity."
+                  action={
+                    canCreate ? { label: 'New note', onClick: openCreateModal } : undefined
+                  }
+                />
+              </DataTableEmpty>
+            ) : (
+              notes.map((note) => (
+                <DataTableRow key={note.id} hover={false} className="align-top">
+                  <DataTableCell className="max-w-md text-slate-900">
+                    <div className="whitespace-pre-wrap">{previewContent(note.content)}</div>
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">
+                    {note.link_type === 'opportunity' ? (
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                          Opportunity
                         </div>
-                      ) : note.lead_id ? (
-                        <div>
-                          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                            Lead
-                          </div>
+                        {note.opportunity_id ? (
                           <Link
-                            href={`/leads/${note.lead_id}`}
+                            href={`/opportunities?opportunity_id=${note.opportunity_id}`}
                             className="mt-0.5 inline-block font-medium text-brand-ink hover:text-brand"
                           >
-                            {note.lead || '—'}
+                            {note.opportunity || '—'}
                           </Link>
-                        </div>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{note.author || '—'}</td>
-                    <td className="px-4 py-3 text-slate-700">{formatDateTime(note.created_at)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-3">
-                        {note.can_update && (
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(note)}
-                            className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
-                          >
-                            Edit
-                          </button>
-                        )}
-                        {note.can_destroy && (
-                          <button
-                            type="button"
-                            onClick={() => deleteNote(note)}
-                            disabled={deletingId === note.id}
-                            className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-red-600 hover:text-red-500 disabled:opacity-50"
-                          >
-                            {deletingId === note.id ? 'Deleting…' : 'Delete'}
-                          </button>
+                        ) : (
+                          <div className="mt-0.5 font-medium text-slate-900">
+                            {note.opportunity || '—'}
+                          </div>
                         )}
                       </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    ) : note.lead_id ? (
+                      <div>
+                        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                          Lead
+                        </div>
+                        <Link
+                          href={`/leads/${note.lead_id}`}
+                          className="mt-0.5 inline-block font-medium text-brand-ink hover:text-brand"
+                        >
+                          {note.lead || '—'}
+                        </Link>
+                      </div>
+                    ) : (
+                      '—'
+                    )}
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">{note.author || '—'}</DataTableCell>
+                  <DataTableCell className="text-slate-700">
+                    {formatDateTime(note.created_at)}
+                  </DataTableCell>
+                  <DataTableCell align="right">
+                    <div className="flex justify-end gap-3">
+                      {note.can_update && (
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(note)}
+                          className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {note.can_destroy && (
+                        <button
+                          type="button"
+                          onClick={() => deleteNote(note)}
+                          disabled={deletingId === note.id}
+                          className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-red-600 hover:text-red-500 disabled:opacity-50"
+                        >
+                          {deletingId === note.id ? 'Deleting…' : 'Delete'}
+                        </button>
+                      )}
+                    </div>
+                  </DataTableCell>
+                </DataTableRow>
+              ))
+            )}
+          </DataTableBody>
+        </DataTable>
 
         <PaginationBar meta={meta} path="/notes" label="notes" />
       </div>

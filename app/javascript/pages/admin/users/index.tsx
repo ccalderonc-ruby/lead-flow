@@ -2,6 +2,15 @@ import { Head, Link } from '@inertiajs/react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import PaginationBar from '@/components/ui/PaginationBar'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 
 export type AdminUserRow = {
   id: number
@@ -52,47 +61,47 @@ export default function AdminUsersIndex({
           )}
         </div>
 
-        {users.length === 0 ? (
-          <p className="mt-8 text-slate-600">No users yet.</p>
-        ) : (
-          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Team</th>
-                  <th className="px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {users.map((user) => (
-                  <tr key={user.id} className="text-slate-800">
-                    <td className="px-4 py-3 font-medium">{user.name}</td>
-                    <td className="px-4 py-3">{user.email}</td>
-                    <td className="px-4 py-3 capitalize">{user.role}</td>
-                    <td className="px-4 py-3 capitalize">{user.status}</td>
-                    <td className="px-4 py-3">{user.team}</td>
-                    <td className="px-4 py-3">
-                      {user.can_update ? (
-                        <Link
-                          href={`/admin/users/${user.id}/edit`}
-                          className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
-                        >
-                          Edit
-                        </Link>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable className="mt-8">
+          <DataTableHead>
+            <tr>
+              <DataTableHeaderCell>Name</DataTableHeaderCell>
+              <DataTableHeaderCell>Email</DataTableHeaderCell>
+              <DataTableHeaderCell>Role</DataTableHeaderCell>
+              <DataTableHeaderCell>Status</DataTableHeaderCell>
+              <DataTableHeaderCell>Team</DataTableHeaderCell>
+              <DataTableHeaderCell>Actions</DataTableHeaderCell>
+            </tr>
+          </DataTableHead>
+          <DataTableBody>
+            {users.length === 0 ? (
+              <DataTableEmpty colSpan={6}>
+                <p className="px-6 py-12 text-center text-slate-600">No users yet.</p>
+              </DataTableEmpty>
+            ) : (
+              users.map((user) => (
+                <DataTableRow key={user.id} hover={false} className="text-slate-800">
+                  <DataTableCell className="font-medium">{user.name}</DataTableCell>
+                  <DataTableCell>{user.email}</DataTableCell>
+                  <DataTableCell className="capitalize">{user.role}</DataTableCell>
+                  <DataTableCell className="capitalize">{user.status}</DataTableCell>
+                  <DataTableCell>{user.team}</DataTableCell>
+                  <DataTableCell>
+                    {user.can_update ? (
+                      <Link
+                        href={`/admin/users/${user.id}/edit`}
+                        className="inline-flex min-h-11 items-center px-1 font-medium text-brand-ink hover:text-brand"
+                      >
+                        Edit
+                      </Link>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </DataTableCell>
+                </DataTableRow>
+              ))
+            )}
+          </DataTableBody>
+        </DataTable>
 
         <PaginationBar meta={meta} path="/admin/users" label="users" />
       </div>

@@ -7,6 +7,15 @@ import EmptyState from '@/components/ui/EmptyState'
 import { SelectField } from '@/components/ui/FormFields'
 import PageHeader from '@/components/ui/PageHeader'
 import PaginationBar from '@/components/ui/PaginationBar'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 export type LeadRow = {
@@ -257,77 +266,73 @@ export default function LeadsIndex({
           )}
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Company</th>
-                <th className="px-4 py-3">Stage</th>
-                <th className="px-4 py-3">Advisor</th>
-                <th className="px-4 py-3">Last activity</th>
-                <th className="px-4 py-3 text-right">Value</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {leads.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-0">
-                    <EmptyState
-                      title={hasActiveFilters ? 'No leads match these filters' : 'No leads yet'}
-                      description={
-                        hasActiveFilters
-                          ? 'Try clearing filters or adjusting your search.'
-                          : 'Add your first prospect to start building the pipeline.'
-                      }
-                      action={
-                        hasActiveFilters
-                          ? { label: 'Clear filters', onClick: clearFilters }
-                          : canCreate
-                            ? { label: '+ Add lead', href: '/leads/new' }
-                            : undefined
-                      }
-                    />
-                  </td>
-                </tr>
-              ) : (
-                leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">
+        <DataTable className="mt-6">
+          <DataTableHead>
+            <tr>
+              <DataTableHeaderCell>Name</DataTableHeaderCell>
+              <DataTableHeaderCell>Company</DataTableHeaderCell>
+              <DataTableHeaderCell>Stage</DataTableHeaderCell>
+              <DataTableHeaderCell>Advisor</DataTableHeaderCell>
+              <DataTableHeaderCell>Last activity</DataTableHeaderCell>
+              <DataTableHeaderCell align="right">Value</DataTableHeaderCell>
+              <DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+            </tr>
+          </DataTableHead>
+          <DataTableBody>
+            {leads.length === 0 ? (
+              <DataTableEmpty colSpan={7}>
+                <EmptyState
+                  title={hasActiveFilters ? 'No leads match these filters' : 'No leads yet'}
+                  description={
+                    hasActiveFilters
+                      ? 'Try clearing filters or adjusting your search.'
+                      : 'Add your first prospect to start building the pipeline.'
+                  }
+                  action={
+                    hasActiveFilters
+                      ? { label: 'Clear filters', onClick: clearFilters }
+                      : canCreate
+                        ? { label: '+ Add lead', href: '/leads/new' }
+                        : undefined
+                  }
+                />
+              </DataTableEmpty>
+            ) : (
+              leads.map((lead) => (
+                <DataTableRow key={lead.id}>
+                  <DataTableCell className="font-medium text-slate-900">
+                    <Link
+                      href={`/leads/${lead.id}`}
+                      className="text-brand-ink hover:text-brand"
+                    >
+                      {lead.name}
+                    </Link>
+                    {lead.email && <div className="text-xs font-normal text-slate-500">{lead.email}</div>}
+                  </DataTableCell>
+                  <DataTableCell className="text-slate-700">{lead.company}</DataTableCell>
+                  <DataTableCell className="text-slate-700">{lead.stage}</DataTableCell>
+                  <DataTableCell className="text-slate-700">{lead.advisor}</DataTableCell>
+                  <DataTableCell className="text-slate-700">{formatDate(lead.last_activity_at)}</DataTableCell>
+                  <DataTableCell align="right" className="tabular-nums text-slate-900">
+                    {formatCurrency(lead.estimated_value)}
+                  </DataTableCell>
+                  <DataTableCell align="right">
+                    {lead.can_update ? (
                       <Link
-                        href={`/leads/${lead.id}`}
-                        className="text-brand-ink hover:text-brand"
+                        href={`/leads/${lead.id}/edit`}
+                        className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-brand-ink hover:text-brand"
                       >
-                        {lead.name}
+                        Edit
                       </Link>
-                      {lead.email && <div className="text-xs font-normal text-slate-500">{lead.email}</div>}
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{lead.company}</td>
-                    <td className="px-4 py-3 text-slate-700">{lead.stage}</td>
-                    <td className="px-4 py-3 text-slate-700">{lead.advisor}</td>
-                    <td className="px-4 py-3 text-slate-700">{formatDate(lead.last_activity_at)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-slate-900">
-                      {formatCurrency(lead.estimated_value)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {lead.can_update ? (
-                        <Link
-                          href={`/leads/${lead.id}/edit`}
-                          className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-brand-ink hover:text-brand"
-                        >
-                          Edit
-                        </Link>
-                      ) : (
-                        <span className="text-slate-300">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </DataTableCell>
+                </DataTableRow>
+              ))
+            )}
+          </DataTableBody>
+        </DataTable>
 
         <PaginationBar
           meta={meta}

@@ -4,6 +4,15 @@ import { FormEvent, useState } from 'react'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import { SelectField } from '@/components/ui/FormFields'
 import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 
 export type AssistantUser = {
   id: number
@@ -133,43 +142,43 @@ export default function AssistantsIndex({
           </form>
         )}
 
-        {assignments.length === 0 ? (
-          <p className="mt-8 text-slate-600">No assistants assigned yet.</p>
-        ) : (
-          <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {assignments.map((row) => (
-                  <tr key={row.id} className="text-slate-800">
-                    <td className="px-4 py-3 font-medium">{row.assistant.name}</td>
-                    <td className="px-4 py-3">{row.assistant.email}</td>
-                    <td className="px-4 py-3 text-right">
-                      {canManage ? (
-                        <button
-                          type="button"
-                          disabled={busyId === row.id}
-                          onClick={() => removeAssignment(row.id)}
-                          className="text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-50"
-                        >
-                          {busyId === row.id ? 'Removing…' : 'Remove'}
-                        </button>
-                      ) : (
-                        <span className="text-sm text-slate-500">Assigned</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable className="mt-8">
+          <DataTableHead>
+            <tr>
+              <DataTableHeaderCell>Name</DataTableHeaderCell>
+              <DataTableHeaderCell>Email</DataTableHeaderCell>
+              <DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+            </tr>
+          </DataTableHead>
+          <DataTableBody>
+            {assignments.length === 0 ? (
+              <DataTableEmpty colSpan={3}>
+                <p className="px-6 py-12 text-center text-slate-600">No assistants assigned yet.</p>
+              </DataTableEmpty>
+            ) : (
+              assignments.map((row) => (
+                <DataTableRow key={row.id} hover={false} className="text-slate-800">
+                  <DataTableCell className="font-medium">{row.assistant.name}</DataTableCell>
+                  <DataTableCell>{row.assistant.email}</DataTableCell>
+                  <DataTableCell align="right">
+                    {canManage ? (
+                      <button
+                        type="button"
+                        disabled={busyId === row.id}
+                        onClick={() => removeAssignment(row.id)}
+                        className="text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-50"
+                      >
+                        {busyId === row.id ? 'Removing…' : 'Remove'}
+                      </button>
+                    ) : (
+                      <span className="text-sm text-slate-500">Assigned</span>
+                    )}
+                  </DataTableCell>
+                </DataTableRow>
+              ))
+            )}
+          </DataTableBody>
+        </DataTable>
 
         <PaginationBar
           meta={meta}

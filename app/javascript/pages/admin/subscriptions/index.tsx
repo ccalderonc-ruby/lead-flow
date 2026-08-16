@@ -3,6 +3,15 @@ import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmpty,
+  DataTableHead,
+  DataTableHeaderCell,
+  DataTableRow,
+} from '@/components/ui/DataTable'
 
 export type BillingProps = {
   subscription_status: string
@@ -229,71 +238,71 @@ export default function AdminSubscriptionsIndex({
             )}
           </div>
 
-          {members.length === 0 ? (
-            <p className="mt-6 text-slate-600">No team members yet.</p>
-          ) : (
-            <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-panel">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3">Role</th>
-                    <th className="px-4 py-3">Access</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {members.map((member) => (
-                    <tr key={member.id} className="text-slate-800">
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{member.name}</div>
-                        <div className="text-slate-500">{member.email}</div>
-                      </td>
-                      <td className="px-4 py-3 capitalize">
-                        {member.role === 'billing_admin' ? 'Billing admin' : member.role}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            member.subscribed
-                              ? 'bg-green-50 text-green-800'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
+          <DataTable className="mt-4">
+            <DataTableHead>
+              <tr>
+                <DataTableHeaderCell>Name</DataTableHeaderCell>
+                <DataTableHeaderCell>Role</DataTableHeaderCell>
+                <DataTableHeaderCell>Access</DataTableHeaderCell>
+                <DataTableHeaderCell align="right">Actions</DataTableHeaderCell>
+              </tr>
+            </DataTableHead>
+            <DataTableBody>
+              {members.length === 0 ? (
+                <DataTableEmpty colSpan={4}>
+                  <p className="px-6 py-12 text-center text-slate-600">No team members yet.</p>
+                </DataTableEmpty>
+              ) : (
+                members.map((member) => (
+                  <DataTableRow key={member.id} hover={false} className="text-slate-800">
+                    <DataTableCell>
+                      <div className="font-medium">{member.name}</div>
+                      <div className="text-slate-500">{member.email}</div>
+                    </DataTableCell>
+                    <DataTableCell className="capitalize">
+                      {member.role === 'billing_admin' ? 'Billing admin' : member.role}
+                    </DataTableCell>
+                    <DataTableCell>
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          member.subscribed
+                            ? 'bg-green-50 text-green-800'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {member.subscribed ? 'Pro' : 'No access'}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell align="right">
+                      {isBillingAdminRole(member.role) ? (
+                        <span className="text-sm text-slate-500">Billing admin</span>
+                      ) : !billing.billing_active ? (
+                        <span className="text-sm text-slate-500">Subscribe first</span>
+                      ) : member.pro_access ? (
+                        <button
+                          type="button"
+                          disabled={busyUserId === member.id}
+                          onClick={() => setMemberAccess(member.id, false)}
+                          className="text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-50"
                         >
-                          {member.subscribed ? 'Pro' : 'No access'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {isBillingAdminRole(member.role) ? (
-                          <span className="text-sm text-slate-500">Billing admin</span>
-                        ) : !billing.billing_active ? (
-                          <span className="text-sm text-slate-500">Subscribe first</span>
-                        ) : member.pro_access ? (
-                          <button
-                            type="button"
-                            disabled={busyUserId === member.id}
-                            onClick={() => setMemberAccess(member.id, false)}
-                            className="text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-50"
-                          >
-                            {busyUserId === member.id ? 'Updating…' : 'Revoke'}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={busyUserId === member.id}
-                            onClick={() => setMemberAccess(member.id, true)}
-                            className="text-sm font-medium text-brand-ink hover:text-brand disabled:opacity-50"
-                          >
-                            {busyUserId === member.id ? 'Updating…' : 'Grant access'}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                          {busyUserId === member.id ? 'Updating…' : 'Revoke'}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={busyUserId === member.id}
+                          onClick={() => setMemberAccess(member.id, true)}
+                          className="text-sm font-medium text-brand-ink hover:text-brand disabled:opacity-50"
+                        >
+                          {busyUserId === member.id ? 'Updating…' : 'Grant access'}
+                        </button>
+                      )}
+                    </DataTableCell>
+                  </DataTableRow>
+                ))
+              )}
+            </DataTableBody>
+          </DataTable>
 
           <PaginationBar meta={meta} path="/admin/subscriptions" label="members" />
         </section>
