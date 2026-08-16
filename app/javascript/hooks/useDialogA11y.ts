@@ -9,6 +9,14 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ')
 
+type DialogStackEntry = {
+  id: symbol
+  onClose: () => void
+}
+
+/** Topmost open dialog owns Escape and Tab trapping (supports nested modals). */
+const dialogStack: DialogStackEntry[] = []
+
 function focusableElements(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
 }
@@ -25,12 +33,14 @@ type UseDialogA11yOptions = {
 
 /**
  * Escape to close, initial focus, Tab cycle, restore focus on close.
+ * Nested dialogs: only the topmost stack entry handles Escape / Tab.
  * Intentional useLayoutEffect/useEffect — dialog behavior, not form prop sync.
  */
 export function useDialogA11y({ open, onClose, containerRef }: UseDialogA11yOptions) {
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
   const previousFocusRef = useRef<HTMLElement | null>(null)
+  const stackIdRef = useRef(Symbol('dialog-a11y'))
 
   useLayoutEffect(() => {
     if (!open) return
@@ -61,17 +71,33 @@ export function useDialogA11y({ open, onClose, containerRef }: UseDialogA11yOpti
   useEffect(() => {
     if (!open) return
 
+    const entry: DialogStackEntry = {
+      id: stackIdRef.current,
+      onClose: () => onCloseRef.current(),
+    }
+    dialogStack.push(entry)
+
+    function isTopmost() {
+      return dialogStack[dialogStack.length - 1]?.id === entry.id
+    }
+
     function onKeyDown(event: KeyboardEvent) {
+      if (!isTopmost()) return
+
       if (event.key === 'Escape') {
         event.preventDefault()
-        onCloseRef.current()
+        event.stopPropagation()
+        entry.onClose()
         return
       }
 
       if (event.key !== 'Tab') return
 
       const container = containerRef.current
-      if (!container) return
+      if (!container) {
+        event.preventDefault()
+        return
+      }
 
       const root = dialogRoot(container)
       const focusable = focusableElements(root)
@@ -97,6 +123,10 @@ export function useDialogA11y({ open, onClose, containerRef }: UseDialogA11yOpti
     }
 
     document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+    return () => {
+      const index = dialogStack.findIndex((item) => item.id === entry.id)
+      if (index >= 0) dialogStack.splice(index, 1)
+      document.removeEventListener('keydown', onKeyDown)
+    }
   }, [open, containerRef])
 }
