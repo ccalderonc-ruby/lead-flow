@@ -1,5 +1,5 @@
-import { Head, Link, useForm } from '@inertiajs/react'
-import { FormEvent } from 'react'
+import { Head, Link, router, useForm } from '@inertiajs/react'
+import { FormEvent, useState } from 'react'
 
 import UserForm, {
   type UserFormOption,
@@ -32,6 +32,7 @@ export default function AdminUsersEdit({
   can_disable: canDisable,
   can_edit_role: canEditRole,
 }: AdminUsersEditProps) {
+  const [resending, setResending] = useState(false)
   const form = useForm<UserFormValues>({
     name: user.name || '',
     email: user.email || '',
@@ -45,6 +46,18 @@ export default function AdminUsersEdit({
   function submit(event: FormEvent) {
     event.preventDefault()
     form.put(`/admin/users/${user.id}`)
+  }
+
+  function resendInvite() {
+    if (resending) return
+    setResending(true)
+    router.post(
+      `/admin/users/${user.id}/resend_invite`,
+      {},
+      {
+        onFinish: () => setResending(false),
+      },
+    )
   }
 
   return (
@@ -64,6 +77,22 @@ export default function AdminUsersEdit({
             Back to users
           </Link>
         </div>
+
+        {user.status === 'active' && (
+          <div className="mt-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-panel px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-600">
+              Send a fresh invite so they can set or reset their password.
+            </p>
+            <button
+              type="button"
+              disabled={resending}
+              onClick={resendInvite}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              {resending ? 'Sending…' : 'Resend invite email'}
+            </button>
+          </div>
+        )}
 
         <UserForm
           form={form}

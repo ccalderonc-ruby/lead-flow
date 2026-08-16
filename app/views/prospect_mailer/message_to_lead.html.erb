@@ -1,0 +1,5 @@
+<p>Hi <%= @lead.name.split(/\s+/).first %>,</p>
+
+<%= simple_format(@body) %>
+
+<p>— <%= @sender.name %><br><%= @sender.email %></p>

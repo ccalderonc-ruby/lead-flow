@@ -15,12 +15,15 @@ export type UserFormValues = {
   country_id: string
   status: string
   password: string
+  send_invite?: boolean
 }
 
 type UserFormProps = {
   form: {
     data: UserFormValues
-    setData: (key: keyof UserFormValues, value: string) => void
+    setData: {
+      (key: keyof UserFormValues, value: string | boolean): void
+    }
     processing: boolean
     errors: Record<string, string | string[] | undefined>
   }
@@ -30,6 +33,7 @@ type UserFormProps = {
   canDisable: boolean
   canEditRole: boolean
   passwordRequired: boolean
+  showInviteOption?: boolean
   submitLabel: string
   processingLabel: string
   onSubmit: (event: FormEvent) => void
@@ -49,11 +53,14 @@ export default function UserForm({
   canDisable,
   canEditRole,
   passwordRequired,
+  showInviteOption = false,
   submitLabel,
   processingLabel,
   onSubmit,
 }: UserFormProps) {
   const { data, setData, processing, errors } = form
+  const sendInvite = Boolean(data.send_invite)
+  const passwordNeeded = passwordRequired && !sendInvite
 
   return (
     <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-slate-200 bg-panel p-6">
@@ -152,19 +159,44 @@ export default function UserForm({
         <p className="text-sm text-slate-500">You cannot disable your own account.</p>
       )}
 
+      {showInviteOption && (
+        <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={sendInvite}
+            onChange={(event) => setData('send_invite', event.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+          />
+          <span>
+            <span className="font-medium text-slate-900">Send invite email</span>
+            <span className="mt-0.5 block text-slate-600">
+              Email a link so they can set their own password. You can leave password blank.
+            </span>
+          </span>
+        </label>
+      )}
+
       <TextField
         id="password"
-        label={passwordRequired ? 'Password' : 'Password (leave blank to keep current)'}
+        label={
+          passwordNeeded
+            ? 'Password'
+            : sendInvite
+              ? 'Password (optional)'
+              : 'Password (leave blank to keep current)'
+        }
         type="password"
-        required={passwordRequired}
-        minLength={passwordRequired ? 8 : undefined}
+        required={passwordNeeded}
+        minLength={passwordNeeded || data.password.length > 0 ? 8 : undefined}
         autoComplete="new-password"
         value={data.password}
         onChange={(value) => setData('password', value)}
         error={fieldError(errors, 'password')}
       />
       <p className="-mt-3 text-sm text-slate-500">
-        Minimum 8 characters{passwordRequired ? '' : ' when changing'}.
+        {sendInvite
+          ? 'Minimum 8 characters if you set a temporary password.'
+          : `Minimum 8 characters${passwordNeeded ? '' : ' when changing'}.`}
       </p>
 
       <button

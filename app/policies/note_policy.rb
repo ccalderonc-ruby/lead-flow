@@ -17,10 +17,14 @@ class NotePolicy < ApplicationPolicy
   end
 
   def update?
+    return false if email_log?
+
     create?
   end
 
   def destroy?
+    return false if email_log?
+
     admin? || (advisor? && lead_assigned_to_user?)
   end
 
@@ -52,6 +56,10 @@ class NotePolicy < ApplicationPolicy
   end
 
   private
+
+  def email_log?
+    record.respond_to?(:email_log?) && record.email_log?
+  end
 
   def record_lead
     linked_lead

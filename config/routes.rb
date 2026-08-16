@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     collection do
       get :export
     end
+    resources :emails, only: :create, module: :leads
   end
   resources :tasks, only: %i[index create update]
   resources :notes, only: %i[index create update destroy]
@@ -25,7 +26,11 @@ Rails.application.routes.draw do
   resources :assistants, only: %i[index create destroy]
 
   namespace :admin do
-    resources :users, only: %i[index new create edit update]
+    resources :users, only: %i[index new create edit update] do
+      member do
+        post :resend_invite
+      end
+    end
     resources :roles, only: :index
     resources :subscriptions, only: %i[index create] do
       collection do

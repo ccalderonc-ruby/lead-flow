@@ -42,4 +42,12 @@ class NoteTest < ActiveSupport::TestCase
     refute note.valid?
     assert_includes note.errors[:base], "must link to a lead or an opportunity"
   end
+
+  test "email log notes are not editable" do
+    note = notes(:discovery)
+    note.source = Note::SOURCES[:email]
+
+    assert note.email_log?
+    refute note.editable?
+  end
 end

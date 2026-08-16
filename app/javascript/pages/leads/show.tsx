@@ -14,6 +14,7 @@ import {
 } from '@/components/notes/noteFormErrors'
 import OpportunityFormModal from '@/components/opportunities/OpportunityFormModal'
 import { hasOpportunityCreateErrors } from '@/components/opportunities/opportunityFormErrors'
+import ProspectEmailModal from '@/components/leads/ProspectEmailModal'
 import TaskFormModal, {
   type EditableTask,
 } from '@/components/tasks/TaskFormModal'
@@ -94,6 +95,7 @@ export default function LeadsShow({
   can_create_meeting: canCreateMeeting,
   meeting_form: meetingForm,
   can_create_note: canCreateNote,
+  can_email: canEmail = false,
   note_form: noteForm,
   can_create_opportunity: canCreateOpportunity,
   opportunity_form: opportunityForm,
@@ -121,6 +123,10 @@ export default function LeadsShow({
   const meetingErrorKey = meetingErrorsPresent ? JSON.stringify(pageErrors) : null
   const errorNoteId = noteIdFromErrors(pageErrors)
   const opportunityErrorKey = opportunityErrorsPresent ? JSON.stringify(pageErrors) : null
+  const prospectEmailErrorsPresent =
+    pageErrors?.form != null &&
+    String(Array.isArray(pageErrors.form) ? pageErrors.form[0] : pageErrors.form) === 'prospect_email'
+  const prospectEmailErrorKey = prospectEmailErrorsPresent ? JSON.stringify(pageErrors) : null
   const [taskManualOpen, setTaskManualOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<EditableTask | null>(null)
   const [noteManualOpen, setNoteManualOpen] = useState(false)
@@ -128,6 +134,13 @@ export default function LeadsShow({
   const [meetingManualOpen, setMeetingManualOpen] = useState(false)
   const [editingMeeting, setEditingMeeting] = useState<EditableMeeting | null>(null)
   const [opportunityManualOpen, setOpportunityManualOpen] = useState(false)
+  const [emailManualOpen, setEmailManualOpen] = useState(false)
+  const [dismissedProspectEmailErrorKey, setDismissedProspectEmailErrorKey] = useState<string | null>(
+    null,
+  )
+  const emailModalOpen =
+    emailManualOpen ||
+    (prospectEmailErrorKey != null && dismissedProspectEmailErrorKey !== prospectEmailErrorKey)
   const [dismissedTaskErrorKey, setDismissedTaskErrorKey] = useState<string | null>(null)
   const [dismissedNoteCreateErrorKey, setDismissedNoteCreateErrorKey] = useState<string | null>(null)
   const [dismissedNoteUpdateErrorKey, setDismissedNoteUpdateErrorKey] = useState<string | null>(null)
@@ -294,10 +307,19 @@ export default function LeadsShow({
             <h1 className="text-2xl font-semibold text-slate-900">{lead.name}</h1>
             <p className="mt-1 text-slate-600">Lead detail and related activity.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
               Back to leads
             </Link>
+            {canEmail && lead.email && (
+              <button
+                type="button"
+                onClick={() => setEmailManualOpen(true)}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-panel px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Email
+              </button>
+            )}
             {lead.can_update && (
               <Link
                 href={`/leads/${lead.id}/edit`}
@@ -588,6 +610,20 @@ export default function LeadsShow({
           defaults={opportunityForm.defaults}
           returnTo={opportunityForm.return_to}
           lockedLeadId={lead.id}
+        />
+      )}
+
+      {canEmail && lead.email && (
+        <ProspectEmailModal
+          key="lead-prospect-email"
+          open={emailModalOpen}
+          onClose={() => {
+            setEmailManualOpen(false)
+            if (prospectEmailErrorKey != null) setDismissedProspectEmailErrorKey(prospectEmailErrorKey)
+          }}
+          leadId={lead.id}
+          leadName={lead.name}
+          leadEmail={lead.email}
         />
       )}
     </AuthenticatedPage>

@@ -39,6 +39,7 @@ export default function AdminUsersNew({
     country_id: user.country_id ? String(user.country_id) : '',
     status: user.status || 'active',
     password: '',
+    send_invite: true,
   })
 
   function submit(event: FormEvent) {
@@ -54,7 +55,9 @@ export default function AdminUsersNew({
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">New user</h1>
-            <p className="mt-1 text-slate-600">Onboard a teammate with a role and password.</p>
+            <p className="mt-1 text-slate-600">
+              Onboard a teammate with a role. Invite them by email or set a password yourself.
+            </p>
           </div>
           <Link
             href="/admin/users"
@@ -72,6 +75,7 @@ export default function AdminUsersNew({
           canDisable={canDisable}
           canEditRole={canEditRole}
           passwordRequired
+          showInviteOption
           submitLabel="Create user"
           processingLabel="Saving…"
           onSubmit={submit}

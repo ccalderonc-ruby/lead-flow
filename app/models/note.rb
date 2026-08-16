@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 class Note < ApplicationRecord
+  SOURCES = {
+    manual: "manual",
+    email: "email"
+  }.freeze
+
   belongs_to :lead, optional: true
   belongs_to :opportunity, optional: true
   belongs_to :user
@@ -9,6 +14,7 @@ class Note < ApplicationRecord
   has_many :tags, through: :note_tags
 
   validates :content, presence: true
+  validates :source, inclusion: { in: SOURCES.values }
   validate :exactly_one_link_target
 
   def linked_lead
@@ -22,6 +28,15 @@ class Note < ApplicationRecord
   def opportunity_note?
     opportunity_id.present?
   end
+
+  def email_log?
+    source == SOURCES[:email]
+  end
+
+  def editable?
+    !email_log?
+  end
+
 
   private
 
