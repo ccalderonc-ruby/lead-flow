@@ -8,6 +8,7 @@ billing_admin:
   status: active
   subscription_status: inactive
   pro_access: false
+  last_login_at: <%= 1.day.ago.iso8601 %>
 
 admin:
   name: Admin User
@@ -19,6 +20,7 @@ admin:
   status: active
   subscription_status: inactive
   pro_access: false
+  last_login_at: <%= 1.day.ago.iso8601 %>
 
 admin_other:
   name: Other Admin
@@ -30,6 +32,7 @@ admin_other:
   status: active
   subscription_status: inactive
   pro_access: false
+  last_login_at: <%= 1.day.ago.iso8601 %>
 
 advisor:
   name: Alex Advisor
@@ -41,6 +44,7 @@ advisor:
   status: active
   subscription_status: inactive
   pro_access: false
+  last_login_at: <%= 1.day.ago.iso8601 %>
 
 advisor_subscribed:
   name: Sam Subscribed
@@ -52,6 +56,7 @@ advisor_subscribed:
   status: active
   subscription_status: inactive
   pro_access: true
+  last_login_at: <%= 1.day.ago.iso8601 %>
 
 assistant:
   name: Casey Assistant
@@ -63,3 +68,4 @@ assistant:
   status: active
   subscription_status: inactive
   pro_access: false
+  last_login_at: <%= 1.day.ago.iso8601 %>

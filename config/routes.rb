@@ -8,6 +8,9 @@ Rails.application.routes.draw do
   get "login", to: "sessions#new", as: :login
   delete "logout", to: "sessions#destroy", as: :logout
 
+  resource :password_reset, only: %i[new create edit update]
+  get "forgot-password", to: "password_resets#new", as: :forgot_password
+
   root "dashboard#index"
 
   resources :leads, only: %i[index show new create edit update] do

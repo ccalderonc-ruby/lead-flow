@@ -17,8 +17,13 @@ class SessionsController < InertiaController
     user = User.find_by(email: normalized_email)
 
     if user&.authenticate(params[:password]) && user.active?
-      start_new_session_for(user)
-      flash[:notice] = "Signed in successfully."
+      first_session = start_new_session_for(user)
+      flash[:notice] =
+        if first_session
+          "Welcome to LeadFlow. Create your first lead to get started."
+        else
+          "Signed in successfully."
+        end
 
       if request.headers["X-Inertia"].present?
         inertia_location root_url

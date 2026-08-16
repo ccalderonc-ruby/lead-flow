@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_09_191508) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_16_183956) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -203,6 +203,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_191508) do
     t.datetime "last_login_at"
     t.string "name"
     t.string "password_digest"
+    t.datetime "password_reset_sent_at"
+    t.string "password_reset_token_digest"
     t.boolean "pro_access", default: false, null: false
     t.bigint "role_id", null: false
     t.string "status"
@@ -215,6 +217,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_191508) do
     t.datetime "updated_at", null: false
     t.index ["country_id"], name: "index_users_on_country_id"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["password_reset_token_digest"], name: "index_users_on_password_reset_token_digest", unique: true
     t.index ["role_id"], name: "index_users_on_role_id"
     t.index ["team_id"], name: "index_users_on_team_id"
   end

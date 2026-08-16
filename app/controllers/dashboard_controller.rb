@@ -18,6 +18,7 @@ class DashboardController < InertiaController
       lead_stage_id: lead_stage_id
     ).call
     lead_options = form_lead_options
+    first_session = session.delete(:first_session)
 
     render inertia: "dashboard/index", props: {
       metrics: payload[:metrics],
@@ -37,8 +38,10 @@ class DashboardController < InertiaController
         name: current_user.name,
         first_name: current_user.name.to_s.split(/\s+/).first,
         role_label: role_label_for(view, selected_advisor),
-        date_label: Time.zone.today.strftime("%A, %B %-d, %Y")
+        date_label: Time.zone.today.strftime("%A, %B %-d, %Y"),
+        first_session: first_session == true
       },
+      onboarding: onboarding_props(subject),
       actions: {
         can_create_lead: policy(Lead).create?,
         can_create_task: can_create_tasks?,
@@ -72,6 +75,87 @@ class DashboardController < InertiaController
   end
 
   private
+
+  def onboarding_props(subject)
+    empty = LeadPolicy::Scope.new(subject, Lead).resolve.none?
+    return { show: false } unless empty
+
+    role = current_user.role.name
+    {
+      show: true,
+      title: onboarding_title(role),
+      description: onboarding_description(role),
+      checklist: onboarding_checklist(role),
+      primary_action: onboarding_primary_action(role),
+      secondary_action: onboarding_secondary_action(role)
+    }
+  end
+
+  def onboarding_title(role)
+    case role
+    when "admin", "billing_admin"
+      "Set up your team’s pipeline"
+    when "assistant"
+      "You’re ready to support advisors"
+    else
+      "Create your first lead"
+    end
+  end
+
+  def onboarding_description(role)
+    case role
+    when "admin", "billing_admin"
+      "Your organization doesn’t have any leads yet. Add a prospect or invite teammates so advisors can start working."
+    when "assistant"
+      "No leads are in your assigned scope yet. Once an advisor adds prospects, they’ll show up here for you to help with."
+    else
+      "Your pipeline is empty. Add a prospect to start tracking follow-ups, meetings, and opportunities."
+    end
+  end
+
+  def onboarding_checklist(role)
+    case role
+    when "admin", "billing_admin"
+      [
+        { id: "users", label: "Review teammates under Users", href: "/admin/users", done: false },
+        { id: "lead", label: "Create your first lead", action: "create_lead", done: false },
+        { id: "pipeline", label: "Open the Opportunities board when deals appear", href: "/opportunities", done: false }
+      ]
+    when "assistant"
+      [
+        { id: "leads", label: "Browse leads for your assigned advisors", href: "/leads", done: false },
+        { id: "tasks", label: "Check tasks you can help complete", href: "/tasks", done: false },
+        { id: "notes", label: "Add notes as conversations happen", href: "/notes", done: false }
+      ]
+    else
+      [
+        { id: "lead", label: "Create your first lead", action: "create_lead", done: false },
+        { id: "follow_up", label: "Schedule a task or meeting from the lead", href: "/leads", done: false },
+        { id: "opportunity", label: "Track a deal on the Opportunities board", href: "/opportunities", done: false }
+      ]
+    end
+  end
+
+  def onboarding_primary_action(role)
+    if role == "assistant"
+      { label: "View leads", href: "/leads" }
+    elsif policy(Lead).create?
+      { label: "Create lead", action: "create_lead" }
+    else
+      { label: "View leads", href: "/leads" }
+    end
+  end
+
+  def onboarding_secondary_action(role)
+    case role
+    when "admin", "billing_admin"
+      { label: "Manage users", href: "/admin/users" }
+    when "assistant"
+      { label: "View tasks", href: "/tasks" }
+    else
+      { label: "Browse leads", href: "/leads" }
+    end
+  end
 
   def resolve_activity_days
     requested = Array(params[:activity_days]).first.presence || session[SESSION_ACTIVITY_DAYS_KEY]

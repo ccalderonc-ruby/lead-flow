@@ -41,6 +41,8 @@ class User < ApplicationRecord
   validates :subscription_status, inclusion: { in: SUBSCRIPTION_STATUSES }
   validates :password, length: { minimum: 8 }, allow_nil: true
 
+  PASSWORD_RESET_EXPIRY = 2.hours
+
   scope :advisors, -> { joins(:role).where(roles: { name: "advisor" }) }
   scope :assistants, -> { joins(:role).where(roles: { name: "assistant" }) }
   scope :on_team, ->(team) { where(team_id: team.id) }
@@ -109,6 +111,44 @@ class User < ApplicationRecord
     return false if advisor_user_id.blank?
 
     assigned_advisor_ids.include?(advisor_user_id)
+  end
+
+  def generate_password_reset_token!
+    raw = SecureRandom.urlsafe_base64(32)
+    update!(
+      password_reset_token_digest: self.class.digest_password_reset_token(raw),
+      password_reset_sent_at: Time.current
+    )
+    raw
+  end
+
+  def password_reset_token_valid?(raw_token)
+    return false if password_reset_token_digest.blank? || password_reset_sent_at.blank?
+    return false if password_reset_sent_at < PASSWORD_RESET_EXPIRY.ago
+    return false if raw_token.blank?
+
+    ActiveSupport::SecurityUtils.secure_compare(
+      password_reset_token_digest,
+      self.class.digest_password_reset_token(raw_token)
+    )
+  end
+
+  def clear_password_reset!
+    update!(password_reset_token_digest: nil, password_reset_sent_at: nil)
+  end
+
+  def self.digest_password_reset_token(raw_token)
+    Digest::SHA256.hexdigest(raw_token.to_s)
+  end
+
+  def self.find_by_valid_password_reset_token(raw_token)
+    return nil if raw_token.blank?
+
+    user = find_by(password_reset_token_digest: digest_password_reset_token(raw_token))
+    return nil unless user&.password_reset_token_valid?(raw_token)
+    return nil unless user.active?
+
+    user
   end
 
   private
