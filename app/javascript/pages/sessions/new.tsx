@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import FlashBanner from '@/components/ui/FlashBanner'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { armAuthBackGuard, clearAuthBackGuard } from '@/lib/authBackGuard'
 import type { SharedProps } from '@/types'
 
 export default function Login() {
@@ -35,7 +36,12 @@ export default function Login() {
 
   function submit(event: React.FormEvent) {
     event.preventDefault()
-    post('/session', { replace: true })
+    armAuthBackGuard()
+    post('/session', {
+      replace: true,
+      onError: () => clearAuthBackGuard(),
+      onCancel: () => clearAuthBackGuard(),
+    })
   }
 
   return (
