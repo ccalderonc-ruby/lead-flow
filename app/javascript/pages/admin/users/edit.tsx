@@ -6,6 +6,7 @@ import UserForm, {
   type UserFormValues,
 } from '@/components/admin/UserForm'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import PageHeader from '@/components/ui/PageHeader'
 
 type AdminUsersEditProps = {
   user: {
@@ -65,21 +66,21 @@ export default function AdminUsersEdit({
       <Head title={`Edit ${user.name}`} />
 
       <div className="mx-auto max-w-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Edit user</h1>
-            <p className="mt-1 text-slate-600">Update role, status, or password.</p>
-          </div>
-          <Link
-            href="/admin/users"
-            className="text-sm font-medium text-brand-ink hover:text-brand"
-          >
-            Back to users
-          </Link>
-        </div>
+        <PageHeader
+          title="Edit user"
+          description="Update role, status, or password."
+          actions={
+            <Link
+              href="/admin/users"
+              className="text-sm font-medium text-brand-ink hover:text-brand"
+            >
+              Back to users
+            </Link>
+          }
+        />
 
         {user.status === 'active' && (
-          <div className="mt-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-panel px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-panel px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-600">
               Send a fresh invite so they can set or reset their password.
             </p>

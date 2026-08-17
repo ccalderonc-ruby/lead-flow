@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 import { SelectField } from '@/components/ui/FormFields'
 import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
 import PaginationBar, { type PaginationMeta } from '@/components/ui/PaginationBar'
 import {
   DataTable,
@@ -87,18 +88,13 @@ export default function AssistantsIndex({
       <Head title="Assistants" />
 
       <div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Assistants</h1>
-            <p className="mt-1 text-slate-600">
-              Assign assistants who can view and support {advisor.name}&apos;s leads, tasks,
-              meetings, notes, and opportunities.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Assistants"
+          description={`Assign assistants who can view and support ${advisor.name}'s leads, tasks, meetings, notes, and opportunities.`}
+        />
 
         {managedAdvisors.length > 0 && (
-          <div className="mt-6 max-w-md">
+          <div className="max-w-md">
             <SelectField
               id="managed-advisor"
               label="Advisor"

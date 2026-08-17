@@ -5,17 +5,20 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Visily LeadFlow brand tokens (U3) + day/night surfaces */
+/* LeadFlow Figma / Visily brand tokens (U3) */
 @theme {
-  --color-brand: #f97316;
-  --color-brand-hover: #ea580c;
+  --color-brand: #f08c2d;
+  --color-brand-hover: #e07b1c;
   --color-brand-muted: #ffedd5;
   --color-brand-subtle: #fff7ed;
   --color-brand-ink: #c2410c;
-  --color-sidebar: #1e1b4b;
-  --color-sidebar-hover: #312e81;
-  --color-sidebar-border: #3730a3;
-  --color-surface: #f8fafc;
+  --color-navy: #2a2458;
+  --color-navy-hover: #231f4d;
+  --color-sidebar: #1a1648;
+  --color-sidebar-hover: #2a2558;
+  --color-sidebar-border: #2f2a5c;
+  --color-sidebar-active: rgb(255 255 255 / 0.1);
+  --color-surface: #f5f7fa;
   --color-panel: #ffffff;
   --color-ink: #0f172a;
 }
@@ -30,6 +33,12 @@ html.dark {
   --color-brand-muted: #431407;
   --color-brand-subtle: #7c2d12;
   --color-brand-ink: #fdba74;
+  --color-navy: #c4b5fd;
+  --color-navy-hover: #a78bfa;
+  --color-sidebar: #0f0d24;
+  --color-sidebar-hover: #1a1648;
+  --color-sidebar-border: #2a2558;
+  --color-sidebar-active: rgb(255 255 255 / 0.08);
 
   --color-slate-50: #0f172a;
   --color-slate-100: #1e293b;

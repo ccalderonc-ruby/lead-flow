@@ -1,11 +1,12 @@
 import { Head, Link, useForm } from '@inertiajs/react'
 import { FormEvent } from 'react'
 
+import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import PageHeader from '@/components/ui/PageHeader'
 import UserForm, {
   type UserFormOption,
   type UserFormValues,
 } from '@/components/admin/UserForm'
-import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
 
 type AdminUsersNewProps = {
   user: {
@@ -52,20 +53,18 @@ export default function AdminUsersNew({
       <Head title="New user" />
 
       <div className="mx-auto max-w-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">New user</h1>
-            <p className="mt-1 text-slate-600">
-              Onboard a teammate with a role. Invite them by email or set a password yourself.
-            </p>
-          </div>
-          <Link
-            href="/admin/users"
-            className="text-sm font-medium text-brand-ink hover:text-brand"
-          >
-            Back to users
-          </Link>
-        </div>
+        <PageHeader
+          title="New user"
+          description="Onboard a teammate with a role. Invite them by email or set a password yourself."
+          actions={
+            <Link
+              href="/admin/users"
+              className="text-sm font-medium text-brand-ink hover:text-brand"
+            >
+              Back to users
+            </Link>
+          }
+        />
 
         <UserForm
           form={form}

@@ -36,7 +36,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | **P3** | B9 | Email: user invite + email prospects | **L–XL** | ✅ shipped | Reuses password-reset invite link + app SMTP (`MAIL_FROM`) |
 | **P3** | U1 | UX: empty / loading / feedback polish | **S–M** | ✅ shipped | EmptyState + VisitProgress + FlashBanner |
 | **P3** | U2 | UX: forms & filters clarity | **S–M** | ✅ shipped | ActiveFilters + LeadForm FormFields + modal validation |
-| **P3** | U3 | UX: Visily visual alignment pass | **M–L** | 2–4 days | Design reference export |
+| **P3** | U3 | UX: Visily visual alignment pass | **M–L** | ✅ shipped | Tokens + chrome + page headers (Figma screenshots) |
 | **P4** | U4 | UX: accessibility hardening | **M** | 1.5–3 days | New modals must keep `useDialogA11y` |
 | **P4** | U5 | UX: responsive / mobile pass | **M** | 2–3 days | — |
 | **P4** | U6 | UX: onboarding / first-run guidance | **M** | 1.5–3 days | — |
@@ -65,7 +65,7 @@ Build **permission foundations** before dashboards that depend on “whose data.
 | Assistant access | Broad assistant lead visibility via policies — **no advisor↔assistant assignment table** |
 | Video meetings | Manual `virtual_link` / location fields only — **no Zoom or Google Meet API** |
 | Email | **None** — no invite mail on user create; no outbound mail to leads/prospects |
-| UX / UI | Functional Tailwind UI; Visily was the design reference — **no dedicated polish pass** yet (empty/loading states, mobile, a11y hardening, onboarding) |
+| UX / UI | Visily/Figma alignment pass shipped (U3); further a11y / mobile / onboarding still open |
 
 ---
 
@@ -244,14 +244,15 @@ Add screen-specific notes under each item as you decide them.
 
 ---
 
-### U3 — Visily visual alignment pass · `bl-u3` · **M–L · 2–4 days** · P3
+### U3 — Visily visual alignment pass · `bl-u3` · **M–L** · ✅ shipped · P3
 
-**Want**
-- Closer match to Visily screens: spacing, typography hierarchy, sidebar/chrome, cards vs tables
-- Shared layout tokens (CSS variables) so new pages stay consistent
-- Dashboard and key list pages look intentional, not “default Tailwind admin”
-
-**Decide first:** which Visily screens are the source of truth for v1 polish
+**Shipped**
+- Brand tokens (orange `#f08c2d`, navy, sidebar `#1a1648`, surface canvas) in `application.css`
+- Sidebar chrome: LeadFlow / CRM Premium mark, muted active pill + orange dot, avatar initials
+- Shared `PageHeader`, `Button` navy variant, `StageBadge` on leads
+- Page headers/CTAs aligned on dashboard, leads, tasks, meetings, opportunities, notes, assistants, admin
+- Opportunity board column/card polish; dashboard org/advisor switcher uses navy (CTAs stay orange)
+- Out of scope for v1: calendar meetings UI, Forecast/Table views, new Figma-only entities
 
 ---
 

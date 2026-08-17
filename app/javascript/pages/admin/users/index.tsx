@@ -1,7 +1,9 @@
 import { Head, Link } from '@inertiajs/react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
 import PaginationBar from '@/components/ui/PaginationBar'
 import {
   DataTable,
@@ -46,23 +48,17 @@ export default function AdminUsersIndex({
       <Head title="Users" />
 
       <div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Users</h1>
-            <p className="mt-1 text-slate-600">Create and manage team accounts.</p>
-          </div>
+        <PageHeader
+          title="Users"
+          description="Create and manage team accounts."
+          actions={
+            canCreate ? (
+              <Button href="/admin/users/new">+ New User</Button>
+            ) : undefined
+          }
+        />
 
-          {canCreate && (
-            <Link
-              href="/admin/users/new"
-              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
-            >
-              New user
-            </Link>
-          )}
-        </div>
-
-        <DataTable className="mt-8">
+        <DataTable className="mt-2">
           <DataTableHead>
             <tr>
               <DataTableHeaderCell>Name</DataTableHeaderCell>

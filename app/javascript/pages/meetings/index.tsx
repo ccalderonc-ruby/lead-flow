@@ -2,7 +2,9 @@ import { Head, Link, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import Button from '@/components/ui/Button'
 import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
 import PaginationBar from '@/components/ui/PaginationBar'
 import {
   DataTable,
@@ -135,24 +137,19 @@ export default function MeetingsIndex({
       <Head title="Meetings" />
 
       <div>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Meetings</h1>
-            <p className="mt-1 text-slate-600">Scheduled client conversations.</p>
-          </div>
+        <PageHeader
+          title="Meetings & Consultations"
+          description="Keep in touch with prospects and active clients."
+          actions={
+            canCreate ? (
+              <Button type="button" onClick={openCreateModal}>
+                + Schedule Meeting
+              </Button>
+            ) : undefined
+          }
+        />
 
-          {canCreate && (
-            <button
-              type="button"
-              onClick={openCreateModal}
-              className="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
-            >
-              Schedule meeting
-            </button>
-          )}
-        </div>
-
-        <DataTable className="mt-8">
+        <DataTable className="mt-2">
           <DataTableHead>
             <tr>
               <DataTableHeaderCell>Title</DataTableHeaderCell>

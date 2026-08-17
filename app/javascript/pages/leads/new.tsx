@@ -8,6 +8,7 @@ import LeadForm, {
   type LeadFormValues,
 } from '@/components/leads/LeadForm'
 import AuthenticatedPage from '@/components/layouts/AuthenticatedPage'
+import PageHeader from '@/components/ui/PageHeader'
 
 type LeadsNewProps = {
   countries: LeadFormOption[]
@@ -46,15 +47,15 @@ export default function LeadsNew({ countries, stages, assignees, defaults }: Lea
       <Head title="New lead" />
 
       <div className="mx-auto max-w-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">New lead</h1>
-            <p className="mt-1 text-slate-600">Add a prospect to the pipeline.</p>
-          </div>
-          <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
-            Back to leads
-          </Link>
-        </div>
+        <PageHeader
+          title="New lead"
+          description="Add a prospect to the pipeline."
+          actions={
+            <Link href="/leads" className="text-sm font-medium text-brand-ink hover:text-brand">
+              Back to leads
+            </Link>
+          }
+        />
 
         <LeadForm
           form={form}

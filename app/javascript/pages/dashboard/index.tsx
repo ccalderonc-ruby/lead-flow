@@ -349,7 +349,7 @@ export default function DashboardIndex({
                   onClick={() => setView('organization')}
                   className={
                     view === 'organization'
-                      ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11'
+                      ? 'rounded-md bg-navy px-3 py-2.5 text-sm font-medium text-white min-h-11'
                       : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11'
                   }
                 >
@@ -362,7 +362,7 @@ export default function DashboardIndex({
                   disabled={advisors.length === 0}
                   className={
                     view === 'advisor'
-                      ? 'rounded-md bg-brand px-3 py-2.5 text-sm font-medium text-white min-h-11 disabled:cursor-not-allowed disabled:opacity-50'
+                      ? 'rounded-md bg-navy px-3 py-2.5 text-sm font-medium text-white min-h-11 disabled:cursor-not-allowed disabled:opacity-50'
                       : 'rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-11 disabled:cursor-not-allowed disabled:opacity-50'
                   }
                 >
@@ -423,7 +423,7 @@ export default function DashboardIndex({
           <div className="space-y-6">
             <section className="rounded-xl border border-slate-200 bg-panel shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Upcoming activities</h2>
+                <h2 className="text-lg font-semibold text-ink">Upcoming activities</h2>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                   <div className="w-full sm:w-40">
                     <SelectField
@@ -519,7 +519,7 @@ export default function DashboardIndex({
 
             <section className="overflow-hidden rounded-xl border border-slate-200 bg-panel shadow-sm">
               <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">Recent leads</h2>
+                <h2 className="text-lg font-semibold text-ink">Recent leads</h2>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                   <div className="w-full sm:w-44">
                     <SelectField
@@ -587,7 +587,7 @@ export default function DashboardIndex({
 
           <aside className="space-y-6">
             <section className="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">Quick actions</h2>
+              <h2 className="text-lg font-semibold text-ink">Quick actions</h2>
               <div className="mt-4 flex flex-col gap-2">
                 {actions.can_create_lead ? (
                   <button
@@ -630,7 +630,7 @@ export default function DashboardIndex({
 
             <section className="rounded-xl border border-slate-200 bg-panel p-5 shadow-sm">
               <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-lg font-semibold text-slate-900">Pipeline snapshot</h2>
+                <h2 className="text-lg font-semibold text-ink">Pipeline snapshot</h2>
                 <p className="text-sm font-semibold text-brand-ink">
                   {compactCurrency(metrics.pipeline_value)}
                 </p>
