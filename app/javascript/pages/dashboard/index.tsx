@@ -23,6 +23,7 @@ import TaskFormModal, {
 import { hasTaskCreateErrors } from '@/components/tasks/taskFormErrors'
 import { SelectField } from '@/components/ui/FormFields'
 import { formatCurrency } from '@/lib/format'
+import { formatRoleLabel } from '@/lib/navigation'
 import type { SharedProps } from '@/types'
 
 const DASHBOARD_RETURN_TO = '/'
@@ -44,6 +45,7 @@ export type DashboardMetrics = {
 export type DashboardAdvisorOption = {
   id: number
   name: string
+  role?: string
 }
 
 export type DashboardActivity = {
@@ -283,7 +285,7 @@ export default function DashboardIndex({
         if (advisorId) params.advisor_id = advisorId
       }
     }
-    router.get('/', params, { preserveState: true, replace: true })
+    router.get('/', params, { preserveState: false, replace: true })
   }
 
   function setView(nextView: 'organization' | 'advisor') {
@@ -380,7 +382,9 @@ export default function DashboardIndex({
                   >
                     {advisors.map((advisor) => (
                       <option key={advisor.id} value={String(advisor.id)}>
-                        {advisor.name}
+                        {advisor.role
+                          ? `${advisor.name} (${formatRoleLabel(advisor.role)})`
+                          : advisor.name}
                       </option>
                     ))}
                   </SelectField>

@@ -199,6 +199,50 @@ class Admin::SubscriptionsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/resumed/i, flash[:notice])
   end
 
+  test "resume shows a clear alert when the Stripe API key is expired" do
+    sign_in_as @billing_admin
+    @billing_admin.update!(
+      subscription_status: "active",
+      stripe_subscription_id: "sub_test_resume",
+      subscription_cancel_at_period_end: true
+    )
+
+    stub_singleton(StripeSubscription, :update, ->(*) {
+      raise Stripe::AuthenticationError, "Expired API Key provided: rk_test_xxx"
+    }) do
+      post resume_admin_subscriptions_path
+    end
+
+    assert_redirected_to admin_subscriptions_path
+    assert @billing_admin.reload.subscription_cancel_at_period_end?
+    assert_match(/Stripe API key expired/i, flash[:alert])
+  end
+
+  test "resume starts checkout when the Stripe subscription is from another account" do
+    sign_in_as @billing_admin
+    @billing_admin.update!(
+      subscription_status: "active",
+      stripe_customer_id: "cus_old_account",
+      stripe_subscription_id: "sub_old_account",
+      subscription_cancel_at_period_end: true
+    )
+    fake_session = Struct.new(:url).new("https://checkout.stripe.com/c/renew")
+
+    stub_singleton(StripeSubscription, :update, ->(*) {
+      raise Stripe::InvalidRequestError.new("No such subscription: 'sub_old_account'", "id")
+    }) do
+      stub_singleton(StripeCheckout, :create_session, fake_session) do
+        post resume_admin_subscriptions_path
+      end
+    end
+
+    assert_redirected_to "https://checkout.stripe.com/c/renew"
+    @billing_admin.reload
+    assert_nil @billing_admin.stripe_subscription_id
+    assert_nil @billing_admin.stripe_customer_id
+    assert_not @billing_admin.billing_active?
+  end
+
   test "regular admin cannot cancel subscription" do
     users(:billing_admin).update!(subscription_status: "active", stripe_subscription_id: "sub_x")
     sign_in_as users(:admin)

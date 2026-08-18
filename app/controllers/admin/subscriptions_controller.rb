@@ -46,47 +46,7 @@ module Admin
         return
       end
 
-      session_params = {
-        mode: "subscription",
-        line_items: [ { price: StripeConfig.price_id, quantity: 1 } ],
-        success_url: "#{admin_subscriptions_url}?checkout=success",
-        cancel_url: "#{admin_subscriptions_url}?checkout=cancel",
-        client_reference_id: current_user.id.to_s,
-        metadata: {
-          user_id: current_user.id.to_s,
-          billing_admin_id: current_user.id.to_s
-        },
-        subscription_data: {
-          metadata: {
-            user_id: current_user.id.to_s,
-            billing_admin_id: current_user.id.to_s
-          }
-        }
-      }
-
-      if current_user.stripe_customer_id.present?
-        session_params[:customer] = current_user.stripe_customer_id
-      else
-        session_params[:customer_email] = current_user.email
-      end
-
-      checkout_session = StripeCheckout.create_session(
-        session_params,
-        { idempotency_key: "leadflow-org-checkout-#{current_user.id}-#{(Time.current.to_i / 15)}" }
-      )
-
-      if checkout_session.url.blank?
-        raise Stripe::StripeError, "Checkout Session missing redirect URL"
-      end
-
-      if request.headers["X-Inertia"].present?
-        inertia_location checkout_session.url
-      else
-        redirect_to checkout_session.url, allow_other_host: true
-      end
-    rescue Stripe::StripeError => e
-      Rails.logger.error("[Stripe Checkout] #{e.message}")
-      redirect_to admin_subscriptions_path, alert: "Could not start checkout. Please try again."
+      start_checkout!
     end
 
     def update
@@ -173,7 +133,8 @@ module Admin
       redirect_to admin_subscriptions_path, notice: notice
     rescue Stripe::StripeError => e
       Rails.logger.error("[Stripe Cancel] #{e.message}")
-      redirect_to admin_subscriptions_path, alert: "Could not cancel subscription. Please try again."
+      redirect_to admin_subscriptions_path,
+        alert: StripeConfig.user_facing_error(e, fallback: "Could not cancel subscription. Please try again.")
     end
 
     def resume
@@ -203,13 +164,71 @@ module Admin
       redirect_to admin_subscriptions_path, notice: "Subscription resumed. It will renew at the end of the billing period."
     rescue Stripe::StripeError => e
       Rails.logger.error("[Stripe Resume] #{e.message}")
-      redirect_to admin_subscriptions_path, alert: "Could not resume subscription. Please try again."
+      if StripeConfig.missing_subscription?(e)
+        SubscriptionBilling.clear_stripe_references!(current_user)
+        start_checkout!
+        return
+      end
+
+      redirect_to admin_subscriptions_path,
+        alert: StripeConfig.user_facing_error(e, fallback: "Could not resume subscription. Please try again.")
     end
 
     private
 
     def access_params
       params.permit(:user_id, :pro_access)
+    end
+
+    def start_checkout!(retry_stale_customer: true)
+      session_params = {
+        mode: "subscription",
+        line_items: [ { price: StripeConfig.price_id, quantity: 1 } ],
+        success_url: "#{admin_subscriptions_url}?checkout=success",
+        cancel_url: "#{admin_subscriptions_url}?checkout=cancel",
+        client_reference_id: current_user.id.to_s,
+        metadata: {
+          user_id: current_user.id.to_s,
+          billing_admin_id: current_user.id.to_s
+        },
+        subscription_data: {
+          metadata: {
+            user_id: current_user.id.to_s,
+            billing_admin_id: current_user.id.to_s
+          }
+        }
+      }
+
+      if current_user.stripe_customer_id.present?
+        session_params[:customer] = current_user.stripe_customer_id
+      else
+        session_params[:customer_email] = current_user.email
+      end
+
+      checkout_session = StripeCheckout.create_session(
+        session_params,
+        { idempotency_key: "leadflow-org-checkout-#{current_user.id}-#{(Time.current.to_i / 15)}" }
+      )
+
+      if checkout_session.url.blank?
+        raise Stripe::StripeError, "Checkout Session missing redirect URL"
+      end
+
+      if request.headers["X-Inertia"].present?
+        inertia_location checkout_session.url
+      else
+        redirect_to checkout_session.url, allow_other_host: true
+      end
+    rescue Stripe::StripeError => e
+      if retry_stale_customer && StripeConfig.missing_customer?(e)
+        current_user.update!(stripe_customer_id: nil)
+        start_checkout!(retry_stale_customer: false)
+        return
+      end
+
+      Rails.logger.error("[Stripe Checkout] #{e.message}")
+      redirect_to admin_subscriptions_path,
+        alert: StripeConfig.user_facing_error(e, fallback: "Could not start checkout. Please try again.")
     end
 
     def serialize_billing(admin)

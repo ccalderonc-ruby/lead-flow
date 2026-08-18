@@ -21,10 +21,11 @@ class DashboardMetrics
     id
   end
 
-  def initialize(user, activity_days: DEFAULT_ACTIVITY_DAYS, lead_stage_id: nil)
+  def initialize(user, activity_days: DEFAULT_ACTIVITY_DAYS, lead_stage_id: nil, book_only: false)
     @user = user
     @activity_days = self.class.normalize_activity_days(activity_days)
     @lead_stage_id = self.class.normalize_lead_stage_id(lead_stage_id)
+    @book_only = book_only
   end
 
   def call
@@ -42,7 +43,11 @@ class DashboardMetrics
 
   private
 
-  attr_reader :user, :activity_days, :lead_stage_id
+  attr_reader :user, :activity_days, :lead_stage_id, :book_only
+
+  def book_only?
+    book_only
+  end
 
   def metrics
     today_meetings = scoped_meetings.merge(meetings_on(Date.current)).includes(:lead).order(:start_time, :id)
@@ -212,18 +217,36 @@ class DashboardMetrics
   end
 
   def scoped_leads
+    return Lead.where(user_id: user.id) if book_only?
+
     LeadPolicy::Scope.new(user, Lead).resolve
   end
 
   def scoped_tasks
+    if book_only?
+      return Task.left_outer_joins(:lead).where(
+        "leads.user_id = :uid OR tasks.user_id = :uid",
+        uid: user.id
+      ).distinct
+    end
+
     TaskPolicy::Scope.new(user, Task).resolve
   end
 
   def scoped_meetings
+    if book_only?
+      return Meeting.left_outer_joins(:lead).where(
+        "leads.user_id = :uid OR meetings.user_id = :uid",
+        uid: user.id
+      ).distinct
+    end
+
     MeetingPolicy::Scope.new(user, Meeting).resolve
   end
 
   def scoped_opportunities
+    return Opportunity.joins(:lead).where(leads: { user_id: user.id }) if book_only?
+
     OpportunityPolicy::Scope.new(user, Opportunity).resolve
   end
 end

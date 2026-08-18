@@ -29,5 +29,28 @@ class StripeConfig
     def apply_api_key!
       Stripe.api_key = secret_key
     end
+
+    def user_facing_error(error, fallback:)
+      message = error.message.to_s
+      if message.match?(/expired api key/i)
+        "Stripe API key expired. Update STRIPE_SECRET_KEY in .env and restart the server."
+      elsif message.match?(/invalid api key|no api key provided/i)
+        "Stripe API key is invalid. Check STRIPE_SECRET_KEY."
+      elsif message.match?(/no such price/i)
+        "STRIPE_PRICE_ID does not exist on this Stripe account. Create a recurring price in the Dashboard and update .env."
+      elsif message.match?(/subscription_write|required permissions/i)
+        "This Stripe key cannot update subscriptions. Use a Secret key (sk_test_…) or enable Subscriptions write."
+      else
+        fallback
+      end
+    end
+
+    def missing_subscription?(error)
+      error.message.to_s.match?(/no such subscription/i)
+    end
+
+    def missing_customer?(error)
+      error.message.to_s.match?(/no such customer/i)
+    end
   end
 end

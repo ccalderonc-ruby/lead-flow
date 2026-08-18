@@ -15,7 +15,8 @@ class DashboardController < InertiaController
     payload = DashboardMetrics.new(
       subject,
       activity_days: activity_days,
-      lead_stage_id: lead_stage_id
+      lead_stage_id: lead_stage_id,
+      book_only: view == "advisor"
     ).call
     lead_options = form_lead_options
     first_session = session.delete(:first_session)
@@ -215,13 +216,24 @@ class DashboardController < InertiaController
   end
 
   def team_advisors
-    User.advisors.on_team(current_user.team).order(:name, :id)
+    User.joins(:role)
+      .includes(:role)
+      .on_team(current_user.team)
+      .where(roles: { name: %w[billing_admin admin advisor] })
+      .where(status: [ "active", nil ])
+      .order(:name, :id)
   end
 
   def advisor_options
     return [] unless current_user.admin?
 
-    team_advisors.map { |user| { id: user.id, name: user.name } }
+    team_advisors.map { |user|
+      {
+        id: user.id,
+        name: user.name,
+        role: user.role.name
+      }
+    }
   end
 
   def role_label_for(view, selected_advisor)

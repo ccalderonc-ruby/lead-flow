@@ -31,6 +31,13 @@ class DashboardMetricsTest < ActiveSupport::TestCase
     assert_in_delta 32_000.0, metrics[:pipeline_value]
   end
 
+  test "book_only metrics for an admin are that person's owned records" do
+    metrics = DashboardMetrics.new(users(:admin), book_only: true).call[:metrics]
+
+    assert_equal 1, metrics[:open_leads]
+    refute_equal DashboardMetrics.new(users(:admin)).call[:metrics][:open_leads], metrics[:open_leads]
+  end
+
   test "assistant metrics match assigned-advisor scope" do
     assistant_payload = DashboardMetrics.new(users(:assistant)).call
     advisor_payload = DashboardMetrics.new(users(:advisor)).call

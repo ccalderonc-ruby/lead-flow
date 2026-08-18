@@ -27,6 +27,19 @@ class SubscriptionBilling
       )
     end
 
+    # Drop Stripe ids that belong to another account/sandbox so checkout can start fresh.
+    def clear_stripe_references!(user)
+      return unless user
+
+      user.update!(
+        subscription_status: "inactive",
+        stripe_customer_id: nil,
+        stripe_subscription_id: nil,
+        subscription_cancel_at_period_end: false,
+        subscription_current_period_end: nil
+      )
+    end
+
     private
 
     def subscription_status_for(subscription)

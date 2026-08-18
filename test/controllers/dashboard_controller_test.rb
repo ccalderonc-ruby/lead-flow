@@ -62,6 +62,32 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "admin advisor filter includes admins and billing admins" do
+    sign_in_as users(:admin)
+
+    get root_path, params: { view: "advisor", advisor_id: users(:admin).id }
+
+    assert_response :success
+    assert_includes response.body, '"view":"advisor"'
+    assert_includes response.body, "\"selected_advisor_id\":#{users(:admin).id}"
+    assert_includes response.body, users(:billing_admin).name
+    assert_includes response.body, users(:advisor).name
+  end
+
+  test "admin viewing themselves as advisor sees only their owned book" do
+    travel_to Date.new(2026, 7, 5) do
+      sign_in_as users(:admin)
+
+      get root_path, params: { view: "advisor", advisor_id: users(:admin).id }
+
+      assert_response :success
+      assert_includes response.body, '"view":"advisor"'
+      assert_includes response.body, "\"selected_advisor_id\":#{users(:admin).id}"
+      assert_includes response.body, '"open_leads":1'
+      refute_includes response.body, '"open_leads":3'
+    end
+  end
+
   test "admin can view a selected advisor dashboard" do
     travel_to Date.new(2026, 7, 5) do
       sign_in_as users(:admin)
